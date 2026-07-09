@@ -26,6 +26,7 @@ To maintain a transparent and trackable project audit log, all repository update
 
 
 
+
 ## 4. Architecture & Repository Guidelines ( Kamal Ashour )
 ### Target Directory Models
 The repository will follow a modular architecture structured around core packages and distinct use cases to separate concerns within our Kotlin setup:
