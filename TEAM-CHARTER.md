@@ -18,3 +18,23 @@ To maintain a transparent and trackable project audit log, all repository update
 * `feat:` Used strictly when introducing new code, features, or logic implementations.
 * `fix:` Used strictly for resolving bugs, runtime exceptions, or logic compilation errors.
 * `chore:` Used for non-code modifications including repo setup, editing documentation, or updating the root `.gitignore` file.
+
+
+
+
+
+
+
+
+
+## 4. Architecture & Repository Guidelines ( Kamal Ashour )
+### Target Directory Models
+The repository will follow a modular architecture structured around core packages and distinct use cases to separate concerns within our Kotlin setup:
+* `/src/main/kotlin/packages/`: Dedicated to core configurations, shared utilities, and common data models.
+* `/src/main/kotlin/usecases/`: Dedicated to specific business logic implementations and individual application features.
+
+### .gitignore Exclusions
+To ensure local build outputs and IDE configurations are not tracked, the root `.gitignore` strictly excludes:
+* **Build Tools & Outputs:** `.gradle/`, `build/`
+* **IDE Settings:** `.idea/`, `*.iml`
+* **OS Files:** `.DS_Store`, `Thumbs.db`

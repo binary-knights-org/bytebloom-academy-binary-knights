@@ -8,3 +8,13 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+
+
+# Gradle build tools and outputs
+.gradle/
+build/
+
+
+# IntelliJ IDEA project settings
+.idea/
+*.iml
