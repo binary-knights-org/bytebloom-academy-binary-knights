@@ -23,6 +23,31 @@ To maintain a transparent and trackable project audit log, all repository update
 
 
 
+## 3. Communication & SLAs  (by: Sabah Baraka)  
+
+### * 3.1 Communication *
+
+- WhatsApp is used for daily communication.
+- GitHub Issues are used for reporting bugs and tasks.
+- GitHub Pull Requests are used for code reviews.
+
+### * 3.2 Standing Meeting *
+
+- daily stand‑up at 1:00 PM 
+- Meeting duration: 1 hour
+
+### * 3.3 SLA Rules *
+
+- Respond to team messages within 24 hours.
+- Review Pull Requests within 24 hours.
+- Notify the team if a task will be delayed.
+
+### * 3.4 Peer Review *
+
+- Every Pull Request must be reviewed before merging.
+- At least two approvals are required.
+- All review comments must be addressed before merging.
+- PR descriptions must include:(1. What was changed  2. Why it was changed 3. Any testing performed)
 
 
 
