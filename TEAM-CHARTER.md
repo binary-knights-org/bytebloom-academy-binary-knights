@@ -52,39 +52,14 @@ To maintain a transparent and trackable project audit log, all repository update
 
 
 
-## 4. Architecture & Repository Guidelines (By: Kamal Ashour)
-
+## 4. Architecture & Repository Guidelines ( Kamal Ashour )
 ### Target Directory Models
-To maintain high codebase scalability, clean separation of concerns, and ease of testing, our Kotlin project repository enforces a structured, modular directory model. The system codebase is strictly separated into core utilities and encapsulated business operations:
+The repository will follow a modular architecture structured around core packages and distinct use cases to separate concerns within our Kotlin setup:
+* `/src/main/kotlin/packages/`: Dedicated to core configurations, shared utilities, and common data models.
+* `/src/main/kotlin/usecases/`: Dedicated to specific business logic implementations and individual application features.
 
-* **Core Packages (`/src/main/kotlin/packages/`):**
-  This directory is dedicated to global system architecture configurations, cross-cutting shared utilities, networking/database layers, and common data structures that support the entire application infrastructure.
-
-* **UseCases (`/src/main/kotlin/usecases/`):**
-  This directory isolates the pure business logic of the application. Following the Single Responsibility Principle (SRP), every individual business action or specific feature operation must be implemented as an independent usecase class (e.g., `CalculateRouteUseCase.kt`), protecting core domain logic from being entangled with UI components or data frameworks.
-
----
-
-### Standardized .gitignore Exclusions
-A robust and comprehensive `.gitignore` configuration has been established at the repository root level. This baseline configuration ensures that temporary compiler files, local environments, and IDE artifacts from different team editors do not cause repository pollution or development conflicts during collaborative merges.
-
-The system repository strictly excludes and untracks the following blocks:
-
-#### 1. Build Tools & Runtime Outputs
-* `.gradle/` and `build/` (Temporary build structures and localized compiler outputs)
-* `!gradle/wrapper/gradle-wrapper.jar` (Explicitly tracked wrapper jar to preserve build consistency)
-* `out/` (Standard Java/Kotlin binary compilation directories)
-
-#### 2. JetBrains IntelliJ IDEA
-* `.idea/modules.xml`, `.idea/jarRepositories.xml`, `.idea/compiler.xml` (Local editor preferences)
-* `.idea/libraries/` (Project-specific library mapping indices)
-* `*.iml`, `*.iws`, `*.ipr` (Workspace configurations unique to each developer machine)
-
-#### 3. Cross-Platform IDE Support (Eclipse, NetBeans, VS Code)
-* **Eclipse:** `.apt_generated`, `.classpath`, `.factorypath`, `.project`, `.settings/`, `.springBeans`, `.sts4-cache`, `bin/`
-* **NetBeans:** `/nbproject/private/`, `/nbbuild/`, `/dist/`, `/nbdist/`, `/.nb-gradle/`
-* **VS Code:** `.vscode/`
-
-#### 4. Ecosystem & Operating System Metadata
-* `.kotlin` (Kotlin compiler environment flags)
-* `.DS_Store`, `Thumbs.db` (Mac OS and Windows desktop services metadata)
+### .gitignore Exclusions
+To ensure local build outputs and IDE configurations are not tracked, the root `.gitignore` strictly excludes:
+* **Build Tools & Outputs:** `.gradle/`, `build/`
+* **IDE Settings:** `.idea/`, `*.iml`
+* **OS Files:** `.DS_Store`, `Thumbs.db`
