@@ -20,6 +20,22 @@ To maintain a transparent and trackable project audit log, all repository update
 * `chore:` Used for non-code modifications including repo setup, editing documentation, or updating the root `.gitignore` file.
 
 
+## 2. Clean Code Standards (By: Roba Nassar)
+
+### 🏷️ 2.1 Naming Conventions
+
+* `Variables:` Use camelCase.
+* `Functions:` Start with a verb and follow camelCase.
+* `Constants:` Use UPPER_SNAKE_CASE.
+
+### 🧩 2.2 Code Structure Guidelines
+1. Each function should have a single responsibility.
+2. Avoid writing overly long functions. The recommended length is 20–30 lines.
+3. Comments should explain why a particular approach was used, not what the code does.
+4. Do not submit code that contains unused variables or functions.
+5. If a part of the code is expected to be error-prone, prefer using try-catch for exception handling.
+6. Before every commit or push, press Ctrl + Alt + L to automatically format the code.
+7. Prefer using val by default. Use var only when mutability is absolutely necessary.
 
 
 
