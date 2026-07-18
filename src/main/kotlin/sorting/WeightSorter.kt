@@ -1,11 +1,5 @@
 package sorting
-
-data class Package(
-    val packageId: String,
-    val weightKg: Double,
-    val priority: String,
-    val destinationHubId: String
-)
+import models.Package
 
 fun sortPackagesByWeight(packages: List<Package>): List<Package> {
     val sortedPackages = packages.toMutableList()
@@ -15,7 +9,7 @@ fun sortPackagesByWeight(packages: List<Package>): List<Package> {
         var heaviestPackageIndex = i
 
         for (j in i + 1 until packageCount) {
-            if (sortedPackages[j].weightKg > sortedPackages[heaviestPackageIndex].weightKg) {
+            if (sortedPackages[j].weight > sortedPackages[heaviestPackageIndex].weight) {
                 heaviestPackageIndex = j
             }
         }
