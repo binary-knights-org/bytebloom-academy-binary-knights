@@ -10,7 +10,7 @@ package org.example.Task_01_Roba
     data class Fleet(
         val vehicleId: String,
         val currentHubId: String,
-        val maxCapacityKg: Double?, // Double? للسماح بالقيم المفقودة أو N/A
+        val maxCapacityKg: Double?,
         val costPerKm: Double?
     )
 
