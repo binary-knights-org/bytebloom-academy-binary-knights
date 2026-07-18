@@ -1,13 +1,6 @@
 package routes
+import models.Route
 import java.io.File
-
-data class Route(
-    val routeId: String,
-    val originHubId: String,
-    val destinationHubId: String,
-    val distanceKm: Double,
-    val typicalDelayMin: Int
-)
 
 fun parseRoutes(filePath: String): List<Route> {
     val validRoutes = mutableListOf<Route>()
