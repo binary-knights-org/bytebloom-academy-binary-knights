@@ -1,6 +1,7 @@
-package org.example.Task_02_Roba
-import org.example.Task_01_Roba.Package
-class Parse_Package {
+
+package Logic
+import models.Package
+
     fun parsePackage(line: String): Package? {
 
         val parts = mutableListOf<String>()
@@ -48,4 +49,3 @@ class Parse_Package {
 
         return Package(id, weight, destinationHubId, priority)
     }
-}
