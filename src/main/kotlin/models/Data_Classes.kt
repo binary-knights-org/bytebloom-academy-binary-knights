@@ -1,4 +1,4 @@
-package org.example.Task_01_Roba
+package models
 
     data class Package(
         val id: String,
