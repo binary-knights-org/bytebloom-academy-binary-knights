@@ -49,7 +49,7 @@ To maintain a transparent and trackable project audit log, all repository update
 
 ### * 3.2 Standing Meeting *
 
-- daily stand‑up at 1:00 PM 
+- daily stand‑up at 6:00 PM 
 - Meeting duration: 1 hour
 
 ### * 3.3 SLA Rules *
