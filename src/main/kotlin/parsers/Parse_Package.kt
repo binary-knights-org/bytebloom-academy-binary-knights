@@ -1,6 +1,6 @@
 
-package Logic
-import models.Package
+package parsers
+import dataholders.Package
 
     fun parsePackage(line: String): Package? {
 

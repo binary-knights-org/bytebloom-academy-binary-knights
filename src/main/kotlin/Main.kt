@@ -1,12 +1,9 @@
-import Logic.loadFleetData
+import parsers.loadFleetData
 import org.example.Logic.parseWarehouses
 
-import Logic.loadFleetData
-import Logic.parsePackage
-import org.example.Logic.parseWarehouses
+import parsers.parsePackage
 import routes.parseRoutes
-import sorting.sortPackagesByPriorityAndWeight
-import java.io.File
+import sorter.sortPackagesByPriorityAndWeight
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -19,7 +16,7 @@ fun main() {
 
 
 
-    val packageList = mutableListOf<models.Package>()
+    val packageList = mutableListOf<dataholders.Package>()
     val packageFile = java.io.File(packageFilePath)
     if (packageFile.exists()) {
         val lines = packageFile.readLines()

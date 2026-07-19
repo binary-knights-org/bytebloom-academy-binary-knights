@@ -1,5 +1,5 @@
-package sorting
-import models.Package
+package sorter
+import dataholders.Package
 
 fun priorityValue(priority: String): Int {
     return when (priority.uppercase()) {
