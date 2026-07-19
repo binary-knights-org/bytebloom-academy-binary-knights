@@ -1,5 +1,5 @@
 package routes
-import models.Route
+import dataholders.Route
 import java.io.File
 
 fun parseRoutes(filePath: String): List<Route> {

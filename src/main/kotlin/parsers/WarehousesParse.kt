@@ -1,6 +1,6 @@
 package org.example.Logic
 
-import models.Warehouse
+import dataholders.Warehouse
 import java.io.File
 
 fun parseWarehouses(filePath: String): List<Warehouse> {

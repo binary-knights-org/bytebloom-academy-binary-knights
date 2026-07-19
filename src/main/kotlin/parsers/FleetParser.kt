@@ -1,4 +1,4 @@
-package Logic
+package parsers
 import java.io.File
 
 data class Fleet(

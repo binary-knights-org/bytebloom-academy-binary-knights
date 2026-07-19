@@ -1,4 +1,4 @@
-package models
+package dataholders
 
     data class Package(
         val id: String,
