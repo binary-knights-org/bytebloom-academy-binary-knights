@@ -1,12 +1,6 @@
 package parsers
+import dataholders.Fleet
 import java.io.File
-
-data class Fleet(
-    val vehicleId: String,
-    val currentHubId: String,
-    val maxCapacityKg: Double,
-    val costPerKm: Double
-)
 
 fun loadFleetData(filePath: String): List<Fleet> {
     val fleetList = mutableListOf<Fleet>()
