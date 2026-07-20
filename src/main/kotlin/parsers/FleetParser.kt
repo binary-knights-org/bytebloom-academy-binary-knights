@@ -1,6 +1,6 @@
 package parsers
-import java.io.File
 import dataholders.Fleet
+import java.io.File
 
 fun loadFleetData(filePath: String): List<Fleet> {
     val fleetList = mutableListOf<Fleet>()
