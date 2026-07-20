@@ -32,14 +32,14 @@ fun parseRoutes(filePath: String): List<Route> {
             val parsedOriginHub = routeDataFields[1].trim()
             val parsedDestinationHub = routeDataFields[2].trim()
 
-            val distanceText = routeDataFields[3].replace("km", "", ignoreCase = true).trim().toDouble()
+            val distance = routeDataFields[3].replace("km", "", ignoreCase = true).trim().toDouble()
             val delayText = routeDataFields[4].trim().toInt()
 
             val route = Route(
                 routeId = parsedRouteId,
                 originHubId = parsedOriginHub,
                 destinationHubId = parsedDestinationHub,
-                distanceKm = distanceText,
+                distanceKm = distance,
                 typicalDelayMin = delayText
             )
             validRoutes.add(route)

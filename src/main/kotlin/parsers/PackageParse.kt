@@ -4,32 +4,32 @@ import dataholders.Package
 
     fun parsePackage(line: String): Package? {
 
-        val parts = mutableListOf<String>()
+        val fields = mutableListOf<String>()
         var currentPart = StringBuilder()
 
         for (char in line) {
             if (char == ',') {
 
-                parts.add(currentPart.toString().trim())
+                fields.add(currentPart.toString().trim())
                 currentPart = StringBuilder()
             } else {
                 currentPart.append(char)
             }
         }
 
-        parts.add(currentPart.toString().trim())
+        fields.add(currentPart.toString().trim())
+        val EXPECTED_PACKAGE_FIELDS =4
 
-
-        if (parts.size != 4) {
+        if (fields.size != EXPECTED_PACKAGE_FIELDS) {
             println("Diagnostic Warning: Skipping malformed row: $line")
             return null
         }
 
 
-        val id = parts[0]
-        val weightStr = parts[1]
-        val destinationHubId = parts[2]
-        val priorityRaw = parts[3].uppercase()
+        val id = fields[0]
+        val weightStr = fields[1]
+        val destinationHubId = fields[2]
+        val priorityRaw = fields[3].uppercase()
 
 
         val weight = try {
@@ -41,11 +41,9 @@ import dataholders.Package
         }
 
 
-        val priority = if (priorityRaw == "URGENT" || priorityRaw == "STANDARD" || priorityRaw == "LOW") {
-            priorityRaw
-        } else {
-            "LOW"
+        val priority = when (priorityRaw) {
+            "URGENT", "STANDARD", "LOW" -> priorityRaw
+            else -> "LOW"
         }
-
         return Package(id, weight, destinationHubId, priority)
     }

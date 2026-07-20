@@ -16,10 +16,10 @@ fun parseWarehouses(filePath: String): List<Warehouse> {
     val fileLines = csvFile.readLines()
     if (fileLines.isEmpty()) return validWarehouses
 
-    val headerRowIndex = 1
-    val expectedFieldCount = 3
+    val HEADER_ROW_INDEX = 1
+    val EXPECTED_FIELD_COUNT = 3
 
-    for (i in headerRowIndex until fileLines.size) {
+    for (i in HEADER_ROW_INDEX until fileLines.size) {
 
         val rawLine = fileLines[i].trim()
 
@@ -27,7 +27,7 @@ fun parseWarehouses(filePath: String): List<Warehouse> {
 
         val warehouseDataFields = rawLine.split(",")
 
-        if (warehouseDataFields.size != expectedFieldCount) {
+        if (warehouseDataFields.size != EXPECTED_FIELD_COUNT) {
             println("A broken line was skipped: $rawLine")
             continue
         }
