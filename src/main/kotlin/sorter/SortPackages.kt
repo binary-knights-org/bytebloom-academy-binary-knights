@@ -1,47 +1,75 @@
 package sorter
+
 import dataholders.Package
 
-fun priorityValue(priority: String): Int {
+
+val PRIORITY_URGENT_TEXT = "URGENT"
+val PRIORITY_STANDARD_TEXT = "STANDARD"
+val PRIORITY_LOW_TEXT = "LOW"
+
+val RANK_URGENT = 3
+val RANK_STANDARD = 2
+val RANK_LOW = 1
+val RANK_DEFAULT = 1
+
+
+fun getPriorityRank(priority: String): Int {
     return when (priority.uppercase()) {
-        "URGENT" -> 3
-        "STANDARD" -> 2
-        "LOW" -> 1
-        else -> 1
+        PRIORITY_URGENT_TEXT -> RANK_URGENT
+        PRIORITY_STANDARD_TEXT -> RANK_STANDARD
+        PRIORITY_LOW_TEXT -> RANK_LOW
+        else -> RANK_DEFAULT
     }
+}
+
+fun isBetterPackage(candidate: Package, currentBest: Package): Boolean {
+    val candidateRank = getPriorityRank(candidate.priority)
+    val currentBestRank = getPriorityRank(currentBest.priority)
+
+    if (candidateRank > currentBestRank) {
+        return true
+    }
+
+    val isSamePriority = candidateRank == currentBestRank
+    val isHeavier = candidate.weight > currentBest.weight
+
+    return isSamePriority && isHeavier
+}
+
+fun findIndexOfBestPackage(packages: List<Package>, startIndex: Int): Int {
+    var bestIndex = startIndex
+
+    val nextElementIndex = startIndex + 1
+    val totalPackages = packages.size
+
+    for (currentIndex in nextElementIndex until totalPackages) {
+        if (isBetterPackage(packages[currentIndex], packages[bestIndex])) {
+            bestIndex = currentIndex
+        }
+    }
+
+    return bestIndex
+}
+
+fun swapPackages(packages: MutableList<Package>, firstIndex: Int, secondIndex: Int) {
+    val tempPackage = packages[firstIndex]
+    packages[firstIndex] = packages[secondIndex]
+    packages[secondIndex] = tempPackage
 }
 
 fun sortPackagesByPriorityAndWeight(packages: List<Package>): List<Package> {
     val sortedPackages = packages.toMutableList()
-    val packageCount = sortedPackages.size
 
-    for (i in 0 until packageCount - 1) {
-        var bestIndex = i
-        var currentHighestPriority = priorityValue(sortedPackages[bestIndex].priority)
-        var currentHighestWeight = sortedPackages[bestIndex].weight
+    val firstElementIndex = 0
+    val indexBeforeLast = sortedPackages.size - 1
 
-        for (j in i + 1 until packageCount) {
-            val scanPriority = priorityValue(sortedPackages[j].priority)
-            val scanWeight = sortedPackages[j].weight
+    for (currentIndex in firstElementIndex until indexBeforeLast) {
+        val bestPackageIndex = findIndexOfBestPackage(sortedPackages, currentIndex)
 
-            if (scanPriority > currentHighestPriority) {
-                bestIndex = j
-                currentHighestPriority = scanPriority
-                currentHighestWeight = scanWeight
-
-            } else if (scanPriority == currentHighestPriority) {
-                if (scanWeight > currentHighestWeight) {
-                    bestIndex = j
-                    currentHighestPriority = scanPriority
-                    currentHighestWeight = scanWeight
-                }
-            }
-        }
-        if (bestIndex != i) {
-            val packageToSwap = sortedPackages[bestIndex]
-            sortedPackages[bestIndex] = sortedPackages[i]
-            sortedPackages[i] = packageToSwap
+        if (bestPackageIndex != currentIndex) {
+            swapPackages(sortedPackages, currentIndex, bestPackageIndex)
         }
     }
-    
+
     return sortedPackages
 }
