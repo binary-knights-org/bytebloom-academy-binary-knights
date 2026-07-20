@@ -18,19 +18,19 @@ fun loadFleetData(filePath: String): List<Fleet> {
             if (line.isEmpty()) {
                 continue
             }
-            val column = line.split(",")
-            if (column.size != 4) {
+            val columns = line.split(",")
+            val EXPECTED_FLEET_COLUMNS =4
+            if (columns.size != EXPECTED_FLEET_COLUMNS) {
                 continue
             }
-            val vehicleId = column[0].trim()
-            val currentHubId = column[1].trim()
-            val maxCapacityStr = column[2].toDoubleOrNull()
-            val costPerKmStr = column[3].toDoubleOrNull()
-            if (maxCapacityStr == null || costPerKmStr == null) {
+            val vehicleId = columns[0].trim()
+            val currentHubId = columns[1].trim()
+            val maxCapacity = columns[2].toDoubleOrNull()
+            val costPerKm = columns[3].toDoubleOrNull()
+            if (maxCapacity == null || costPerKm == null) {
                 continue
             }
-            val fleet = Fleet(vehicleId, currentHubId, maxCapacityStr, costPerKmStr)
-            fleetList.add(fleet)
+            fleetList.add(Fleet(vehicleId, currentHubId, maxCapacity, costPerKm))
         }
 
 
