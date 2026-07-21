@@ -11,22 +11,6 @@ private const val INDEX_ID = 0
 private const val INDEX_NAME = 1
 private const val INDEX_REGIONAL_ZONE = 2
 
-private fun parserWarehouseLine(line: String): Hub? {
-    if (line.isBlank()) return null
-    val fields = line.split(CSV_DELIMITER).map { it.trim() }
-
-    if (fields.size != EXPECTED_WAREHOUSE_FIELDS) {
-        println("WARNING (WarehouseParser): Skipping malformed row (expected $EXPECTED_WAREHOUSE_FIELDS fields): $line")
-        return null
-    }
-
-    val id = fields[INDEX_ID]
-    val name = fields[INDEX_NAME]
-    val regionalZone = fields[INDEX_REGIONAL_ZONE]
-
-    return Hub(id, name, regionalZone)
-}
-
 fun loadWarehouseData(filePath: String): List<Hub> {
     val warehouseFile = File(filePath)
     if (!warehouseFile.exists()) {
@@ -47,4 +31,20 @@ fun loadWarehouseData(filePath: String): List<Hub> {
     }
 
     return validWarehouses
+}
+
+private fun parserWarehouseLine(line: String): Hub? {
+    if (line.isBlank()) return null
+    val fields = line.split(CSV_DELIMITER).map { it.trim() }
+
+    if (fields.size != EXPECTED_WAREHOUSE_FIELDS) {
+        println("WARNING (WarehouseParser): Skipping malformed row (expected $EXPECTED_WAREHOUSE_FIELDS fields): $line")
+        return null
+    }
+
+    val id = fields[INDEX_ID]
+    val name = fields[INDEX_NAME]
+    val regionalZone = fields[INDEX_REGIONAL_ZONE]
+
+    return Hub(id, name, regionalZone)
 }

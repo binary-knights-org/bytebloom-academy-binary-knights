@@ -14,6 +14,27 @@ private const val INDEX_DESTINATION_HUB = 2
 private const val INDEX_DISTANCE = 3
 private const val INDEX_TYPICAL_DELAY = 4
 
+fun loadRouteData(filePath: String): List<Route> {
+    val routeFile = File(filePath)
+    if (!routeFile.exists()) {
+        println("WARNING (RouteParser): File not found at path: $filePath")
+        return emptyList()
+    }
+
+    val validRoutes = mutableListOf<Route>()
+
+    try {
+        val lines = routeFile.readLines().drop(HEADER_LINES_TO_SKIP)
+        for (line in lines) {
+            val route = parseRouteLine(line)
+            if (route != null) validRoutes.add(route)
+        }
+    } catch (e: Exception) {
+        println("ERROR (RouteParser): Failed to read CSV file: ${e.message}")
+    }
+    return validRoutes
+}
+
 private fun parseDistance(distance: String): Double? {
     val cleanDistance = distance.replace(DISTANCE_UNIT_KM, "", ignoreCase = true).trim()
     return cleanDistance.toDoubleOrNull()
@@ -41,25 +62,4 @@ private fun parseRouteLine(line: String): Route? {
     }
 
     return Route(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
-}
-
-fun loadRouteData(filePath: String): List<Route> {
-    val routeFile = File(filePath)
-    if (!routeFile.exists()) {
-        println("WARNING (RouteParser): File not found at path: $filePath")
-        return emptyList()
-    }
-
-    val validRoutes = mutableListOf<Route>()
-
-    try {
-        val lines = routeFile.readLines().drop(HEADER_LINES_TO_SKIP)
-        for (line in lines) {
-            val route = parseRouteLine(line)
-            if (route != null) validRoutes.add(route)
-        }
-    } catch (e: Exception) {
-        println("ERROR (RouteParser): Failed to read CSV file: ${e.message}")
-    }
-    return validRoutes
 }
