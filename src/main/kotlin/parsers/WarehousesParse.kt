@@ -1,44 +1,50 @@
-package org.example.Logic
+package parsers
 
-import dataholders.Warehouse
+import dataholders.Hub
 import java.io.File
 
-fun parseWarehouses(filePath: String): List<Warehouse> {
+private const val EXXPECTED_WAREHOUSE_FIELDS = 3
+private const val CSV_DELIMITER = ","
+private const val HEADER_LINES_TO_SKIP = 1
 
-    val validWarehouses = mutableListOf<Warehouse>()
-    val csvFile = File(filePath)
+private const val INDEX_ID = 0
+private const val INDEX_NAME = 1
+private const val INDEX_REGIONAL_ZONE = 2
 
-    if (!csvFile.exists()) {
-        println("Warning: The warehouse file is missing at path: $filePath")
-        return validWarehouses
+private fun parserWarehouseLine(line: String): Hub? {
+    if (line.isBlank()) return null
+    val fields = line.split(CSV_DELIMITER).map { it.trim() }
+
+    if (fields.size != EXXPECTED_WAREHOUSE_FIELDS) {
+        println("A broken line was skipped: $line")
+        return null
     }
 
-    val fileLines = csvFile.readLines()
-    if (fileLines.isEmpty()) return validWarehouses
+    return Hub(
+        id = fields[INDEX_ID],
+        name = fields[INDEX_NAME],
+        regionalZone = fields[INDEX_REGIONAL_ZONE]
+    )
+}
 
-    val HEADER_ROW_INDEX = 1
-    val EXPECTED_FIELD_COUNT = 3
+fun loadWarehouseData(filePath: String): List<Hub> {
+    val warehouseFile = File(filePath)
+    if (!warehouseFile.exists()) {
+        println("Warning: The warehouse file is missing at path: $filePath")
+        return emptyList()
+    }
 
-    for (i in HEADER_ROW_INDEX until fileLines.size) {
+    val validWarehouses = mutableListOf<Hub>()
 
-        val rawLine = fileLines[i].trim()
+    try {
+        val lines = warehouseFile.readLines().drop(HEADER_LINES_TO_SKIP)
+        for (line in lines) {
 
-        if (rawLine.isEmpty()) continue
-
-        val warehouseDataFields = rawLine.split(",")
-
-        if (warehouseDataFields.size != EXPECTED_FIELD_COUNT) {
-            println("A broken line was skipped: $rawLine")
-            continue
+            val warehouse = parserWarehouseLine(line)
+            if (warehouse != null) validWarehouses.add(warehouse)
         }
-
-        val warehouse = Warehouse(
-            id = warehouseDataFields[0].trim(),
-            name = warehouseDataFields[1].trim(),
-            regionalZone = warehouseDataFields[2].trim()
-        )
-
-        validWarehouses.add(warehouse)
+    } catch (e: Exception) {
+        println("Diagnostic Error: Failed to read warehouse file due to: ${e.message}")
     }
 
     return validWarehouses
