@@ -13,20 +13,6 @@ private const val FLEET_FILE_PATH = "src/main/resources/fleet.csv"
 private const val TOP_SHIPMENTS_LIMIT = 3
 
 
-
-fun main() {
-
-    val packageList = loadPackageData(PACKAGE_FILE_PATH)
-    val warehousesList = loadWarehouseData(WAREHOUSES_FILE_PATH)
-    val routesList = loadRouteData(ROUTES_FILE_PATH)
-    val fleetList = loadFleetData(FLEET_FILE_PATH)
-
-    val sortedPackages = sortPackagesByPriorityAndWeight(packageList)
-
-    printParsingReport(packageList.size, warehousesList.size, routesList.size, fleetList.size)
-    printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
-}
-
 private fun printParsingReport(
     packageCount: Int,
     warehousesCount: Int,
@@ -48,4 +34,17 @@ private fun printTopShipments(packages: List<Package>, limit: Int) {
         val packageNumber = index + 1
         println("package = $packageNumber , id = ${pkg.id} , destinationHub = ${pkg.destinationHubId} , weight = ${pkg.weight} kg , priority = ${pkg.priority}")
     }
+}
+
+fun main() {
+
+    val packageList = loadPackageData(PACKAGE_FILE_PATH)
+    val warehousesList = loadWarehouseData(WAREHOUSES_FILE_PATH)
+    val routesList = loadRouteData(ROUTES_FILE_PATH)
+    val fleetList = loadFleetData(FLEET_FILE_PATH)
+
+    val sortedPackages = sortPackagesByPriorityAndWeight(packageList)
+
+    printParsingReport(packageList.size, warehousesList.size, routesList.size, fleetList.size)
+    printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
 }
