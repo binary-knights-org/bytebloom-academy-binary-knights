@@ -24,7 +24,7 @@ private fun parseRouteLine(line: String): Route? {
     val fields = line.split(CSV_DELIMITER).map { it.trim() }
 
     if (fields.size != EXPECTED_ROUTE_FIELDS) {
-        println("A broken line was skipped: $line")
+        println("WARNING (RouteParser): Skipping malformed row (expected $EXPECTED_ROUTE_FIELDS fields): $line")
         return null
     }
 
@@ -36,23 +36,17 @@ private fun parseRouteLine(line: String): Route? {
     val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
     if (distanceKm == null || typicalDelayMin == null) {
-        println("Line conversion error: Invalid numeric data in line $line")
+        println("WARNING (RouteParser): Skipping row (invalid numeric data): $line")
         return null
     }
 
-    return Route(
-        routeId = routeId,
-        originHubId = originHubId,
-        destinationHubId = destinationHubId,
-        distanceKm = distanceKm,
-        typicalDelayMin = typicalDelayMin
-    )
+    return Route(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
 }
 
 fun loadRouteData(filePath: String): List<Route> {
     val routeFile = File(filePath)
     if (!routeFile.exists()) {
-        println("Warning: The track file is missing at path: $filePath")
+        println("WARNING (RouteParser): File not found at path: $filePath")
         return emptyList()
     }
 
@@ -65,7 +59,7 @@ fun loadRouteData(filePath: String): List<Route> {
             if (route != null) validRoutes.add(route)
         }
     } catch (e: Exception) {
-        println("Diagnostic Error: Failed to read routes file due to: ${e.message}")
+        println("ERROR (RouteParser): Failed to read CSV file: ${e.message}")
     }
     return validRoutes
 }

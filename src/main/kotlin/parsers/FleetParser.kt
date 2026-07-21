@@ -3,7 +3,7 @@ package parsers
 import dataholders.Vehicle
 import java.io.File
 
-private const val EXXPECTED_FLEET_COLUMNS = 4
+private const val EXPECTED_FLEET_COLUMNS = 4
 private const val CSV_DELIMITER = ","
 private const val HEADER_LINES_TO_SKIP = 1
 
@@ -16,14 +16,20 @@ fun parseFleetLine(line: String): Vehicle? {
     if (line.isBlank()) return null
     val columns = line.split(CSV_DELIMITER).map { it.trim() }
 
-    if (columns.size != EXXPECTED_FLEET_COLUMNS) return null
+    if (columns.size != EXPECTED_FLEET_COLUMNS) {
+        println("WARNING (FleetParser): Skipping malformed row (expected $EXPECTED_FLEET_COLUMNS fields): $line")
+        return null
+    }
 
     val vehicleId = columns[INDEX_VEHICLE_ID].trim()
     val currentHubId = columns[INDEX_CURRENT_HUB_ID].trim()
     val maxCapacity = columns[INDEX_MAX_CAPACITY].trim().toDoubleOrNull()
     val costPerKm = columns[INDEX_COST_PER_KM].trim().toDoubleOrNull()
 
-    if (maxCapacity == null || costPerKm == null) return null
+    if (maxCapacity == null || costPerKm == null) {
+        println("WARNING (FleetParser): Skipping row (invalid numeric data): $line")
+        return null
+    }
 
     return Vehicle(vehicleId, currentHubId, maxCapacity, costPerKm)
 }
@@ -31,7 +37,7 @@ fun parseFleetLine(line: String): Vehicle? {
 fun loadFleetData(filePath: String): List<Vehicle> {
     val fleetFile = File(filePath)
     if (!fleetFile.exists()) {
-        println("Diagnostic Warning: Fleet file not found at $filePath")
+        println("WARNING (FleetParser): File not found at path: $filePath")
         return emptyList()
     }
 
@@ -45,7 +51,7 @@ fun loadFleetData(filePath: String): List<Vehicle> {
         }
 
     } catch (e: Exception) {
-        print("Diagnostic Error: Failed to parse fleet CSV due to: ${e.message}")
+        print("ERROR (FleetParser): Failed to read CSV file: ${e.message}")
     }
     return fleetList
 }

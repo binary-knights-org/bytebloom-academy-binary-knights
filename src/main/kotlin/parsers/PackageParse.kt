@@ -37,7 +37,7 @@ fun parsePackageLine(line: String): Package? {
     val fields = line.split(CSV_DELIMITER).map { it.trim() }
 
     if (fields.size != EXPECTED_PACKAGE_FIELDS) {
-        println("Diagnostic Warning: Skipping malformed row: $line")
+        println("WARNING (PackageParser): Skipping malformed row (expected $EXPECTED_PACKAGE_FIELDS fields): $line")
         return null
     }
 
@@ -52,7 +52,7 @@ fun parsePackageLine(line: String): Package? {
 fun loadPackageData(filePath: String): List<Package> {
     val packageFile = File(filePath)
     if (!packageFile.exists()) {
-        println("Warning: Package file not found at path: $filePath")
+        println("WARNING (PackageParser): File not found at path: $filePath")
         return emptyList()
     }
 
@@ -65,7 +65,7 @@ fun loadPackageData(filePath: String): List<Package> {
             if (parsedPackage != null) packageList.add(parsedPackage)
         }
     } catch (e: Exception) {
-        println("Diagnostic Error: Failed to read packages file due to: ${e.message}")
+        println("ERROR (PackageParser): Failed to read CSV file: ${e.message}")
     }
 
     return packageList
