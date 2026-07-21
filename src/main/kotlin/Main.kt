@@ -1,60 +1,51 @@
+import dataholders.Package
 import parsers.loadFleetData
-import org.example.Logic.parseWarehouses
-
-import parsers.parsePackage
-import routes.parseRoutes
+import parsers.loadPackageData
+import parsers.loadWarehouseData
+import routes.loadRouteData
 import sorter.sortPackagesByPriorityAndWeight
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
+private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
+private const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
+private const val FLEET_FILE_PATH = "src/main/resources/fleet.csv"
+
+private const val TOP_SHIPMENTS_LIMIT = 3
+
+
+
 fun main() {
 
-    val packageFilePath = "src/main/resources/packages.csv"
-    val warehousesFilePath = "src/main/resources/warehouses.csv"
-    val routesFilePath = "src/main/resources/routes.csv"
-    val fleetFilePath = "src/main/resources/fleet.csv"
+    val packageList = loadPackageData(PACKAGE_FILE_PATH)
+    val warehousesList = loadWarehouseData(WAREHOUSES_FILE_PATH)
+    val routesList = loadRouteData(ROUTES_FILE_PATH)
+    val fleetList = loadFleetData(FLEET_FILE_PATH)
 
-
-
-    val packageList = mutableListOf<dataholders.Package>()
-    val packageFile = java.io.File(packageFilePath)
-    if (packageFile.exists()) {
-        val lines = packageFile.readLines()
-        for (i in 1 until  lines.size){
-            val line = lines[i].trim()
-            if (line.isEmpty()) continue
-            val parsedPackage = parsePackage(line)
-            if (parsedPackage != null) {
-                packageList.add(parsedPackage)
-            }
-
-        }
-    }
-
-
-
-    val warehousesList = parseWarehouses(warehousesFilePath)
-    val routesList = parseRoutes(routesFilePath)
-    val fleetList = loadFleetData(fleetFilePath)
     val sortedPackages = sortPackagesByPriorityAndWeight(packageList)
 
+    printParsingReport(packageList.size, warehousesList.size, routesList.size, fleetList.size)
+    printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
+}
 
-    println("\n---  Data Parsing Report ---")
-    println(" Successfully parsed Packages: ${packageList.size} records.")
-    println(" Successfully parsed Warehouses: ${warehousesList.size} records.")
-    println(" Successfully parsed Routes: ${routesList.size} records.")
-    println(" Successfully parsed Fleet: ${fleetList.size} vehicle records.")
+private fun printParsingReport(
+    packageCount: Int,
+    warehousesCount: Int,
+    routesCount: Int,
+    fleetCount: Int
+) {
+    println("\n--- Data Parsing Report ---")
+    println(" Successfully parsed Packages: $packageCount records.")
+    println(" Successfully parsed Warehouses: $warehousesCount records.")
+    println(" Successfully parsed Routes: $routesCount records.")
+    println(" Successfully parsed Fleet: $fleetCount vehicle records.")
+}
 
+private fun printTopShipments(packages: List<Package>, limit: Int) {
+    println("\n--- Executing Manual Package Sorting ---")
+    println("\n--- Top $limit Priority Shipments ---")
 
-    println("\n---  Executing Manual Package Sorting ---")
-
-    println("\n---  Top 3 Priority Shipments ---")
-
-    var packageCount = 1
-    for (pkg in sortedPackages) {
-        if (packageCount >= 4) break
-        println("package = $packageCount , id = ${pkg.id} , destinationHub = ${pkg.destinationHubId} , weight = ${pkg.weight} kg , priority = ${pkg.priority}")
-        packageCount++
+    packages.take(limit).forEachIndexed { index, pkg ->
+        val packageNumber = index + 1
+        println("package = $packageNumber , id = ${pkg.id} , destinationHub = ${pkg.destinationHubId} , weight = ${pkg.weight} kg , priority = ${pkg.priority}")
     }
-
 }

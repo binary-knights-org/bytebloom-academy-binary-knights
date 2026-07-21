@@ -1,51 +1,65 @@
 package routes
+
 import dataholders.Route
 import java.io.File
 
-fun parseRoutes(filePath: String): List<Route> {
-    val validRoutes = mutableListOf<Route>()
-    val csvFile = File(filePath)
+private const val EXPECTED_ROUTE_FIELDS = 5
+private const val CSV_DELIMITER = ","
+private const val HEADER_LINES_TO_SKIP = 1
+private const val DISTANCE_UNIT_KM = "km"
 
-    if (!csvFile.exists()) {
-        println("Warning: The track file is missing at path: $filePath")
-        return validRoutes
+private const val INDEX_ROUTE_ID = 0
+private const val INDEX_ORIGIN_HUB = 1
+private const val INDEX_DESTINATION_HUB = 2
+private const val INDEX_DISTANCE = 3
+private const val INDEX_TYPICAL_DELAY = 4
+
+private fun parseDistance(distance: String): Double? {
+    val cleanDistance = distance.replace(DISTANCE_UNIT_KM, "", ignoreCase = true).trim()
+    return cleanDistance.toDoubleOrNull()
+}
+
+private fun parseRouteLine(line: String): Route? {
+    if (line.isBlank()) return null
+    val fields = line.split(CSV_DELIMITER).map { it.trim() }
+
+    if (fields.size != EXPECTED_ROUTE_FIELDS) {
+        println("WARNING (RouteParser): Skipping malformed row (expected $EXPECTED_ROUTE_FIELDS fields): $line")
+        return null
     }
 
-    val fileLines = csvFile.readLines()
-    if (fileLines.isEmpty()) return validRoutes
+    val routeId = fields[INDEX_ROUTE_ID]
+    val originHubId = fields[INDEX_ORIGIN_HUB]
+    val destinationHubId = fields[INDEX_DESTINATION_HUB]
 
-    val headerRowIndex = 1
-    val expectedFieldCount = 5
+    val distanceKm = parseDistance(fields[INDEX_DISTANCE])
+    val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
-    for (i in headerRowIndex until fileLines.size) {
-        val rawLine = fileLines[i].trim()
-        if (rawLine.isEmpty()) continue
+    if (distanceKm == null || typicalDelayMin == null) {
+        println("WARNING (RouteParser): Skipping row (invalid numeric data): $line")
+        return null
+    }
 
-        val routeDataFields = rawLine.split(",")
-        if (routeDataFields.size != expectedFieldCount) {
-            println("A broken line was skipped: $rawLine")
-            continue
+    return Route(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
+}
+
+fun loadRouteData(filePath: String): List<Route> {
+    val routeFile = File(filePath)
+    if (!routeFile.exists()) {
+        println("WARNING (RouteParser): File not found at path: $filePath")
+        return emptyList()
+    }
+
+    val validRoutes = mutableListOf<Route>()
+
+    try {
+        val lines = routeFile.readLines().drop(HEADER_LINES_TO_SKIP)
+        for (line in lines) {
+            val route = parseRouteLine(line)
+            if (route != null) validRoutes.add(route)
         }
-
-        try {
-            val parsedRouteId = routeDataFields[0].trim()
-            val parsedOriginHub = routeDataFields[1].trim()
-            val parsedDestinationHub = routeDataFields[2].trim()
-
-            val distance = routeDataFields[3].replace("km", "", ignoreCase = true).trim().toDouble()
-            val delayText = routeDataFields[4].trim().toInt()
-
-            val route = Route(
-                routeId = parsedRouteId,
-                originHubId = parsedOriginHub,
-                destinationHubId = parsedDestinationHub,
-                distanceKm = distance,
-                typicalDelayMin = delayText
-            )
-            validRoutes.add(route)
-        } catch (e: Exception) {
-            println("Line conversion error: ${e.message} -> in line: $rawLine")
-        }
+    } catch (e: Exception) {
+        println("ERROR (RouteParser): Failed to read CSV file: ${e.message}")
     }
     return validRoutes
 }
