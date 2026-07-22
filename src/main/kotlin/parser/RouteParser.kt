@@ -1,6 +1,6 @@
 package routes
 
-import dataholders.Route
+import dataholder.RouteRaw
 import java.io.File
 
 private const val EXPECTED_ROUTE_FIELDS = 5
@@ -14,24 +14,34 @@ private const val INDEX_DESTINATION_HUB = 2
 private const val INDEX_DISTANCE = 3
 private const val INDEX_TYPICAL_DELAY = 4
 
-fun loadRouteData(filePath: String): List<Route> {
+fun loadRouteData(filePath: String): List<RouteRaw> {
     val routeFile = File(filePath)
-    if (!routeFile.exists()) {
-        println("WARNING (RouteParser): File not found at path: $filePath")
+    if (isMissingFile(routeFile)) {
         return emptyList()
     }
+    val lines = routeFile.readLines().drop(HEADER_LINES_TO_SKIP)
+    return processRouteLines(lines)
+}
 
-    val validRoutes = mutableListOf<Route>()
-
-    try {
-        val lines = routeFile.readLines().drop(HEADER_LINES_TO_SKIP)
-        for (line in lines) {
-            val route = parseRouteLine(line)
-            if (route != null) validRoutes.add(route)
-        }
-    } catch (e: Exception) {
-        println("ERROR (RouteParser): Failed to read CSV file: ${e.message}")
+private fun isMissingFile(file: File): Boolean {
+    if (!file.exists()) {
+        println("WARNING (RouteParser): File not found at path: ${file.path}")
+        return true
     }
+    return false
+}
+
+private fun processRouteLines(lines: List<String>): List<RouteRaw> {
+    val validRoutes = mutableListOf<RouteRaw>()
+
+    for (line in lines) {
+        if (line.isBlank()) continue
+        val route = parseRouteLine(line)
+        if (route != null) {
+            validRoutes.add(route)
+        }
+    }
+
     return validRoutes
 }
 
@@ -40,7 +50,7 @@ private fun parseDistance(distance: String): Double? {
     return cleanDistance.toDoubleOrNull()
 }
 
-private fun parseRouteLine(line: String): Route? {
+private fun parseRouteLine(line: String): RouteRaw? {
     if (line.isBlank()) return null
     val fields = line.split(CSV_DELIMITER).map { it.trim() }
 
@@ -61,5 +71,5 @@ private fun parseRouteLine(line: String): Route? {
         return null
     }
 
-    return Route(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
+    return RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
 }
