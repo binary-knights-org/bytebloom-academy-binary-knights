@@ -1,6 +1,6 @@
-package dataholders
+package dataholder
 
-data class Route(
+data class RouteRaw(
     val id: String,
     val originHubId: String,
     val destinationHubId: String,
