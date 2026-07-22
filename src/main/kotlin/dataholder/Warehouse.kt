@@ -1,6 +1,6 @@
-package dataholders
+package dataholder
 
-data class Hub(
+data class WarehouseRaw (
     val id: String,
     val name: String,
     val regionalZone: String
