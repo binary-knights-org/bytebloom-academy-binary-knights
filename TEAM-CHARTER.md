@@ -86,8 +86,8 @@ Every commit must use one of the prefixes below. Commits missing a valid prefix 
 ```
 src/main/
 ├── kotlin/
-│   ├── dataholders/
-│   ├── parsers/
+│   ├── dataholder/
+│   ├── parser/
 │   ├── sorter/
 │   └── Main.kt 
 └── resources/
