@@ -1,9 +1,10 @@
-import dataholders.Package
-import parsers.loadFleetData
-import parsers.loadPackageData
-import parsers.loadWarehouseData
+import parser.loadFleetData
+import parser.loadPackageData
+import parser.loadWarehouseData
 import routes.loadRouteData
-import sorter.sortPackagesByPriorityAndWeight
+
+import algorithm.sortPackagesByImportance
+import dataholder.PackageRaw
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -26,7 +27,7 @@ private fun printParsingReport(
     println(" Successfully parsed Fleet: $fleetCount vehicle records.")
 }
 
-private fun printTopShipments(packages: List<Package>, limit: Int) {
+private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
     println("\n--- Executing Manual Package Sorting ---")
     println("\n--- Top $limit Priority Shipments ---")
 
@@ -43,7 +44,7 @@ fun main() {
     val routesList = loadRouteData(ROUTES_FILE_PATH)
     val fleetList = loadFleetData(FLEET_FILE_PATH)
 
-    val sortedPackages = sortPackagesByPriorityAndWeight(packageList)
+    val sortedPackages = sortPackagesByImportance(packageList)
 
     printParsingReport(packageList.size, warehousesList.size, routesList.size, fleetList.size)
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
