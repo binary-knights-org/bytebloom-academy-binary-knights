@@ -1,6 +1,6 @@
 package parsers
 
-import dataholders.Package
+import dataholder.PackageRaw
 import java.io.File
 
 private const val EXPECTED_PACKAGE_FIELDS = 4
@@ -19,27 +19,40 @@ private const val PRIORITY_STANDARD = "STANDARD"
 private const val PRIORITY_LOW = "LOW"
 private const val DEFAULT_PRIORITY = PRIORITY_LOW
 
-fun loadPackageData(filePath: String): List<Package> {
+fun loadPackageData(filePath: String): List<PackageRaw> {
     val packageFile = File(filePath)
-    if (!packageFile.exists()) {
-        println("WARNING (PackageParser): File not found at path: $filePath")
+    if (isMissingFile(packageFile)) {
         return emptyList()
     }
+    val lines = packageFile.readLines().drop(HEADER_LINES_TO_SKIP)
+    return processPackageLines(lines)
+}
 
-    val packageList = mutableListOf<Package>()
+private fun isMissingFile(file: File): Boolean {
+    if (!file.exists()) {
+        println("WARNING (RouteParser): File not found at path: ${file.path}")
+        return true
+    }
+    return false
+}
 
-    try {
-        val lines = packageFile.readLines().drop(HEADER_LINES_TO_SKIP)
-        for (line in lines) {
-            val parsedPackage = parsePackageLine(line)
-            if (parsedPackage != null) packageList.add(parsedPackage)
+
+
+
+private fun processPackageLines(lines: List<String>): List<PackageRaw> {
+    val validPackage = mutableListOf<PackageRaw>()
+
+    for (line in lines) {
+        if (line.isBlank()) continue
+        val Package = parsePackageLine(line)
+        if (Package != null) {
+            validPackage.add(Package)
         }
-    } catch (e: Exception) {
-        println("ERROR (PackageParser): Failed to read CSV file: ${e.message}")
     }
 
-    return packageList
+    return validPackage
 }
+
 
 private fun parseWeight(weight: String): Double {
     val cleanWeight = weight.replace(WEIGHT_UNIT_KG, "", ignoreCase = true).trim()
@@ -54,7 +67,7 @@ private fun parsePriority(priorityRaw: String): String {
     }
 }
 
-private fun parsePackageLine(line: String): Package? {
+private fun parsePackageLine(line: String): PackageRaw? {
     if (line.isBlank()) return null
     val fields = line.split(CSV_DELIMITER).map { it.trim() }
 
@@ -68,5 +81,5 @@ private fun parsePackageLine(line: String): Package? {
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
     val priority = parsePriority(fields[INDEX_PRIORITY])
 
-    return Package(id, weight, destinationHubId, priority)
+    return PackageRaw(id, weight, destinationHubId, priority)
 }
