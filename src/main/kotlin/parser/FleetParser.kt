@@ -1,6 +1,6 @@
-package parsers
+package parser
 
-import dataholders.Vehicle
+import dataholder.FleetRaw
 import java.io.File
 
 private const val EXPECTED_FLEET_COLUMNS = 4
@@ -12,29 +12,41 @@ private const val INDEX_CURRENT_HUB_ID = 1
 private const val INDEX_MAX_CAPACITY = 2
 private const val INDEX_COST_PER_KM = 3
 
-fun loadFleetData(filePath: String): List<Vehicle> {
+
+fun loadFleetData(filePath: String): List<FleetRaw> {
     val fleetFile = File(filePath)
-    if (!fleetFile.exists()) {
-        println("WARNING (FleetParser): File not found at path: $filePath")
+    if (isMissingFile(fleetFile)) {
         return emptyList()
     }
 
-    val fleetList = mutableListOf<Vehicle>()
+    val lines = fleetFile.readLines().drop(HEADER_LINES_TO_SKIP)
+    return processFleetLines(lines)
+}
 
-    try {
-        val lines = fleetFile.readLines().drop(HEADER_LINES_TO_SKIP)
-        for (line in lines) {
-            val fleet = parseFleetLine(line.trim())
-            if (fleet != null) fleetList.add(fleet)
-        }
-
-    } catch (e: Exception) {
-        print("ERROR (FleetParser): Failed to read CSV file: ${e.message}")
+private fun isMissingFile(file: File): Boolean {
+    if (!file.exists()) {
+        println("WARNING (FleetParser): File not found at path: ${file.path}")
+        return true
     }
+    return false
+}
+
+
+private fun processFleetLines(lines: List<String>): List<FleetRaw> {
+    val fleetList = mutableListOf<FleetRaw>()
+
+    for (line in lines) {
+        if (line.isBlank()) continue
+        val fleet = parseFleetLine(line)
+        if (fleet != null) {
+            fleetList.add(fleet)
+        }
+    }
+
     return fleetList
 }
 
-private fun parseFleetLine(line: String): Vehicle? {
+private fun parseFleetLine(line: String): FleetRaw? {
     if (line.isBlank()) return null
     val columns = line.split(CSV_DELIMITER).map { it.trim() }
 
@@ -53,5 +65,5 @@ private fun parseFleetLine(line: String): Vehicle? {
         return null
     }
 
-    return Vehicle(vehicleId, currentHubId, maxCapacity, costPerKm)
+    return FleetRaw(listOf(vehicleId), currentHubId, maxCapacity, costPerKm)
 }

@@ -88,7 +88,8 @@ src/main/
 ├── kotlin/
 │   ├── dataholder/
 │   ├── parser/
-│   ├── sorter/
+│   ├── algorithm/
+│   ├── utils/
 │   └── Main.kt 
 └── resources/
 ```

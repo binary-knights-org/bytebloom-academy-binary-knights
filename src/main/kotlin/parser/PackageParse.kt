@@ -1,4 +1,4 @@
-package parsers
+package parser
 
 import dataholder.PackageRaw
 import java.io.File
