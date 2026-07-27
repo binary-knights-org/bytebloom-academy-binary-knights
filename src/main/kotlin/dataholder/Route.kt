@@ -1,9 +1,9 @@
 package dataholder
 
 data class RouteRaw(
-    val id: String,
+    val routeId: String,
     val originHubId: String,
     val destinationHubId: String,
-    val distanceKm: Double,
-    val typicalDelayMin: Int
+    val distanceKm: Double?,
+    val typicalDelayMin: Int?
 )
