@@ -17,10 +17,8 @@ private fun hasPrecedence(packageToCheck: PackageRaw, referencePackage: PackageR
     val rankToCheck = getPriorityRank(packageToCheck.priority)
     val referenceRank = getPriorityRank(referencePackage.priority)
 
-    if (rankToCheck != referenceRank) {
-        return rankToCheck > referenceRank
-    }
-    return isHeavier(packageToCheck, referencePackage)
+    return if (rankToCheck != referenceRank) { rankToCheck > referenceRank }
+    else { isHeavier(packageToCheck, referencePackage) }
 }
 
 private fun findHighestPriorityIndex(packages: List<PackageRaw>, startIndex: Int): Int {
