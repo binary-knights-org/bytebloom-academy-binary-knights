@@ -4,6 +4,7 @@ import dataholder.PackageRaw
 import utils.hasValidFieldCount
 import utils.parseCsvFields
 import java.io.File
+import utils.isMissingFile
 
 private const val EXPECTED_PACKAGE_FIELDS = 4
 private const val CSV_DELIMITER = ","
@@ -23,22 +24,12 @@ private const val DEFAULT_PRIORITY = PRIORITY_LOW
 
 fun loadPackageData(filePath: String): List<PackageRaw> {
     val packageFile = File(filePath)
-    if (isMissingFile(packageFile)) {
+    if (isMissingFile(packageFile, parserName = "PackageParser")) {
         return emptyList()
     }
     val lines = packageFile.readLines().drop(HEADER_LINES_TO_SKIP)
     return processPackageLines(lines)
 }
-
-private fun isMissingFile(file: File): Boolean {
-    if (!file.exists()) {
-        println("WARNING (PackageParser): File not found at path: ${file.path}")
-        return true
-    }
-    return false
-}
-
-
 
 
 private fun processPackageLines(lines: List<String>): List<PackageRaw> {
