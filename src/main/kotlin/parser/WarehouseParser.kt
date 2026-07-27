@@ -1,6 +1,7 @@
 package parser
 
 import dataholder.WarehouseRaw
+import utils.isMissingFile
 import java.io.File
 
 private const val EXPECTED_WAREHOUSE_FIELDS = 3
@@ -12,28 +13,14 @@ private const val INDEX_NAME = 1
 private const val INDEX_REGIONAL_ZONE = 2
 
 
-
-
-
-
 fun loadWarehouseData(filePath: String): List<WarehouseRaw> {
     val warehouseFile = File(filePath)
-    if (isMissingFile(warehouseFile)) {
-        println("WARNING (WarehouseParser): File not found at path: $filePath")
+    if (isMissingFile(warehouseFile, parserName = "WarehouseParse")) {
         return emptyList()
     }
     val lines = warehouseFile.readLines().drop(HEADER_LINES_TO_SKIP)
     return processWarehouseLines(lines)
 }
-
-
-private fun isMissingFile(file: File): Boolean {
-        if (!file.exists()) {
-            println("WARNING (RouteParser): File not found at path: ${file.path}")
-            return true
-        }
-        return false
-    }
 
     private fun processWarehouseLines(lines: List<String>): List<WarehouseRaw> {
         val validWarehouses = mutableListOf<WarehouseRaw>()

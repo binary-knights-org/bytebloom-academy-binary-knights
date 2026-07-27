@@ -1,6 +1,7 @@
 package parser
 
 import dataholder.PackageRaw
+import utils.isMissingFile
 import java.io.File
 
 private const val EXPECTED_PACKAGE_FIELDS = 4
@@ -19,25 +20,15 @@ private const val PRIORITY_STANDARD = "STANDARD"
 private const val PRIORITY_LOW = "LOW"
 private const val DEFAULT_PRIORITY = PRIORITY_LOW
 
+
 fun loadPackageData(filePath: String): List<PackageRaw> {
     val packageFile = File(filePath)
-    if (isMissingFile(packageFile)) {
+    if (isMissingFile(packageFile, parserName = "PackageParse")) {
         return emptyList()
     }
     val lines = packageFile.readLines().drop(HEADER_LINES_TO_SKIP)
     return processPackageLines(lines)
 }
-
-private fun isMissingFile(file: File): Boolean {
-    if (!file.exists()) {
-        println("WARNING (RouteParser): File not found at path: ${file.path}")
-        return true
-    }
-    return false
-}
-
-
-
 
 private fun processPackageLines(lines: List<String>): List<PackageRaw> {
     val validPackage = mutableListOf<PackageRaw>()

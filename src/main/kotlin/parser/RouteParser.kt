@@ -1,6 +1,7 @@
 package routes
 
 import dataholder.RouteRaw
+import utils.isMissingFile
 import java.io.File
 
 private const val EXPECTED_ROUTE_FIELDS = 5
@@ -16,20 +17,14 @@ private const val INDEX_TYPICAL_DELAY = 4
 
 fun loadRouteData(filePath: String): List<RouteRaw> {
     val routeFile = File(filePath)
-    if (isMissingFile(routeFile)) {
+    if (isMissingFile(routeFile, parserName = "RouteParser")) {
         return emptyList()
     }
     val lines = routeFile.readLines().drop(HEADER_LINES_TO_SKIP)
     return processRouteLines(lines)
 }
 
-private fun isMissingFile(file: File): Boolean {
-    if (!file.exists()) {
-        println("WARNING (RouteParser): File not found at path: ${file.path}")
-        return true
-    }
-    return false
-}
+
 
 private fun processRouteLines(lines: List<String>): List<RouteRaw> {
     val validRoutes = mutableListOf<RouteRaw>()
