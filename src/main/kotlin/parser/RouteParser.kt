@@ -1,6 +1,8 @@
-package routes
+package parser
 
 import dataholder.RouteRaw
+import utils.parseCsvFields
+import utils.hasValidFieldCount
 import java.io.File
 
 private const val EXPECTED_ROUTE_FIELDS = 5
@@ -50,26 +52,28 @@ private fun parseDistance(distance: String): Double? {
     return cleanDistance.toDoubleOrNull()
 }
 
-private fun parseRouteLine(line: String): RouteRaw? {
-    if (line.isBlank()) return null
-    val fields = line.split(CSV_DELIMITER).map { it.trim() }
-
-    if (fields.size != EXPECTED_ROUTE_FIELDS) {
-        println("WARNING (RouteParser): Skipping malformed row (expected $EXPECTED_ROUTE_FIELDS fields): $line")
-        return null
-    }
-
+private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? {
     val routeId = fields[INDEX_ROUTE_ID]
     val originHubId = fields[INDEX_ORIGIN_HUB]
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
-
     val distanceKm = parseDistance(fields[INDEX_DISTANCE])
     val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
-    if (distanceKm == null || typicalDelayMin == null) {
-        println("WARNING (RouteParser): Skipping row (invalid numeric data): $line")
-        return null
-    }
+    if (hasValidNumericData(distanceKm, distanceKm, rawLine)) return null
 
     return RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
+}
+
+private fun hasValidNumericData(distanceKm: Double?, typicalDelayMin: Double?, rawLine: String): Boolean {
+    if (distanceKm == null || typicalDelayMin == null) {
+        println("WARNING (RouteParser): Skipping row (invalid numeric data): $rawLine")
+        return false
+    }
+    return true
+}
+
+private fun parseRouteLine(line: String): RouteRaw? {
+    val fields = parseCsvFields(line, CSV_DELIMITER)
+    if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS, "RouteParser", line)) return null
+    return mapFieldsToRoutes(fields, line)
 }

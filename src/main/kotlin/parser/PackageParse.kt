@@ -1,6 +1,8 @@
 package parser
 
 import dataholder.PackageRaw
+import utils.hasValidFieldCount
+import utils.parseCsvFields
 import java.io.File
 
 private const val EXPECTED_PACKAGE_FIELDS = 4
@@ -30,7 +32,7 @@ fun loadPackageData(filePath: String): List<PackageRaw> {
 
 private fun isMissingFile(file: File): Boolean {
     if (!file.exists()) {
-        println("WARNING (RouteParser): File not found at path: ${file.path}")
+        println("WARNING (PackageParser): File not found at path: ${file.path}")
         return true
     }
     return false
@@ -60,26 +62,23 @@ private fun parseWeight(weight: String): Double {
 }
 
 private fun parsePriority(priorityRaw: String): String {
-    val upperPriority = priorityRaw.uppercase()
-    return when (upperPriority) {
+    return when (val upperPriority = priorityRaw.uppercase()) {
         PRIORITY_URGENT, PRIORITY_STANDARD, PRIORITY_LOW -> upperPriority
         else -> DEFAULT_PRIORITY
     }
 }
 
-private fun parsePackageLine(line: String): PackageRaw? {
-    if (line.isBlank()) return null
-    val fields = line.split(CSV_DELIMITER).map { it.trim() }
-
-    if (fields.size != EXPECTED_PACKAGE_FIELDS) {
-        println("WARNING (PackageParser): Skipping malformed row (expected $EXPECTED_PACKAGE_FIELDS fields): $line")
-        return null
-    }
-
-    val id = fields[INDEX_ID]
+private fun mapFieldsToPackages(fields: List<String>): PackageRaw {
+    val packageId = fields[INDEX_ID]
     val weight = parseWeight(fields[INDEX_WEIGHT])
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
     val priority = parsePriority(fields[INDEX_PRIORITY])
 
-    return PackageRaw(id, weight, destinationHubId, priority)
+    return PackageRaw(packageId, weight, destinationHubId, priority)
+}
+
+private fun parsePackageLine(line: String): PackageRaw? {
+    val fields = parseCsvFields(line, CSV_DELIMITER)
+    if (!hasValidFieldCount(fields, EXPECTED_PACKAGE_FIELDS, "PackageParser", line)) return null
+    return mapFieldsToPackages(fields)
 }

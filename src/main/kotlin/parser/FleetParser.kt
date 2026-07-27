@@ -1,9 +1,11 @@
 package parser
 
 import dataholder.FleetRaw
+import utils.hasValidFieldCount
+import utils.parseCsvFields
 import java.io.File
 
-private const val EXPECTED_FLEET_COLUMNS = 4
+private const val EXPECTED_FLEET_FIELDS = 4
 private const val CSV_DELIMITER = ","
 private const val HEADER_LINES_TO_SKIP = 1
 
@@ -46,24 +48,27 @@ private fun processFleetLines(lines: List<String>): List<FleetRaw> {
     return fleetList
 }
 
-private fun parseFleetLine(line: String): FleetRaw? {
-    if (line.isBlank()) return null
-    val columns = line.split(CSV_DELIMITER).map { it.trim() }
+private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
+    val vehicleIds = fields[INDEX_VEHICLE_ID]
+    val currentHubId = fields[INDEX_CURRENT_HUB_ID]
+    val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
+    val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull()
 
-    if (columns.size != EXPECTED_FLEET_COLUMNS) {
-        println("WARNING (FleetParser): Skipping malformed row (expected $EXPECTED_FLEET_COLUMNS fields): $line")
-        return null
-    }
+    if (hasValidNumericData(maxCapacity, costPerKm, rawLine)) return null
 
-    val vehicleId = columns[INDEX_VEHICLE_ID].trim()
-    val currentHubId = columns[INDEX_CURRENT_HUB_ID].trim()
-    val maxCapacity = columns[INDEX_MAX_CAPACITY].trim().toDoubleOrNull()
-    val costPerKm = columns[INDEX_COST_PER_KM].trim().toDoubleOrNull()
+    return FleetRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
+}
 
+private fun hasValidNumericData(maxCapacity: Double?, costPerKm: Double?, rawLine: String): Boolean {
     if (maxCapacity == null || costPerKm == null) {
-        println("WARNING (FleetParser): Skipping row (invalid numeric data): $line")
-        return null
+        println("WARNING (FleetParser): Skipping row (invalid numeric data): $rawLine")
+        return false
     }
+    return true
+}
 
-    return FleetRaw(listOf(vehicleId), currentHubId, maxCapacity, costPerKm)
+private fun parseFleetLine(line: String): FleetRaw? {
+    val fields = parseCsvFields(line, CSV_DELIMITER)
+    if (!hasValidFieldCount(fields, EXPECTED_FLEET_FIELDS, "FleetParser", line)) return null
+    return mapFieldsToFleet(fields, line)
 }
