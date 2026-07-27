@@ -2,7 +2,7 @@ package parser
 
 import dataholder.FleetRaw
 import utils.hasValidFieldCount
-import utils.isMissingFile
+import utils.checkFileExists
 import utils.parseCsvFields
 import java.io.File
 
@@ -17,22 +17,22 @@ private const val INDEX_COST_PER_KM = 3
 
 
 fun loadFleetData(filePath: String): List<FleetRaw> {
-    val fleetFile = File(filePath)
-    if (isMissingFile(fleetFile, parserName = "FleetParser")) {
+    val file = File(filePath)
+    if (checkFileExists(file, parserName = "FleetParser")) {
         return emptyList()
     }
 
-    val lines = fleetFile.readLines().drop(HEADER_LINES_TO_SKIP)
-    return processFleetLines(lines)
+    val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
+    return extractFleets(lines)
 }
 
 
-private fun processFleetLines(lines: List<String>): List<FleetRaw> {
+private fun extractFleets(lines: List<String>): List<FleetRaw> {
     val fleetList = mutableListOf<FleetRaw>()
 
     for (line in lines) {
         if (line.isBlank()) continue
-        val fleet = parseFleetLine(line)
+        val fleet = parseLine(line)
         if (fleet != null) {
             fleetList.add(fleet)
         }
@@ -60,7 +60,7 @@ private fun hasValidNumericData(maxCapacity: Double?, costPerKm: Double?, rawLin
     return true
 }
 
-private fun parseFleetLine(line: String): FleetRaw? {
+private fun parseLine(line: String): FleetRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields, EXPECTED_FLEET_FIELDS, "FleetParser", line)) return null
     return mapFieldsToFleet(fields, line)

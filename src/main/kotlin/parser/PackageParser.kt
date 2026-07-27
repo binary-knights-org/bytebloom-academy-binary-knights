@@ -4,7 +4,7 @@ import dataholder.PackageRaw
 import utils.hasValidFieldCount
 import utils.parseCsvFields
 import java.io.File
-import utils.isMissingFile
+import utils.checkFileExists
 
 private const val EXPECTED_PACKAGE_FIELDS = 4
 private const val CSV_DELIMITER = ","
@@ -23,21 +23,21 @@ private const val PRIORITY_LOW = "LOW"
 private const val DEFAULT_PRIORITY = PRIORITY_LOW
 
 fun loadPackageData(filePath: String): List<PackageRaw> {
-    val packageFile = File(filePath)
-    if (isMissingFile(packageFile, parserName = "PackageParser")) {
+    val file = File(filePath)
+    if (checkFileExists(file, parserName = "PackageParser")) {
         return emptyList()
     }
-    val lines = packageFile.readLines().drop(HEADER_LINES_TO_SKIP)
-    return processPackageLines(lines)
+    val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
+    return extractPackages(lines)
 }
 
 
-private fun processPackageLines(lines: List<String>): List<PackageRaw> {
+private fun extractPackages(lines: List<String>): List<PackageRaw> {
     val validPackage = mutableListOf<PackageRaw>()
 
     for (line in lines) {
         if (line.isBlank()) continue
-        val Package = parsePackageLine(line)
+        val Package = parseLine(line)
         if (Package != null) {
             validPackage.add(Package)
         }
@@ -68,7 +68,7 @@ private fun mapFieldsToPackages(fields: List<String>): PackageRaw {
     return PackageRaw(packageId, weight, destinationHubId, priority)
 }
 
-private fun parsePackageLine(line: String): PackageRaw? {
+private fun parseLine(line: String): PackageRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields, EXPECTED_PACKAGE_FIELDS, "PackageParser", line)) return null
     return mapFieldsToPackages(fields)
