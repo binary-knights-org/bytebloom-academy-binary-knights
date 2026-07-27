@@ -1,7 +1,7 @@
 package dataholder
 
 data class WarehouseRaw (
-    val id: String,
-    val name: String,
+    val hubId: String,
+    val hubName: String,
     val regionalZone: String
 )
