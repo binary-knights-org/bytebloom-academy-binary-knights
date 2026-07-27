@@ -4,6 +4,7 @@ import dataholder.WarehouseRaw
 import utils.hasValidFieldCount
 import utils.parseCsvFields
 import java.io.File
+import utils.isMissingFile
 
 private const val EXPECTED_WAREHOUSE_FIELDS = 3
 private const val CSV_DELIMITER = ","
@@ -16,21 +17,11 @@ private const val INDEX_REGIONAL_ZONE = 2
 
 fun loadWarehouseData(filePath: String): List<WarehouseRaw> {
     val warehouseFile = File(filePath)
-    if (isMissingFile(warehouseFile)) {
-        println("WARNING (WarehouseParser): File not found at path: $filePath")
+    if (isMissingFile(warehouseFile, parserName = "WarehouseParser")) {
         return emptyList()
     }
     val lines = warehouseFile.readLines().drop(HEADER_LINES_TO_SKIP)
     return processWarehouseLines(lines)
-}
-
-
-private fun isMissingFile(file: File): Boolean {
-    if (!file.exists()) {
-        println("WARNING (WarehouseParser): File not found at path: ${file.path}")
-        return true
-    }
-    return false
 }
 
 private fun processWarehouseLines(lines: List<String>): List<WarehouseRaw> {

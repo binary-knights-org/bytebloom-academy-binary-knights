@@ -2,6 +2,7 @@ package parser
 
 import dataholder.FleetRaw
 import utils.hasValidFieldCount
+import utils.isMissingFile
 import utils.parseCsvFields
 import java.io.File
 
@@ -17,20 +18,12 @@ private const val INDEX_COST_PER_KM = 3
 
 fun loadFleetData(filePath: String): List<FleetRaw> {
     val fleetFile = File(filePath)
-    if (isMissingFile(fleetFile)) {
+    if (isMissingFile(fleetFile, parserName = "FleetParser")) {
         return emptyList()
     }
 
     val lines = fleetFile.readLines().drop(HEADER_LINES_TO_SKIP)
     return processFleetLines(lines)
-}
-
-private fun isMissingFile(file: File): Boolean {
-    if (!file.exists()) {
-        println("WARNING (FleetParser): File not found at path: ${file.path}")
-        return true
-    }
-    return false
 }
 
 
