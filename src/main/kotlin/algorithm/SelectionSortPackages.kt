@@ -1,6 +1,5 @@
 package algorithm
 
-import utils.getPriorityRank
 import dataholder.PackageRaw
 
 private fun swapPackages(packages: MutableList<PackageRaw>, firstIndex: Int, secondIndex: Int) {
@@ -13,39 +12,31 @@ private fun isHeavier(packageToCheck: PackageRaw, referencePackage: PackageRaw):
     return packageToCheck.weight > referencePackage.weight
 }
 
-private fun hasPrecedence(packageToCheck: PackageRaw, referencePackage: PackageRaw): Boolean {
+private fun hasHigherPriority(packageToCheck: PackageRaw, referencePackage: PackageRaw): Boolean {
     val rankToCheck = getPriorityRank(packageToCheck.priority)
     val referenceRank = getPriorityRank(referencePackage.priority)
-
-    return if (rankToCheck != referenceRank) { rankToCheck > referenceRank }
-    else { isHeavier(packageToCheck, referencePackage) }
+    return if (rankToCheck == referenceRank) isHeavier(
+        packageToCheck,
+        referencePackage
+    ) else rankToCheck > referenceRank
 }
 
 private fun findHighestPriorityIndex(packages: List<PackageRaw>, startIndex: Int): Int {
     var highestPriorityIndex = startIndex
-    val nextElementIndex = startIndex + 1
-    val totalPackages = packages.size
 
-    for (currentIndex in nextElementIndex until totalPackages) {
-        if (hasPrecedence(packages[currentIndex], packages[highestPriorityIndex])) {
+    for (currentIndex in startIndex + 1 until packages.size) {
+        if (hasHigherPriority(packages[currentIndex], packages[highestPriorityIndex]))
             highestPriorityIndex = currentIndex
-        }
     }
-
     return highestPriorityIndex
 }
 
 fun sortPackagesByImportance(packages: List<PackageRaw>): List<PackageRaw> {
     val sortedPackages = packages.toMutableList()
-    val firstElementIndex = 0
-    val indexBeforeLast = sortedPackages.size - 1
 
-    for (currentIndex in firstElementIndex until indexBeforeLast) {
+    for (currentIndex in 0 until sortedPackages.lastIndex) {
         val nextIndex = findHighestPriorityIndex(sortedPackages, currentIndex)
-        if (nextIndex != currentIndex) {
-            swapPackages(sortedPackages, currentIndex, nextIndex)
-        }
+        if (nextIndex != currentIndex) swapPackages(sortedPackages, currentIndex, nextIndex)
     }
-
     return sortedPackages
 }
