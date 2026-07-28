@@ -1,9 +1,6 @@
 package parser
 
 import dataholder.FleetRaw
-import utils.hasValidFieldCount
-import utils.checkFileExists
-import utils.parseCsvFields
 import java.io.File
 
 private const val EXPECTED_FLEET_FIELDS = 4
@@ -18,7 +15,7 @@ private const val INDEX_COST_PER_KM = 3
 
 fun loadFleetData(filePath: String): List<FleetRaw> {
     val file = File(filePath)
-    if (checkFileExists(file, parserName = "FleetParser")) {
+    if (checkFileExists(file, "FleetParser")) {
         return emptyList()
     }
 

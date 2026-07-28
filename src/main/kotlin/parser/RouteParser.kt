@@ -1,10 +1,7 @@
 package parser
 
 import dataholder.RouteRaw
-import utils.parseCsvFields
-import utils.hasValidFieldCount
 import java.io.File
-import utils.checkFileExists
 
 private const val EXPECTED_ROUTE_FIELDS = 5
 private const val CSV_DELIMITER = ","
@@ -19,7 +16,7 @@ private const val INDEX_TYPICAL_DELAY = 4
 
 fun loadRouteData(filePath: String): List<RouteRaw> {
     val file = File(filePath)
-    if (checkFileExists(file, parserName = "RouteParser")) {
+    if (checkFileExists(file, "RouteParser")) {
         return emptyList()
     }
     val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
