@@ -13,7 +13,8 @@ private const val HEADER_LINES_TO_SKIP = 1
 private const val INDEX_ID = 0
 private const val INDEX_NAME = 1
 private const val INDEX_REGIONAL_ZONE = 2
-
+private const val INDEX_LATITUDE = 3
+private const val INDEX_LONGITUDE = 4
 
 fun loadWarehouseData(filePath: String): List<WarehouseRaw> {
     val file = File(filePath)
@@ -38,12 +39,14 @@ private fun extractWarehouse(lines: List<String>): List<WarehouseRaw> {
     return validWarehouses
 }
 
-private fun mapFieldsToWarehouses(fields: List<String>): WarehouseRaw {
+private fun mapFieldsToWarehouses(fields: List<String>): WarehouseRaw?{
     val hubId = fields[INDEX_ID]
     val hubName = fields[INDEX_NAME]
     val regionalZone = fields[INDEX_REGIONAL_ZONE]
+    val latitude = fields[INDEX_LATITUDE].toDoubleOrNull()
+    val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull()
 
-    return WarehouseRaw(hubId, hubName, regionalZone)
+    return WarehouseRaw(hubId, hubName, regionalZone,latitude,longitude)
 }
 
 private fun parserLine(line: String): WarehouseRaw? {
