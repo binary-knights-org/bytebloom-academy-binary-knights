@@ -1,10 +1,7 @@
 package parser
 
 import dataholder.WarehouseRaw
-import utils.hasValidFieldCount
-import utils.parseCsvFields
 import java.io.File
-import utils.checkFileExists
 
 private const val EXPECTED_WAREHOUSE_FIELDS = 3
 private const val CSV_DELIMITER = ","
@@ -18,7 +15,7 @@ private const val INDEX_LONGITUDE = 4
 
 fun loadWarehouseData(filePath: String): List<WarehouseRaw> {
     val file = File(filePath)
-    if (checkFileExists(file, parserName = "WarehouseParser")) {
+    if (checkFileExists(file, "WarehouseParser")) {
         return emptyList()
     }
     val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)

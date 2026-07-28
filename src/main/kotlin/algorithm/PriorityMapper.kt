@@ -1,4 +1,4 @@
-package utils
+package algorithm
 
 
 private const val PRIORITY_URGENT_TEXT = "URGENT"

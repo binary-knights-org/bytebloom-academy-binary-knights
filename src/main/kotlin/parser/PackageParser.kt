@@ -1,10 +1,7 @@
 package parser
 
 import dataholder.PackageRaw
-import utils.hasValidFieldCount
-import utils.parseCsvFields
 import java.io.File
-import utils.checkFileExists
 
 private const val EXPECTED_PACKAGE_FIELDS = 5
 private const val CSV_DELIMITER = ","
@@ -25,7 +22,7 @@ private const val DEFAULT_PRIORITY = PRIORITY_LOW
 
 fun loadPackageData(filePath: String): List<PackageRaw> {
     val file = File(filePath)
-    if (checkFileExists(file, parserName = "PackageParser")) {
+    if (checkFileExists(file, "PackageParser")) {
         return emptyList()
     }
     val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
