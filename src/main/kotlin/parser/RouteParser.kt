@@ -4,7 +4,7 @@ import dataholder.RouteRaw
 import utils.parseCsvFields
 import utils.hasValidFieldCount
 import java.io.File
-import utils.isMissingFile
+import utils.checkFileExists
 
 private const val EXPECTED_ROUTE_FIELDS = 5
 private const val CSV_DELIMITER = ","
@@ -18,20 +18,20 @@ private const val INDEX_DISTANCE = 3
 private const val INDEX_TYPICAL_DELAY = 4
 
 fun loadRouteData(filePath: String): List<RouteRaw> {
-    val routeFile = File(filePath)
-    if (isMissingFile(routeFile, parserName = "RouteParser")) {
+    val file = File(filePath)
+    if (checkFileExists(file, parserName = "RouteParser")) {
         return emptyList()
     }
-    val lines = routeFile.readLines().drop(HEADER_LINES_TO_SKIP)
-    return processRouteLines(lines)
+    val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
+    return extractRoutes(lines)
 }
 
-private fun processRouteLines(lines: List<String>): List<RouteRaw> {
+private fun extractRoutes(lines: List<String>): List<RouteRaw> {
     val validRoutes = mutableListOf<RouteRaw>()
 
     for (line in lines) {
         if (line.isBlank()) continue
-        val route = parseRouteLine(line)
+        val route = parseLine(line)
         if (route != null) {
             validRoutes.add(route)
         }
@@ -65,7 +65,7 @@ private fun hasValidNumericData(distanceKm: Double?, typicalDelayMin: Double?, r
     return true
 }
 
-private fun parseRouteLine(line: String): RouteRaw? {
+private fun parseLine(line: String): RouteRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS, "RouteParser", line)) return null
     return mapFieldsToRoutes(fields, line)

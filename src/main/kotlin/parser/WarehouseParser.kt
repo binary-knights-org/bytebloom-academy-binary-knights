@@ -4,7 +4,7 @@ import dataholder.WarehouseRaw
 import utils.hasValidFieldCount
 import utils.parseCsvFields
 import java.io.File
-import utils.isMissingFile
+import utils.checkFileExists
 
 private const val EXPECTED_WAREHOUSE_FIELDS = 3
 private const val CSV_DELIMITER = ","
@@ -16,20 +16,20 @@ private const val INDEX_REGIONAL_ZONE = 2
 
 
 fun loadWarehouseData(filePath: String): List<WarehouseRaw> {
-    val warehouseFile = File(filePath)
-    if (isMissingFile(warehouseFile, parserName = "WarehouseParser")) {
+    val file = File(filePath)
+    if (checkFileExists(file, parserName = "WarehouseParser")) {
         return emptyList()
     }
-    val lines = warehouseFile.readLines().drop(HEADER_LINES_TO_SKIP)
-    return processWarehouseLines(lines)
+    val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
+    return extractWarehouse(lines)
 }
 
-private fun processWarehouseLines(lines: List<String>): List<WarehouseRaw> {
+private fun extractWarehouse(lines: List<String>): List<WarehouseRaw> {
     val validWarehouses = mutableListOf<WarehouseRaw>()
 
     for (line in lines) {
         if (line.isBlank()) continue
-        val warehouse = parserWarehouseLine(line)
+        val warehouse = parserLine(line)
         if (warehouse != null) {
             validWarehouses.add(warehouse)
         }
@@ -46,7 +46,7 @@ private fun mapFieldsToWarehouses(fields: List<String>): WarehouseRaw {
     return WarehouseRaw(hubId, hubName, regionalZone)
 }
 
-private fun parserWarehouseLine(line: String): WarehouseRaw? {
+private fun parserLine(line: String): WarehouseRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields,EXPECTED_WAREHOUSE_FIELDS, "WarehouseParser", line)) return null
     return mapFieldsToWarehouses(fields)
