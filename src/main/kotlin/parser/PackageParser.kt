@@ -16,6 +16,7 @@ private const val INDEX_ID = 0
 private const val INDEX_WEIGHT = 1
 private const val INDEX_DESTINATION_HUB = 2
 private const val INDEX_PRIORITY = 3
+private const val INDEX_LOCATION = 4
 
 private const val PRIORITY_URGENT = "URGENT"
 private const val PRIORITY_STANDARD = "STANDARD"
@@ -64,8 +65,9 @@ private fun mapFieldsToPackages(fields: List<String>): PackageRaw {
     val weight = parseWeight(fields[INDEX_WEIGHT])
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
     val priority = parsePriority(fields[INDEX_PRIORITY])
+    val location = fields[INDEX_LOCATION]
 
-    return PackageRaw(packageId, weight, destinationHubId, priority)
+    return PackageRaw(packageId, weight, destinationHubId, priority ,location)
 }
 
 private fun parseLine(line: String): PackageRaw? {
