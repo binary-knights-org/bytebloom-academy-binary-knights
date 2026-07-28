@@ -6,7 +6,7 @@ import utils.parseCsvFields
 import java.io.File
 import utils.checkFileExists
 
-private const val EXPECTED_PACKAGE_FIELDS = 4
+private const val EXPECTED_PACKAGE_FIELDS = 5
 private const val CSV_DELIMITER = ","
 private const val HEADER_LINES_TO_SKIP = 1
 private const val WEIGHT_UNIT_KG = "kg"
@@ -14,9 +14,9 @@ private const val INVALID_WEIGHT_DEFAULT = -1.0
 
 private const val INDEX_ID = 0
 private const val INDEX_WEIGHT = 1
-private const val INDEX_DESTINATION_HUB = 2
-private const val INDEX_PRIORITY = 3
-private const val INDEX_LOCATION = 4
+private const val INDEX_ORIGIN_HUB = 2
+private const val INDEX_DESTINATION_HUB = 3
+private const val INDEX_PRIORITY = 4
 
 private const val PRIORITY_URGENT = "URGENT"
 private const val PRIORITY_STANDARD = "STANDARD"
@@ -63,11 +63,11 @@ private fun parsePriority(priorityRaw: String): String {
 private fun mapFieldsToPackages(fields: List<String>): PackageRaw {
     val packageId = fields[INDEX_ID]
     val weight = parseWeight(fields[INDEX_WEIGHT])
+    val originHubId = fields[INDEX_ORIGIN_HUB]
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
     val priority = parsePriority(fields[INDEX_PRIORITY])
-    val location = fields[INDEX_LOCATION]
 
-    return PackageRaw(packageId, weight, destinationHubId, priority ,location)
+    return PackageRaw(packageId, weight, originHubId, destinationHubId, priority)
 }
 
 private fun parseLine(line: String): PackageRaw? {
