@@ -1,6 +1,6 @@
 package domain.model
 
-class Route(
+data class Route(
     val id: String,
     val distanceKm: Double,
     val typicalDelayMin: Int,

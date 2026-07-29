@@ -1,6 +1,6 @@
 package domain.model
 
-class Vehicle(
+data class Vehicle(
     val id: String,
     val maxCapacityKg: Double,
     val costPerKm: Double,
