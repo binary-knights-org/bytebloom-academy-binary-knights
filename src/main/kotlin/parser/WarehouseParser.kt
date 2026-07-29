@@ -3,7 +3,7 @@ package parser
 import dataholder.WarehouseRaw
 import java.io.File
 
-private const val EXPECTED_WAREHOUSE_FIELDS = 3
+private const val EXPECTED_WAREHOUSE_FIELDS = 5
 private const val CSV_DELIMITER = ","
 private const val HEADER_LINES_TO_SKIP = 1
 
@@ -36,7 +36,7 @@ private fun extractWarehouse(lines: List<String>): List<WarehouseRaw> {
     return validWarehouses
 }
 
-private fun mapFieldsToWarehouses(fields: List<String>): WarehouseRaw?{
+private fun mapFieldsToWarehouses(fields: List<String>): WarehouseRaw {
     val hubId = fields[INDEX_ID]
     val hubName = fields[INDEX_NAME]
     val regionalZone = fields[INDEX_REGIONAL_ZONE]
