@@ -35,9 +35,9 @@ private fun extractPackages(lines: List<String>): List<PackageRaw> {
 
     for (line in lines) {
         if (line.isBlank()) continue
-        val Package = parseLine(line)
-        if (Package != null) {
-            validPackage.add(Package)
+        val packages = parseLine(line)
+        if (packages != null) {
+            validPackage.add(packages)
         }
     }
 
