@@ -33,7 +33,11 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
 
     packages.take(limit).forEachIndexed { index, pkg ->
         val packageNumber = index + 1
-        println("package = $packageNumber , id = ${pkg.packageId} , destinationHub = ${pkg.destinationHubId} , weight = ${pkg.weight} kg , priority = ${pkg.priority}")
+        println("package = $packageNumber" +
+                " , id = ${pkg.packageId}" +
+                " , destinationHub = ${pkg.destinationHubId}" +
+                " , weight = ${pkg.weight}" +
+                " kg , priority = ${pkg.priority}")
     }
 }
 
