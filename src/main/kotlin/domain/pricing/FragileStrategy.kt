@@ -1,10 +1,14 @@
 package domain.pricing
 
-class FragileStrategy : DispatchStrategy {
-    private val safetyFee: Double = 15.0
+private const val SAFETY_FEE = 15.0
+private const val WEIGHT_MULTIPLIER = 1.0
+private const val DISTANCE_MULTIPLIER = 1.2
+private const val PRIORITY_MULTIPLIER = 1.5
 
+class FragileStrategy : DispatchStrategy {
     override fun calculateTransitCost(weight: Double, distance: Double): Double {
-        return safetyFee + (weight * 1.0) + (distance * 1.2)
+        return SAFETY_FEE + (weight * WEIGHT_MULTIPLIER) + (distance * DISTANCE_MULTIPLIER)
     }
-    override fun getPriorityMultiplier(): Double = 1.5
+
+    override fun getPriorityMultiplier(): Double = PRIORITY_MULTIPLIER
 }
