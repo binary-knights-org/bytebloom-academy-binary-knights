@@ -1,55 +1,55 @@
 import parser.loadFleetData
 import parser.loadPackageData
-import parser.loadWarehouseData
 import parser.loadRouteData
+import parser.loadWarehouseData
 
-import algorithm.sortPackagesByImportance
-import dataholder.PackageRaw
+import domain.builder.NetworkBuilder
+import domain.builder.NetworkDataLoader
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
 private const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
 private const val FLEET_FILE_PATH = "src/main/resources/fleet.csv"
 
-private const val TOP_SHIPMENTS_LIMIT = 3
-
-
-private fun printParsingReport(
-    fleetCount: Int,
-    packageCount: Int,
-    routesCount: Int,
-    warehousesCount: Int
-) {
-    println("\n--- Data Parsing Report ---")
-    println(" Successfully parsed Fleet: $fleetCount vehicle records.")
-    println(" Successfully parsed Packages: $packageCount records.")
-    println(" Successfully parsed Routes: $routesCount records.")
-    println(" Successfully parsed Warehouses: $warehousesCount records.")
-}
-
-private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
-    println("\n--- Executing Manual Package Sorting ---")
-    println("\n--- Top $limit Priority Shipments ---")
-
-    packages.take(limit).forEachIndexed { index, pkg ->
-        val packageNumber = index + 1
-        println("package = $packageNumber" +
-                " , id = ${pkg.packageId}" +
-                " , destinationHub = ${pkg.destinationHubId}" +
-                " , weight = ${pkg.weight}" +
-                " kg , priority = ${pkg.priority}")
-    }
-}
 
 fun main() {
 
-    val fleetList = loadFleetData(FLEET_FILE_PATH)
-    val packageList = loadPackageData(PACKAGE_FILE_PATH)
-    val routesList = loadRouteData(ROUTES_FILE_PATH)
-    val warehousesList = loadWarehouseData(WAREHOUSES_FILE_PATH)
+    val networkBuilder = initializeNetwork()
+    val isMemoryMatch = verifyHeapLoopResolution(networkBuilder)
+    printVerificationReport(isMemoryMatch)
+}
 
-    val sortedPackages = sortPackagesByImportance(packageList)
+private fun initializeNetwork(): NetworkBuilder {
+    val rawFleets = loadFleetData(FLEET_FILE_PATH)
+    val rawPackages = loadPackageData(PACKAGE_FILE_PATH)
+    val rawRoutes = loadRouteData(ROUTES_FILE_PATH)
+    val rawWarehouses = loadWarehouseData(WAREHOUSES_FILE_PATH)
 
-    printParsingReport(fleetList.size, packageList.size, routesList.size, warehousesList.size)
-    printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
+    println("\nBuilding network graph (Safe Instantiation)...")
+    val builder = NetworkBuilder()
+    val loader = NetworkDataLoader(builder)
+
+    loader.loadData(rawFleets, rawPackages, rawRoutes, rawWarehouses)
+
+    println("Network built successfully!\n")
+    return builder
+}
+
+private fun verifyHeapLoopResolution(builder: NetworkBuilder): Boolean {
+    val testWarehouse = builder.getAllWarehouses().first()
+    val testVehicle = testWarehouse.stationedVehicles.first()
+
+    return testWarehouse === testVehicle.currentHub
+}
+
+private fun printVerificationReport(isMatch: Boolean) {
+    if (isMatch) {
+        println("Result: SUCCESS")
+        println("Warehouse Object Reference Match: TRUE")
+        println("Note: Circular dependency resolved safely without StackOverflow.")
+    } else {
+        println("Result: FAILED")
+        println("Warehouse Object Reference Match: FALSE")
+        println("Note: Memory addresses do not match, check your instantiation logic.")
+    }
 }
