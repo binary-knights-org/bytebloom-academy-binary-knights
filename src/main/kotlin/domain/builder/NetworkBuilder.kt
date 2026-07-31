@@ -43,11 +43,14 @@ class NetworkBuilder {
         originId: String,
         destinationId: String
     ): Route? {
-        val originHub = findWarehouseById(originId) ?: return null
-        val destinationHub = findWarehouseById(destinationId) ?: return null
-        val newRoute = Route(id, distanceKm, typicalDelayMin, originHub, destinationHub)
-        originHub.addRoute(newRoute)
-        return newRoute
+        val originHub = findWarehouseById(originId)
+        val destinationHub = findWarehouseById(destinationId)
+        if (originHub != null && destinationHub != null) {
+            val newRoute = Route(id, distanceKm, typicalDelayMin, originHub, destinationHub)
+            originHub.addRoute(newRoute)
+            return newRoute
+        }
+        return null
     }
 
     fun buildPackage(
@@ -57,10 +60,13 @@ class NetworkBuilder {
         originId: String,
         destinationId: String
     ): Package? {
-        val originHub = findWarehouseById(originId) ?: return null
-        val destinationHub = findWarehouseById(destinationId) ?: return null
-        val newPackage = Package(id, weight, priority, originHub, destinationHub)
-        originHub.addPackage(newPackage)
-        return newPackage
+        val originHub = findWarehouseById(originId)
+        val destinationHub = findWarehouseById(destinationId)
+        if (originHub != null && destinationHub != null) {
+            val newPackage = Package(id, weight, priority, originHub, destinationHub)
+            originHub.addPackage(newPackage)
+            return newPackage
+        }
+        return null
     }
 }
