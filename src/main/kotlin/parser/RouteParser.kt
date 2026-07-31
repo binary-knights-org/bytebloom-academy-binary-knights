@@ -49,7 +49,7 @@ private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? 
     val distanceKm = parseDistance(fields[INDEX_DISTANCE])
     val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
-    if (hasValidNumericData(distanceKm, distanceKm, rawLine)) return null
+    if (!hasValidNumericData(distanceKm, distanceKm, rawLine)) return null
 
     return RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
 }

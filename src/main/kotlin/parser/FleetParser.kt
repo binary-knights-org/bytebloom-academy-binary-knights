@@ -44,7 +44,7 @@ private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
     val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
     val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull()
 
-    if (hasValidNumericData(maxCapacity, costPerKm, rawLine)) return null
+    if (!hasValidNumericData(maxCapacity, costPerKm, rawLine)) return null
 
     return FleetRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
 }
