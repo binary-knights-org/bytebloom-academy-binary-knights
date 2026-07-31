@@ -34,7 +34,7 @@ class DomainGraphBuilder {
     private fun createWarehouseNodes(rawWarehouses: List<WarehouseRaw>): Map<String, Warehouse> {
         return rawWarehouses.associateBy(
             keySelector = { it.hubId },
-            valueTransform = { raw -> createWarehouse(raw) }
+            valueTransform = { rawHub -> createWarehouse(rawHub) }
         )
     }
 
