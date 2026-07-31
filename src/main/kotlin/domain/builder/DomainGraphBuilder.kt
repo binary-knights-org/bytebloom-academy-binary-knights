@@ -109,18 +109,6 @@ class DomainGraphBuilder {
         }
     }
 
-    private fun populateWarehouseRoutes(
-        originWarehouse: Warehouse,
-        rawRoutes: List<RouteRaw>,
-        warehousesMap: Map<String, Warehouse>
-    ) {
-        for (rRaw in rawRoutes) {
-            val destinationWarehouse = warehousesMap[rRaw.destinationHubId] ?: continue
-            val route = createRoute(rRaw, originWarehouse, destinationWarehouse)
-            originWarehouse.addRoute(route)
-        }
-    }
-
     private fun createRoute(
         rRaw: RouteRaw,
         origin: Warehouse,
