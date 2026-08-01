@@ -3,34 +3,46 @@ package algorithm
 import domain.model.Package
 
 fun sortPackagesByWeightDescending(cargoQueue: MutableList<Package>) {
-    if (cargoQueue.size <= 1) return
+    val maxUnsortableSize = 1
+    if (cargoQueue.size <= maxUnsortableSize) return
 
+    val startIndex = 0
     val originalIndices = IntArray(cargoQueue.size) { it }
-    quickSortRecursive(cargoQueue, originalIndices, 0, cargoQueue.size - 1)
+
+    quickSortRecursive(cargoQueue, originalIndices, startIndex, cargoQueue.lastIndex)
 }
 
 private fun quickSortRecursive(cargoQueue: MutableList<Package>, originalIndices: IntArray, low: Int, high: Int) {
     if (low >= high) return
 
     val pivotPosition = partition(cargoQueue, originalIndices, low, high)
-    quickSortRecursive(cargoQueue, originalIndices, low, pivotPosition - 1)
-    quickSortRecursive(cargoQueue, originalIndices, pivotPosition + 1, high)
+
+    val indexOffset = 1
+    val leftPartitionEnd = pivotPosition - indexOffset
+    val rightPartitionStart = pivotPosition + indexOffset
+
+    quickSortRecursive(cargoQueue, originalIndices, low, leftPartitionEnd)
+    quickSortRecursive(cargoQueue, originalIndices, rightPartitionStart, high)
 }
 
 private fun partition(cargoQueue: MutableList<Package>, originalIndices: IntArray, low: Int, high: Int): Int {
     val pivotWeight = cargoQueue[high].weight
     val pivotOriginalIndex = originalIndices[high]
-    var boundary = low - 1
+
+    val indexOffset = 1
+    var boundary = low - indexOffset
 
     for (current in low until high) {
         if (shouldComeBefore(cargoQueue[current].weight, originalIndices[current], pivotWeight, pivotOriginalIndex)) {
-            boundary++
+            boundary += indexOffset
             swapElements(cargoQueue, originalIndices, boundary, current)
         }
     }
 
-    swapElements(cargoQueue, originalIndices, boundary + 1, high)
-    return boundary + 1
+    val finalPivotPosition = boundary + indexOffset
+    swapElements(cargoQueue, originalIndices, finalPivotPosition, high)
+
+    return finalPivotPosition
 }
 
 private fun shouldComeBefore(
