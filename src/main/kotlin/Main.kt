@@ -6,7 +6,10 @@ import parser.loadFleetData
 import parser.loadPackageData
 import parser.loadRouteData
 import parser.loadWarehouseData
-
+import algorithm.sortPackagesByWeightDescending
+import domain.pricing.RoutePricingEngine
+import domain.pricing.EcoStrategy
+import domain.pricing.ExpressStrategy
 
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
@@ -56,6 +59,32 @@ private fun printGraphSummary(warehouses: List<Warehouse>) {
     }
 }
 
+private fun printSortedCargoQueue(warehouse: Warehouse) {
+    warehouse.sortCargoQueueByWeightDescending()
+
+    println("\n--- Sorted Cargo Queue (Warehouse: ${warehouse.id}) ---")
+    warehouse.cargoQueue.forEach { pkg ->
+        println("id = ${pkg.id}, weight = ${pkg.weight} kg")
+    }
+}
+
+private fun printDispatchStrategyDemo() {
+    println("\n--- Dispatch Strategy Demo ---")
+
+    val pricingEngine = RoutePricingEngine(EcoStrategy())
+    println(
+        "Eco Strategy -> cost = ${pricingEngine.calculateCost(weight = 10.0, distance = 50.0)}" +
+                " , priorityMultiplier = ${pricingEngine.getPriority()}"
+    )
+
+    pricingEngine.setStrategy(ExpressStrategy())
+    println(
+        "Express Strategy -> cost = ${pricingEngine.calculateCost(weight = 10.0, distance = 50.0)}" +
+                " , priorityMultiplier = ${pricingEngine.getPriority()}"
+    )
+}
+
+
 fun main() {
 
     val fleetList = loadFleetData(FLEET_FILE_PATH)
@@ -82,4 +111,14 @@ fun main() {
     )
 
     printGraphSummary(graph)
+
+    val firstWarehouse = graph.firstOrNull()
+    if (firstWarehouse != null) {
+        printSortedCargoQueue(firstWarehouse)
+    } else {
+        println("\nNo warehouses available to sort cargo queue.")
+    }
+
+    printDispatchStrategyDemo()
 }
+
