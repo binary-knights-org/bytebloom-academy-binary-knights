@@ -52,10 +52,14 @@ class DomainGraphBuilder {
     ) {
         for ((hubId, warehouse) in warehousesMap) {
             val rawFleet = vehiclesByHubId[hubId] ?: continue
-            for (vRaw in rawFleet) {
-                val vehicle = createVehicle(vRaw, warehouse)
-                warehouse.addVehicle(vehicle)
-            }
+            populateWarehouseVehicles(warehouse, rawFleet)
+        }
+    }
+
+    private fun populateWarehouseVehicles(warehouse: Warehouse, rawFleet: List<FleetRaw>) {
+        for (vRaw in rawFleet) {
+            val vehicle = createVehicle(vRaw, warehouse)
+            warehouse.addVehicle(vehicle)
         }
     }
 
@@ -74,11 +78,19 @@ class DomainGraphBuilder {
     ) {
         for ((hubId, originWarehouse) in warehousesMap) {
             val rawPackages = packagesByOriginId[hubId] ?: continue
-            for (pRaw in rawPackages) {
-                val destinationWarehouse = warehousesMap[pRaw.destinationHubId] ?: continue
-                val pkg = createPackage(pRaw, originWarehouse, destinationWarehouse)
-                originWarehouse.addPackage(pkg)
-            }
+            populateWarehousePackages(originWarehouse, rawPackages, warehousesMap)
+        }
+    }
+
+    private fun populateWarehousePackages(
+        originWarehouse: Warehouse,
+        rawPackages: List<PackageRaw>,
+        warehousesMap: Map<String, Warehouse>
+    ) {
+        for (pRaw in rawPackages) {
+            val destinationWarehouse = warehousesMap[pRaw.destinationHubId] ?: continue
+            val pkg = createPackage(pRaw, originWarehouse, destinationWarehouse)
+            originWarehouse.addPackage(pkg)
         }
     }
 
@@ -102,11 +114,19 @@ class DomainGraphBuilder {
     ) {
         for ((hubId, originWarehouse) in warehousesMap) {
             val rawRoutes = routesByOriginId[hubId] ?: continue
-            for (rRaw in rawRoutes) {
-                val destinationWarehouse = warehousesMap[rRaw.destinationHubId] ?: continue
-                val route = createRoute(rRaw, originWarehouse, destinationWarehouse)
-                originWarehouse.addRoute(route)
-            }
+            populateWarehouseRoutes(originWarehouse, rawRoutes, warehousesMap)
+        }
+    }
+
+    private fun populateWarehouseRoutes(
+        originWarehouse: Warehouse,
+        rawRoutes: List<RouteRaw>,
+        warehousesMap: Map<String, Warehouse>
+    ) {
+        for (rRaw in rawRoutes) {
+            val destinationWarehouse = warehousesMap[rRaw.destinationHubId] ?: continue
+            val route = createRoute(rRaw, originWarehouse, destinationWarehouse)
+            originWarehouse.addRoute(route)
         }
     }
 
