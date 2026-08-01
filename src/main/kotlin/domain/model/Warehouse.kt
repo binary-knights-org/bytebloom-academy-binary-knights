@@ -1,4 +1,5 @@
 package domain.model
+import algorithm.sortPackagesByWeightDescending
 
 data class Warehouse(
     val id: String,
@@ -24,5 +25,9 @@ data class Warehouse(
 
     fun addVehicle(vehicle: Vehicle) {
         _stationedVehicles.add(vehicle)
+    }
+
+    fun sortCargoQueueByWeightDescending() {
+        sortPackagesByWeightDescending(_cargoQueue)
     }
 }
