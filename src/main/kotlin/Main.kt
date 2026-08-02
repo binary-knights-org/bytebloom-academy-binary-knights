@@ -1,15 +1,16 @@
 import algorithm.sortPackagesByImportance
 import dataholder.PackageRaw
 import domain.builder.DomainGraphBuilder
+import domain.builder.GraphRawData
 import domain.model.Warehouse
+import domain.pricing.EcoStrategy
+import domain.pricing.ExpressStrategy
+import domain.pricing.FragileStrategy
+import domain.pricing.RoutePricingEngine
 import parser.loadFleetData
 import parser.loadPackageData
 import parser.loadRouteData
 import parser.loadWarehouseData
-import algorithm.sortPackagesByWeightDescending
-import domain.pricing.RoutePricingEngine
-import domain.pricing.EcoStrategy
-import domain.pricing.ExpressStrategy
 
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
@@ -18,20 +19,29 @@ private const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
 private const val FLEET_FILE_PATH = "src/main/resources/fleet.csv"
 
 private const val TOP_SHIPMENTS_LIMIT = 3
+private const val DEMO_WEIGHT_KG = 10.0
+private const val DEMO_DISTANCE_KM = 50.0
 
 
-private fun printParsingReport(
-    fleetCount: Int,
-    packageCount: Int,
-    routesCount: Int,
-    warehousesCount: Int
-) {
-    println("\n--- Data Parsing Report ---")
-    println(" Successfully parsed Fleet: $fleetCount vehicle records.")
-    println(" Successfully parsed Packages: $packageCount records.")
-    println(" Successfully parsed Routes: $routesCount records.")
-    println(" Successfully parsed Warehouses: $warehousesCount records.")
+private fun loadRawData(): GraphRawData {
+    val rawData = GraphRawData(
+        loadFleetData(FLEET_FILE_PATH),
+        loadPackageData(PACKAGE_FILE_PATH),
+        loadRouteData(ROUTES_FILE_PATH),
+        loadWarehouseData(WAREHOUSES_FILE_PATH)
+    )
+    printParsingReport(rawData)
+    return rawData
 }
+
+private fun printParsingReport(rawData: GraphRawData) {
+    println("\n--- Data Parsing Report ---")
+    println(" Successfully parsed Fleet: ${rawData.rawFleet.size} vehicle records.")
+    println(" Successfully parsed Packages: ${rawData.rawPackages.size} records.")
+    println(" Successfully parsed Routes: ${rawData.rawRoutes.size} records.")
+    println(" Successfully parsed Warehouses: ${rawData.rawWarehouses.size} records.")
+}
+
 
 private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
     println("\n--- Executing Manual Package Sorting ---")
@@ -39,12 +49,21 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
 
     packages.take(limit).forEachIndexed { index, pkg ->
         val packageNumber = index + 1
-        println("package = $packageNumber" +
-                " , id = ${pkg.packageId}" +
-                " , destinationHub = ${pkg.destinationHubId}" +
-                " , weight = ${pkg.weight}" +
-                " kg , priority = ${pkg.priority}")
+        println(
+            "package = $packageNumber" +
+                    " , id = ${pkg.packageId}" +
+                    " , destinationHub = ${pkg.destinationHubId}" +
+                    " , weight = ${pkg.weight}" +
+                    " kg , priority = ${pkg.priority}"
+        )
     }
+}
+
+
+private fun buildDomainGraph(rawData: GraphRawData): List<Warehouse> {
+    val graph = DomainGraphBuilder(rawData).buildGraph()
+    printGraphSummary(graph)
+    return graph
 }
 
 private fun printGraphSummary(warehouses: List<Warehouse>) {
@@ -59,7 +78,14 @@ private fun printGraphSummary(warehouses: List<Warehouse>) {
     }
 }
 
-private fun printSortedCargoQueue(warehouse: Warehouse) {
+
+private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
+    val warehouse = warehouse.firstOrNull()
+    if (warehouse == null) {
+        println("\nNo warehouse available to sort cargo queue.")
+        return
+    }
+
     warehouse.sortCargoQueueByWeightDescending()
 
     println("\n--- Sorted Cargo Queue (Warehouse: ${warehouse.id}) ---")
@@ -68,57 +94,36 @@ private fun printSortedCargoQueue(warehouse: Warehouse) {
     }
 }
 
+
 private fun printDispatchStrategyDemo() {
     println("\n--- Dispatch Strategy Demo ---")
 
     val pricingEngine = RoutePricingEngine(EcoStrategy())
-    println(
-        "Eco Strategy -> cost = ${pricingEngine.calculateCost(weight = 10.0, distance = 50.0)}" +
-                " , priorityMultiplier = ${pricingEngine.getPriority()}"
-    )
+    printStrategyResult("Eco", pricingEngine)
 
     pricingEngine.setStrategy(ExpressStrategy())
-    println(
-        "Express Strategy -> cost = ${pricingEngine.calculateCost(weight = 10.0, distance = 50.0)}" +
-                " , priorityMultiplier = ${pricingEngine.getPriority()}"
-    )
+    printStrategyResult("Express", pricingEngine)
+
+    pricingEngine.setStrategy(FragileStrategy())
+    printStrategyResult("Fragile", pricingEngine)
+}
+
+private fun printStrategyResult(label: String, engine: RoutePricingEngine) {
+    val cost = engine.calculateCost(weight = DEMO_WEIGHT_KG, distance = DEMO_DISTANCE_KM)
+    val priority = engine.getPriority()
+    println("$label Strategy -> Cost = $cost, Priority Multiplier = $priority")
 }
 
 
 fun main() {
 
-    val fleetList = loadFleetData(FLEET_FILE_PATH)
-    val packageList = loadPackageData(PACKAGE_FILE_PATH)
-    val routesList = loadRouteData(ROUTES_FILE_PATH)
-    val warehousesList = loadWarehouseData(WAREHOUSES_FILE_PATH)
+    val rawData = loadRawData()
 
-    printParsingReport(
-        fleetList.size,
-        packageList.size,
-        routesList.size,
-        warehousesList.size
-    )
-    val sortedPackages = sortPackagesByImportance(packageList)
-
+    val sortedPackages = sortPackagesByImportance(rawData.rawPackages)
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
 
-    val graphBuilder = DomainGraphBuilder()
-    val graph = graphBuilder.buildGraph(
-        rawVehicles = fleetList,
-        rawPackages = packageList,
-        rawRoutes = routesList,
-        rawWarehouses = warehousesList
-    )
-
-    printGraphSummary(graph)
-
-    val firstWarehouse = graph.firstOrNull()
-    if (firstWarehouse != null) {
-        printSortedCargoQueue(firstWarehouse)
-    } else {
-        println("\nNo warehouses available to sort cargo queue.")
-    }
+    val graph = buildDomainGraph(rawData)
+    printSortedCargoQueueForFirstWarehouse(graph)
 
     printDispatchStrategyDemo()
 }
-
