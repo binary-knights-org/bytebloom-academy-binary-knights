@@ -2,65 +2,67 @@ package algorithm
 
 import domain.model.Package
 
+private const val MAX_UNSORTABLE_SIZE = 1
+private const val START_INDEX = 0
+private const val INDEX_OFFSET = 1
+
 fun sortPackagesByWeightDescending(cargoQueue: MutableList<Package>) {
-    val maxUnsortableSize = 1
-    if (cargoQueue.size <= maxUnsortableSize) return
 
-    val startIndex = 0
+    if (cargoQueue.size <= MAX_UNSORTABLE_SIZE) return
+
     val originalIndices = IntArray(cargoQueue.size) { it }
+    val state = CargoSortState(cargoQueue, originalIndices)
 
-    quickSortRecursive(cargoQueue, originalIndices, startIndex, cargoQueue.lastIndex)
+    quickSortRecursive(state, START_INDEX, cargoQueue.lastIndex)
 }
 
-private fun quickSortRecursive(cargoQueue: MutableList<Package>, originalIndices: IntArray, low: Int, high: Int) {
+private fun quickSortRecursive(state: CargoSortState, low: Int, high: Int) {
     if (low >= high) return
 
-    val pivotPosition = partition(cargoQueue, originalIndices, low, high)
+    val pivotPosition = partition(state, low, high)
+    val leftPartitionEnd = pivotPosition - INDEX_OFFSET
+    val rightPartitionStart = pivotPosition + INDEX_OFFSET
 
-    val indexOffset = 1
-    val leftPartitionEnd = pivotPosition - indexOffset
-    val rightPartitionStart = pivotPosition + indexOffset
-
-    quickSortRecursive(cargoQueue, originalIndices, low, leftPartitionEnd)
-    quickSortRecursive(cargoQueue, originalIndices, rightPartitionStart, high)
+    quickSortRecursive(state, low, leftPartitionEnd)
+    quickSortRecursive(state, rightPartitionStart, high)
 }
 
-private fun partition(cargoQueue: MutableList<Package>, originalIndices: IntArray, low: Int, high: Int): Int {
-    val pivotWeight = cargoQueue[high].weight
-    val pivotOriginalIndex = originalIndices[high]
+private fun partition(state: CargoSortState, low: Int, high: Int): Int {
+    val boundary = moveHeavierElementsLeft(state, low, high)
 
-    val indexOffset = 1
-    var boundary = low - indexOffset
+    val finalPivotPosition = boundary + INDEX_OFFSET
+    swapElements(state, finalPivotPosition, high)
+    return finalPivotPosition
+}
+private fun moveHeavierElementsLeft(state: CargoSortState, low: Int, high: Int): Int {
+    var boundary = low - INDEX_OFFSET
 
     for (current in low until high) {
-        if (shouldComeBefore(cargoQueue[current].weight, originalIndices[current], pivotWeight, pivotOriginalIndex)) {
-            boundary += indexOffset
-            swapElements(cargoQueue, originalIndices, boundary, current)
+        if (shouldComeBefore(state, low, high)) {
+            boundary += INDEX_OFFSET
+            swapElements(state, boundary, current)
         }
     }
-
-    val finalPivotPosition = boundary + indexOffset
-    swapElements(cargoQueue, originalIndices, finalPivotPosition, high)
-
-    return finalPivotPosition
+    return boundary
 }
 
 private fun shouldComeBefore(
-    weight: Double, originalIndex: Int,
-    pivotWeight: Double, pivotOriginalIndex: Int
-): Boolean {
+    state: CargoSortState, index: Int, pivotIndex: Int): Boolean {
+    val weight = state.cargoQueue[index].weight
+    val pivotWeight = state.cargoQueue[pivotIndex].weight
+
     if (weight != pivotWeight) {
         return weight > pivotWeight
     }
-    return originalIndex < pivotOriginalIndex
+    return state.originalIndices[index] < state.originalIndices[pivotIndex]
 }
 
-private fun swapElements(cargoQueue: MutableList<Package>, originalIndices: IntArray, indexA: Int, indexB: Int) {
-    val tempPackage = cargoQueue[indexA]
-    cargoQueue[indexA] = cargoQueue[indexB]
-    cargoQueue[indexB] = tempPackage
+private fun swapElements(state: CargoSortState, indexA: Int, indexB: Int) {
+    val tempPackage = state.cargoQueue[indexA]
+    state.cargoQueue[indexA] = state.cargoQueue[indexB]
+    state.cargoQueue[indexB] = tempPackage
 
-    val tempIndex = originalIndices[indexA]
-    originalIndices[indexA] = originalIndices[indexB]
-    originalIndices[indexB] = tempIndex
+    val tempIndex = state.originalIndices[indexA]
+    state.originalIndices[indexA] = state.originalIndices[indexB]
+    state.originalIndices[indexB] = tempIndex
 }
