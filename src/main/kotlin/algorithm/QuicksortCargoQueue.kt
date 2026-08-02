@@ -35,13 +35,10 @@ private fun partition(state: CargoSortState, low: Int, high: Int): Int {
     return finalPivotPosition
 }
 private fun moveHeavierElementsLeft(state: CargoSortState, low: Int, high: Int): Int {
-    val pivotWeight = state.cargoQueue[high].weight
-    val pivotOriginalIndex = state.originalIndices[high]
-
     var boundary = low - INDEX_OFFSET
 
     for (current in low until high) {
-        if (shouldComeBefore(state.cargoQueue[current].weight, state.originalIndices[current], pivotWeight, pivotOriginalIndex)) {
+        if (shouldComeBefore(state, low, high)) {
             boundary += INDEX_OFFSET
             swapElements(state, boundary, current)
         }
@@ -50,13 +47,14 @@ private fun moveHeavierElementsLeft(state: CargoSortState, low: Int, high: Int):
 }
 
 private fun shouldComeBefore(
-    weight: Double, originalIndex: Int,
-    pivotWeight: Double, pivotOriginalIndex: Int
-): Boolean {
+    state: CargoSortState, index: Int, pivotIndex: Int): Boolean {
+    val weight = state.cargoQueue[index].weight
+    val pivotWeight = state.cargoQueue[pivotIndex].weight
+
     if (weight != pivotWeight) {
         return weight > pivotWeight
     }
-    return originalIndex < pivotOriginalIndex
+    return state.originalIndices[index] < state.originalIndices[pivotIndex]
 }
 
 private fun swapElements(state: CargoSortState, indexA: Int, indexB: Int) {
