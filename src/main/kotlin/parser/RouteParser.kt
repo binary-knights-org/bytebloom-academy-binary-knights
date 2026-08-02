@@ -46,20 +46,15 @@ private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? 
     val routeId = fields[INDEX_ROUTE_ID]
     val originHubId = fields[INDEX_ORIGIN_HUB]
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
-    val distanceKm = parseDistance(fields[INDEX_DISTANCE])
-    val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
-
-    if (!hasValidNumericData(distanceKm, distanceKm, rawLine)) return null
+    val distanceKm = parseDistance(fields[INDEX_DISTANCE]) ?: return skipInvalidRow(rawLine)
+    val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull() ?: return skipInvalidRow(rawLine)
 
     return RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
 }
 
-private fun hasValidNumericData(distanceKm: Double?, typicalDelayMin: Double?, rawLine: String): Boolean {
-    if (distanceKm == null || typicalDelayMin == null) {
+private fun skipInvalidRow(rawLine: String): RouteRaw? {
         println("WARNING (RouteParser): Skipping row (invalid numeric data): $rawLine")
-        return false
-    }
-    return true
+    return null
 }
 
 private fun parseLine(line: String): RouteRaw? {

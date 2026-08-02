@@ -36,18 +36,23 @@ private fun extractWarehouse(lines: List<String>): List<WarehouseRaw> {
     return validWarehouses
 }
 
-private fun mapFieldsToWarehouses(fields: List<String>): WarehouseRaw {
+private fun mapFieldsToWarehouses(fields: List<String>, rawLine: String): WarehouseRaw? {
     val hubId = fields[INDEX_ID]
     val hubName = fields[INDEX_NAME]
     val regionalZone = fields[INDEX_REGIONAL_ZONE]
-    val latitude = fields[INDEX_LATITUDE].toDoubleOrNull()
-    val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull()
+    val latitude = fields[INDEX_LATITUDE].toDoubleOrNull() ?: return skipInvalidRow(rawLine)
+    val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull() ?: return skipInvalidRow(rawLine)
 
     return WarehouseRaw(hubId, hubName, regionalZone,latitude,longitude)
+}
+
+private fun skipInvalidRow(rawLine: String): WarehouseRaw? {
+    println("WARNING (WarehouseParser): Skipping row (invalid numeric data): $rawLine")
+    return null
 }
 
 private fun parserLine(line: String): WarehouseRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields,EXPECTED_WAREHOUSE_FIELDS, "WarehouseParser", line)) return null
-    return mapFieldsToWarehouses(fields)
+    return mapFieldsToWarehouses(fields, line)
 }

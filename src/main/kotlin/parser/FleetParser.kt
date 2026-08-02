@@ -41,20 +41,15 @@ private fun extractFleets(lines: List<String>): List<FleetRaw> {
 private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
     val vehicleIds = fields[INDEX_VEHICLE_ID]
     val currentHubId = fields[INDEX_CURRENT_HUB_ID]
-    val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
-    val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull()
-
-    if (!hasValidNumericData(maxCapacity, costPerKm, rawLine)) return null
+    val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull() ?: return skipInvalidRow(rawLine)
+    val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull() ?: return skipInvalidRow(rawLine)
 
     return FleetRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
 }
 
-private fun hasValidNumericData(maxCapacity: Double?, costPerKm: Double?, rawLine: String): Boolean {
-    if (maxCapacity == null || costPerKm == null) {
+private fun skipInvalidRow(rawLine: String): FleetRaw? {
         println("WARNING (FleetParser): Skipping row (invalid numeric data): $rawLine")
-        return false
-    }
-    return true
+    return null
 }
 
 private fun parseLine(line: String): FleetRaw? {
