@@ -1,10 +1,13 @@
 package domain.model
+
 import algorithm.sortPackagesByWeightDescending
 
 data class Warehouse(
     val id: String,
     val name: String,
     val regionalZone: String,
+    val latitude: Double,
+    val longitude: Double
 ) {
 
     private val _cargoQueue = mutableListOf<Package>()

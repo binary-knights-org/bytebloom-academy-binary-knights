@@ -31,17 +31,7 @@ fun loadPackageData(filePath: String): List<PackageRaw> {
 
 
 private fun extractPackages(lines: List<String>): List<PackageRaw> {
-    val validPackage = mutableListOf<PackageRaw>()
-
-    for (line in lines) {
-        if (line.isBlank()) continue
-        val packages = parseLine(line)
-        if (packages != null) {
-            validPackage.add(packages)
-        }
-    }
-
-    return validPackage
+    return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
 }
 
 

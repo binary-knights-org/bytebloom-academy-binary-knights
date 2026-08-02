@@ -24,17 +24,7 @@ fun loadRouteData(filePath: String): List<RouteRaw> {
 }
 
 private fun extractRoutes(lines: List<String>): List<RouteRaw> {
-    val validRoutes = mutableListOf<RouteRaw>()
-
-    for (line in lines) {
-        if (line.isBlank()) continue
-        val route = parseLine(line)
-        if (route != null) {
-            validRoutes.add(route)
-        }
-    }
-
-    return validRoutes
+    return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
 }
 
 private fun parseDistance(distance: String): Double? {
@@ -49,17 +39,10 @@ private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? 
     val distanceKm = parseDistance(fields[INDEX_DISTANCE])
     val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
-    if (!hasValidNumericData(distanceKm, distanceKm, rawLine)) return null
-
-    return RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
-}
-
-private fun hasValidNumericData(distanceKm: Double?, typicalDelayMin: Double?, rawLine: String): Boolean {
-    if (distanceKm == null || typicalDelayMin == null) {
-        println("WARNING (RouteParser): Skipping row (invalid numeric data): $rawLine")
-        return false
+    return when {
+        (distanceKm == null || typicalDelayMin == null) -> skipInvalidRow("RouteParser", rawLine)
+        else -> RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
     }
-    return true
 }
 
 private fun parseLine(line: String): RouteRaw? {
