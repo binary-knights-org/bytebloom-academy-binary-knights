@@ -1,6 +1,9 @@
 package algorithm
 
 import dataholder.PackageRaw
+private const val NEXT_INDEX_OFFSET = 1
+private const val START_INDEX = 0
+
 
 private fun swapPackages(packages: MutableList<PackageRaw>, firstIndex: Int, secondIndex: Int) {
     val tempPackage = packages[firstIndex]
@@ -24,7 +27,7 @@ private fun hasHigherPriority(packageToCheck: PackageRaw, referencePackage: Pack
 private fun findHighestPriorityIndex(packages: List<PackageRaw>, startIndex: Int): Int {
     var highestPriorityIndex = startIndex
 
-    for (currentIndex in startIndex + 1 until packages.size) {
+    for (currentIndex in startIndex + NEXT_INDEX_OFFSET until packages.size) {
         if (hasHigherPriority(packages[currentIndex], packages[highestPriorityIndex]))
             highestPriorityIndex = currentIndex
     }
@@ -34,7 +37,7 @@ private fun findHighestPriorityIndex(packages: List<PackageRaw>, startIndex: Int
 fun sortPackagesByImportance(packages: List<PackageRaw>): List<PackageRaw> {
     val sortedPackages = packages.toMutableList()
 
-    for (currentIndex in 0 until sortedPackages.lastIndex) {
+    for (currentIndex in START_INDEX until sortedPackages.lastIndex) {
         val nextIndex = findHighestPriorityIndex(sortedPackages, currentIndex)
         if (nextIndex != currentIndex) swapPackages(sortedPackages, currentIndex, nextIndex)
     }
