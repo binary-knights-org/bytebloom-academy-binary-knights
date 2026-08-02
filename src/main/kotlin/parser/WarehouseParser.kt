@@ -30,10 +30,13 @@ private fun mapFieldsToWarehouses(fields: List<String>, rawLine: String): Wareho
     val hubId = fields[INDEX_ID]
     val hubName = fields[INDEX_NAME]
     val regionalZone = fields[INDEX_REGIONAL_ZONE]
-    val latitude = fields[INDEX_LATITUDE].toDoubleOrNull() ?: return skipInvalidRow("WarehouseParser", rawLine)
-    val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull() ?: return skipInvalidRow("WarehouseParser", rawLine)
+    val latitude = fields[INDEX_LATITUDE].toDoubleOrNull()
+    val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull()
 
-    return WarehouseRaw(hubId, hubName, regionalZone, latitude, longitude)
+    return when {
+        (latitude == null || longitude == null) -> skipInvalidRow("WarehouseParser", rawLine)
+        else -> WarehouseRaw(hubId, hubName, regionalZone, latitude, longitude)
+    }
 }
 
 private fun parseLine(line: String): WarehouseRaw? {

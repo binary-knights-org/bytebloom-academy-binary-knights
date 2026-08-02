@@ -36,10 +36,13 @@ private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? 
     val routeId = fields[INDEX_ROUTE_ID]
     val originHubId = fields[INDEX_ORIGIN_HUB]
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
-    val distanceKm = parseDistance(fields[INDEX_DISTANCE]) ?: return skipInvalidRow("RouteParser", rawLine)
-    val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull() ?: return skipInvalidRow("RouteParser", rawLine)
+    val distanceKm = parseDistance(fields[INDEX_DISTANCE])
+    val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
-    return RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
+    return when {
+        (distanceKm == null || typicalDelayMin == null) -> skipInvalidRow("RouteParser", rawLine)
+        else -> RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
+    }
 }
 
 private fun parseLine(line: String): RouteRaw? {

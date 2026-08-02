@@ -31,10 +31,13 @@ private fun extractFleets(lines: List<String>): List<FleetRaw> {
 private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
     val vehicleIds = fields[INDEX_VEHICLE_ID]
     val currentHubId = fields[INDEX_CURRENT_HUB_ID]
-    val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull() ?: return skipInvalidRow("FleetParser", rawLine)
-    val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull() ?: return skipInvalidRow("FleetParser", rawLine)
+    val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
+    val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull()
 
-    return FleetRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
+    return when {
+        (maxCapacity == null || costPerKm == null) -> skipInvalidRow("FleetParser", rawLine)
+        else -> FleetRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
+    }
 }
 
 private fun parseLine(line: String): FleetRaw? {
