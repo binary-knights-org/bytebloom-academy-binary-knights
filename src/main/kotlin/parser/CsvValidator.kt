@@ -17,3 +17,8 @@ fun hasValidFieldCount(
     }
     return true
 }
+
+fun <T> skipInvalidRow(parserName: String, rawLine: String): T? {
+    println("WARNING ($parserName): Skipping row (invalid numeric data): $rawLine")
+    return null
+}

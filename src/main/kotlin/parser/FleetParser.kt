@@ -25,31 +25,16 @@ fun loadFleetData(filePath: String): List<FleetRaw> {
 
 
 private fun extractFleets(lines: List<String>): List<FleetRaw> {
-    val fleetList = mutableListOf<FleetRaw>()
-
-    for (line in lines) {
-        if (line.isBlank()) continue
-        val fleet = parseLine(line)
-        if (fleet != null) {
-            fleetList.add(fleet)
-        }
-    }
-
-    return fleetList
+    return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
 }
 
 private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
     val vehicleIds = fields[INDEX_VEHICLE_ID]
     val currentHubId = fields[INDEX_CURRENT_HUB_ID]
-    val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull() ?: return skipInvalidRow(rawLine)
-    val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull() ?: return skipInvalidRow(rawLine)
+    val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull() ?: return skipInvalidRow("FleetParser", rawLine)
+    val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull() ?: return skipInvalidRow("FleetParser", rawLine)
 
     return FleetRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
-}
-
-private fun skipInvalidRow(rawLine: String): FleetRaw? {
-        println("WARNING (FleetParser): Skipping row (invalid numeric data): $rawLine")
-    return null
 }
 
 private fun parseLine(line: String): FleetRaw? {
