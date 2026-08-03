@@ -32,7 +32,7 @@ private fun parseDistance(distance: String): Double? {
     return cleanDistance.toDoubleOrNull()
 }
 
-private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? {
+private fun mapFieldsToRoutes(fields: List<String>): RouteRaw? {
     val routeId = fields[INDEX_ROUTE_ID]
     val originHubId = fields[INDEX_ORIGIN_HUB]
     val destinationHubId = fields[INDEX_DESTINATION_HUB]
@@ -48,5 +48,5 @@ private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? 
 private fun parseLine(line: String): RouteRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS)) return null
-    return mapFieldsToRoutes(fields, line)
+    return mapFieldsToRoutes(fields)
 }

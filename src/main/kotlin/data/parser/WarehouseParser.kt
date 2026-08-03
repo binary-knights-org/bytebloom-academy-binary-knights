@@ -26,7 +26,7 @@ private fun extractWarehouse(lines: List<String>): List<WarehouseRaw> {
     return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
 }
 
-private fun mapFieldsToWarehouses(fields: List<String>, rawLine: String): WarehouseRaw? {
+private fun mapFieldsToWarehouses(fields: List<String>): WarehouseRaw? {
     val hubId = fields[INDEX_ID]
     val hubName = fields[INDEX_NAME]
     val regionalZone = fields[INDEX_REGIONAL_ZONE]
@@ -42,5 +42,5 @@ private fun mapFieldsToWarehouses(fields: List<String>, rawLine: String): Wareho
 private fun parseLine(line: String): WarehouseRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields, EXPECTED_WAREHOUSE_FIELDS)) return null
-    return mapFieldsToWarehouses(fields, line)
+    return mapFieldsToWarehouses(fields)
 }

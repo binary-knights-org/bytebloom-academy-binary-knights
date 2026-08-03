@@ -28,7 +28,7 @@ private fun extractFleets(lines: List<String>): List<FleetRaw> {
     return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
 }
 
-private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
+private fun mapFieldsToFleet(fields: List<String>): FleetRaw? {
     val vehicleIds = fields[INDEX_VEHICLE_ID]
     val currentHubId = fields[INDEX_CURRENT_HUB_ID]
     val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
@@ -43,5 +43,5 @@ private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
 private fun parseLine(line: String): FleetRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
     if (!hasValidFieldCount(fields, EXPECTED_FLEET_FIELDS)) return null
-    return mapFieldsToFleet(fields, line)
+    return mapFieldsToFleet(fields)
 }
