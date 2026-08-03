@@ -38,7 +38,7 @@ private fun moveHeavierElementsLeft(state: CargoSortState, low: Int, high: Int):
     var boundary = low - INDEX_OFFSET
 
     for (current in low until high) {
-        if (shouldComeBefore(state, low, high)) {
+        if (shouldComeBefore(state, current, high)) {
             boundary += INDEX_OFFSET
             swapElements(state, boundary, current)
         }
