@@ -1,6 +1,6 @@
 package domain.model
 
-import algorithm.sortPackagesByWeightDescending
+import domain.algorithm.sortPackagesByWeightDescending
 
 data class Warehouse(
     val id: String,

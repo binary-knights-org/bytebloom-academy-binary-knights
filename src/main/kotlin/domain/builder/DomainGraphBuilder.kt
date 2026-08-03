@@ -1,27 +1,36 @@
 package domain.builder
 
-import dataholder.FleetRaw
-import dataholder.PackageRaw
-import dataholder.RouteRaw
-import dataholder.WarehouseRaw
+import data.dataholder.FleetRaw
+import data.dataholder.PackageRaw
+import data.dataholder.RouteRaw
+import data.dataholder.WarehouseRaw
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
 import domain.model.Warehouse
 
-class DomainGraphBuilder(private val rawData: GraphRawData) {
+class DomainGraphBuilder(private val rawData: GraphData) {
 
-    private val warehousesById: Map<String, Warehouse> = createWarehouseNodes()
-    private val vehiclesByHubId = rawData.rawFleet.groupBy { it.currentHubId }
-    private val packagesByOriginId = rawData.rawPackages.groupBy { it.originHubId }
-    private val routesByOriginId = rawData.rawRoutes.groupBy { it.originHubId }
+    private val warehousesId: Map<String, Warehouse> = createWarehouseNodes()
 
     fun buildGraph(): List<Warehouse> {
         attachVehiclesToWarehouses()
         attachPackagesToWarehouses()
         attachRoutesToWarehouses()
 
-        return warehousesById.values.toList()
+        return warehousesId.values.toList()
+    }
+
+    private fun groupVehiclesByHubId(): Map<String, List<FleetRaw>> {
+        return rawData.rawFleet.groupBy { it.currentHubId }
+    }
+
+    private fun groupPackagesByOriginId(): Map<String, List<PackageRaw>> {
+        return rawData.rawPackages.groupBy { it.originHubId }
+    }
+
+    private fun groupRoutesByOriginId(): Map<String, List<RouteRaw>> {
+        return rawData.rawRoutes.groupBy { it.originHubId }
     }
 
     private fun createWarehouseNodes(): Map<String, Warehouse> {
@@ -42,8 +51,8 @@ class DomainGraphBuilder(private val rawData: GraphRawData) {
     }
 
     private fun attachVehiclesToWarehouses() {
-        for ((hubId, warehouse) in warehousesById) {
-            val rawFleet = vehiclesByHubId[hubId] ?: continue
+        for ((hubId, warehouse) in warehousesId) {
+            val rawFleet = groupVehiclesByHubId()[hubId] ?: continue
             populateWarehouseVehicles(warehouse, rawFleet)
         }
     }
@@ -65,8 +74,8 @@ class DomainGraphBuilder(private val rawData: GraphRawData) {
     }
 
     private fun attachPackagesToWarehouses() {
-        for ((hubId, originWarehouse) in warehousesById) {
-            val rawPackages = packagesByOriginId[hubId] ?: continue
+        for ((hubId, originWarehouse) in warehousesId) {
+            val rawPackages = groupPackagesByOriginId()[hubId] ?: continue
             populateWarehousePackages(originWarehouse, rawPackages)
         }
     }
@@ -76,7 +85,7 @@ class DomainGraphBuilder(private val rawData: GraphRawData) {
         rawPackages: List<PackageRaw>,
     ) {
         for (rawPackage in rawPackages) {
-            val destinationWarehouse = warehousesById[rawPackage.destinationHubId] ?: continue
+            val destinationWarehouse = warehousesId[rawPackage.destinationHubId] ?: continue
             val pkg = createPackage(rawPackage, originWarehouse, destinationWarehouse)
             originWarehouse.addPackage(pkg)
         }
@@ -97,8 +106,8 @@ class DomainGraphBuilder(private val rawData: GraphRawData) {
     }
 
     private fun attachRoutesToWarehouses() {
-        for ((hubId, originWarehouse) in warehousesById) {
-            val rawRoutes = routesByOriginId[hubId] ?: continue
+        for ((hubId, originWarehouse) in warehousesId) {
+            val rawRoutes = groupRoutesByOriginId()[hubId] ?: continue
             populateWarehouseRoutes(originWarehouse, rawRoutes)
         }
     }
@@ -108,7 +117,7 @@ class DomainGraphBuilder(private val rawData: GraphRawData) {
         rawRoutes: List<RouteRaw>,
     ) {
         for (rawRoute in rawRoutes) {
-            val destinationWarehouse = warehousesById[rawRoute.destinationHubId] ?: continue
+            val destinationWarehouse = warehousesId[rawRoute.destinationHubId] ?: continue
             val route = createRoute(rawRoute, originWarehouse, destinationWarehouse)
             originWarehouse.addRoute(route)
         }
