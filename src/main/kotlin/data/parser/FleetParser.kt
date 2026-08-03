@@ -1,6 +1,6 @@
-package parser
+package data.parser
 
-import dataholder.FleetRaw
+import data.dataholder.FleetRaw
 import java.io.File
 
 private const val EXPECTED_FLEET_FIELDS = 4
@@ -15,7 +15,7 @@ private const val INDEX_COST_PER_KM = 3
 
 fun loadFleetData(filePath: String): List<FleetRaw> {
     val file = File(filePath)
-    if (checkFileExists(file, "FleetParser")) {
+    if (!checkFileExists(file)) {
         return emptyList()
     }
 
@@ -35,13 +35,13 @@ private fun mapFieldsToFleet(fields: List<String>, rawLine: String): FleetRaw? {
     val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull()
 
     return when {
-        (maxCapacity == null || costPerKm == null) -> skipInvalidRow("FleetParser", rawLine)
+        (maxCapacity == null || costPerKm == null) -> null
         else -> FleetRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
     }
 }
 
 private fun parseLine(line: String): FleetRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
-    if (!hasValidFieldCount(fields, EXPECTED_FLEET_FIELDS, "FleetParser", line)) return null
+    if (!hasValidFieldCount(fields, EXPECTED_FLEET_FIELDS)) return null
     return mapFieldsToFleet(fields, line)
 }

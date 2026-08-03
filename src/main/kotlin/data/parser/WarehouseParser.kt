@@ -1,6 +1,6 @@
-package parser
+package data.parser
 
-import dataholder.WarehouseRaw
+import data.dataholder.WarehouseRaw
 import java.io.File
 
 private const val EXPECTED_WAREHOUSE_FIELDS = 5
@@ -15,7 +15,7 @@ private const val INDEX_LONGITUDE = 4
 
 fun loadWarehouseData(filePath: String): List<WarehouseRaw> {
     val file = File(filePath)
-    if (checkFileExists(file, "WarehouseParser")) {
+    if (!checkFileExists(file)) {
         return emptyList()
     }
     val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
@@ -34,13 +34,13 @@ private fun mapFieldsToWarehouses(fields: List<String>, rawLine: String): Wareho
     val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull()
 
     return when {
-        (latitude == null || longitude == null) -> skipInvalidRow("WarehouseParser", rawLine)
+        (latitude == null || longitude == null) -> null
         else -> WarehouseRaw(hubId, hubName, regionalZone, latitude, longitude)
     }
 }
 
 private fun parseLine(line: String): WarehouseRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
-    if (!hasValidFieldCount(fields, EXPECTED_WAREHOUSE_FIELDS, "WarehouseParser", line)) return null
+    if (!hasValidFieldCount(fields, EXPECTED_WAREHOUSE_FIELDS)) return null
     return mapFieldsToWarehouses(fields, line)
 }

@@ -1,6 +1,6 @@
-package parser
+package data.parser
 
-import dataholder.RouteRaw
+import data.dataholder.RouteRaw
 import java.io.File
 
 private const val EXPECTED_ROUTE_FIELDS = 5
@@ -16,7 +16,7 @@ private const val INDEX_TYPICAL_DELAY = 4
 
 fun loadRouteData(filePath: String): List<RouteRaw> {
     val file = File(filePath)
-    if (checkFileExists(file, "RouteParser")) {
+    if (!checkFileExists(file)) {
         return emptyList()
     }
     val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
@@ -40,13 +40,13 @@ private fun mapFieldsToRoutes(fields: List<String>, rawLine: String): RouteRaw? 
     val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
     return when {
-        (distanceKm == null || typicalDelayMin == null) -> skipInvalidRow("RouteParser", rawLine)
+        (distanceKm == null || typicalDelayMin == null) -> null
         else -> RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
     }
 }
 
 private fun parseLine(line: String): RouteRaw? {
     val fields = parseCsvFields(line, CSV_DELIMITER)
-    if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS, "RouteParser", line)) return null
+    if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS)) return null
     return mapFieldsToRoutes(fields, line)
 }

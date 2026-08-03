@@ -1,4 +1,4 @@
-package algorithm
+package domain.algorithm
 
 
 private const val PRIORITY_URGENT_TEXT = "URGENT"

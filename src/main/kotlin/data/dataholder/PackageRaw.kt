@@ -1,4 +1,4 @@
-package dataholder
+package data.dataholder
 
 data class PackageRaw(
     val packageId: String,

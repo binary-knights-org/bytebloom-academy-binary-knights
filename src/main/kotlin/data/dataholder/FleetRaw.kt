@@ -1,4 +1,4 @@
-package dataholder
+package data.dataholder
 
 data class FleetRaw(
     val vehicleIds: List<String>,
