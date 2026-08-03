@@ -1,16 +1,18 @@
-import algorithm.sortPackagesByImportance
-import dataholder.PackageRaw
+package ui
+
+import data.dataholder.PackageRaw
+import data.parser.loadFleetData
+import data.parser.loadPackageData
+import data.parser.loadRouteData
+import data.parser.loadWarehouseData
+import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
-import domain.builder.GraphRawData
+import domain.builder.GraphData
 import domain.model.Warehouse
 import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.pricing.RoutePricingEngine
-import parser.loadFleetData
-import parser.loadPackageData
-import parser.loadRouteData
-import parser.loadWarehouseData
 
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
@@ -23,8 +25,8 @@ private const val DEMO_WEIGHT_KG = 10.0
 private const val DEMO_DISTANCE_KM = 50.0
 
 
-private fun loadRawData(): GraphRawData {
-    val rawData = GraphRawData(
+private fun loadRawData(): GraphData {
+    val rawData = GraphData(
         loadFleetData(FLEET_FILE_PATH),
         loadPackageData(PACKAGE_FILE_PATH),
         loadRouteData(ROUTES_FILE_PATH),
@@ -34,7 +36,7 @@ private fun loadRawData(): GraphRawData {
     return rawData
 }
 
-private fun printParsingReport(rawData: GraphRawData) {
+private fun printParsingReport(rawData: GraphData) {
     println("\n--- Data Parsing Report ---")
     println(" Successfully parsed Fleet: ${rawData.rawFleet.size} vehicle records.")
     println(" Successfully parsed Packages: ${rawData.rawPackages.size} records.")
@@ -60,7 +62,7 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
 }
 
 
-private fun buildDomainGraph(rawData: GraphRawData): List<Warehouse> {
+private fun buildDomainGraph(rawData: GraphData): List<Warehouse> {
     val graph = DomainGraphBuilder(rawData).buildGraph()
     printGraphSummary(graph)
     return graph

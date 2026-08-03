@@ -1,11 +1,11 @@
 package domain.builder
 
-import dataholder.FleetRaw
-import dataholder.PackageRaw
-import dataholder.RouteRaw
-import dataholder.WarehouseRaw
+import data.dataholder.FleetRaw
+import data.dataholder.PackageRaw
+import data.dataholder.RouteRaw
+import data.dataholder.WarehouseRaw
 
-data class GraphRawData(
+data class GraphData(
     val rawFleet: List<FleetRaw>,
     val rawPackages: List<PackageRaw>,
     val rawRoutes: List<RouteRaw>,

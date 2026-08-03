@@ -1,6 +1,6 @@
-package algorithm
+package domain.algorithm
 
-import dataholder.PackageRaw
+import data.dataholder.PackageRaw
 private const val NEXT_INDEX_OFFSET = 1
 private const val START_INDEX = 0
 
