@@ -1,6 +1,6 @@
 package domain.model
 
-import domain.algorithm.sortPackagesByWeightDescending
+import domain.algorithm.sortPackagesDescendingByWeight
 
 data class Warehouse(
     val id: String,
@@ -31,6 +31,6 @@ data class Warehouse(
     }
 
     fun sortCargoQueueByWeightDescending() {
-        sortPackagesByWeightDescending(_cargoQueue)
+        sortPackagesDescendingByWeight(_cargoQueue)
     }
 }
