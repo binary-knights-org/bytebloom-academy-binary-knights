@@ -5,21 +5,18 @@ import domain.model.Vehicle
 
 object ClockwiseRouter {
 
-    fun findResponsibleVehicle(ring: TreeMap<Int, Vehicle>, slot: Int): Vehicle? {
+    fun findResponsibleVehicle(ringMap: TreeMap<Int, Vehicle>, packageSlot: Int): Vehicle? {
 
-
-        if (ring.isEmpty()) return null
-
-
-        val vehiclesAhead = ring.tailMap(slot)
-
-
-        return if (vehiclesAhead.isNotEmpty()) {
-            val nearestSlot = vehiclesAhead.firstKey()
-            ring[nearestSlot]
-        } else {
-            val wrapSlot = ring.firstKey()
-            ring[wrapSlot]
+        require(ringMap.isNotEmpty()) {
+            "System Error: The Ring has no active vehicles!"
         }
+        val tailMap = ringMap.tailMap(packageSlot)
+        val assignedSlot = when {
+            tailMap.isEmpty() -> ringMap.firstKey()
+            else -> tailMap.firstKey()
+        }
+
+        return ringMap[assignedSlot]
+
     }
 }
