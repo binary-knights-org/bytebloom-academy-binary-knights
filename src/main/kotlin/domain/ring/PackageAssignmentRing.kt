@@ -22,7 +22,7 @@ class PackageAssignmentRing {
     fun removeVehicle(slot: Int) {
         ring.remove(slot)
     }
-    fun getRingMap(): Map<Int, Vehicle> {
+    fun getRingMap(): TreeMap<Int, Vehicle> {
         return ring
     }
 }
