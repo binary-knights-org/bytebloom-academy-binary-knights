@@ -1,7 +1,7 @@
 package domain.ring
 
 import domain.model.Vehicle
-import java.util.TreeMap
+import java.util.*
 
 
 private const val MIN_SLOT = 0
@@ -24,6 +24,7 @@ class PackageAssignmentRing {
     fun removeVehicle(slot: Int) {
         ring.remove(slot)
     }
+
     fun getRingMap(): TreeMap<Int, Vehicle> {
         return ring
     }
