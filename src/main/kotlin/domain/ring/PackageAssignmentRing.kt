@@ -1,5 +1,6 @@
 package domain.ring
 
+import domain.model.Vehicle
 import java.util.TreeMap
 
 private const val MIN_SLOT = 0
@@ -7,18 +8,21 @@ private const val MAX_SLOT = 99
 
 class PackageAssignmentRing {
 
-    private val ring: TreeMap<Int, String> = TreeMap()
+    private val ring: TreeMap<Int,  Vehicle> = TreeMap()
 
     fun isValidSlot(slot: Int): Boolean {
         return slot in MIN_SLOT..MAX_SLOT
     }
 
-    fun addVehicle(slot: Int, vehicleId: String) {
+    fun addVehicle(slot: Int, vehicle: Vehicle) {
         require(isValidSlot(slot))
-        ring[slot] = vehicleId
+        ring[slot] = vehicle
     }
 
     fun removeVehicle(slot: Int) {
         ring.remove(slot)
+    }
+    fun getRingMap(): Map<Int, Vehicle> {
+        return ring
     }
 }
