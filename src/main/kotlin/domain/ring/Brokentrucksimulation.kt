@@ -147,7 +147,10 @@ private fun printVerificationReport(migratedPackageIds: List<String>, event: Bre
     println("Packages migrated from broken vehicle: ${migratedPackageIds.size}")
 
     if (migratedPackageIds.isNotEmpty()) {
-        println("SUCCESS: The following packages successfully moved from ${event.brokenVehicle.id} to ${event.fallbackVehicle.id}:")
+        println(
+            "SUCCESS: The following packages successfully moved from " +
+                    "${event.brokenVehicle.id} to ${event.fallbackVehicle.id}:"
+        )
         println(" -> ${migratedPackageIds.joinToString(", ")}")
     }
 }
