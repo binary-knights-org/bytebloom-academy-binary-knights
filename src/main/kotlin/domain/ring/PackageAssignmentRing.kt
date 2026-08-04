@@ -30,5 +30,4 @@ class PackageAssignmentRing {
         val slot: Int = positiveHash % RING_SIZE
         return slot
     }
-
 }
