@@ -5,7 +5,7 @@ import java.util.TreeMap
 
 private const val MIN_SLOT = 0
 private const val MAX_SLOT = 99
-private const val RING_SIZE = 100
+
 
 class PackageAssignmentRing {
 
