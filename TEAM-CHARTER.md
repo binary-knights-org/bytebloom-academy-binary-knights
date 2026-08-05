@@ -3,9 +3,7 @@
 <table>
   <tr>
     <td width="12%" align="center"><img src="./binary-knights-logo.png" /></td>
-    <td width="76%" align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:8A5CF5,50:38BDF8,
-100:6EE7B7&height=260&section=header&text=BINARY%20KNIGHTS&fontSize=46&fontColor=FFFFFF&animation=fadeIn&fontAlignY=35&
-desc=One%20Charter%20%C2%B7%20Four%20Knights%20%C2%B7%20Zero%20Chaos&descAlignY=58&descAlign=50&descSize=16" width="100%" /></td>
+    <td width="76%" align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:8A5CF5,50:38BDF8,100:6EE7B7&height=260&section=header&text=BINARY%20KNIGHTS&fontSize=46&fontColor=FFFFFF&animation=fadeIn&fontAlignY=35&desc=One%20Charter%20%C2%B7%20Four%20Knights%20%C2%B7%20Zero%20Chaos&descAlignY=58&descAlign=50&descSize=16" width="100%" /></td>
     <td width="12%" align="center"><img src="./binary-knights-logo.png" /></td>
   </tr>
 </table>
@@ -201,9 +199,7 @@ The repository strictly excludes and untracks the following:
 <table>
   <tr>
     <td width="12%" align="center"><img src="./binary-knights-logo.png" /></td>
-    <td width="76%" align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:6EE7B7,
-50:38BDF8,100:8A5CF5&height=160&section=footer&text=Governed%20by%20the%20Knights,%20followed%20by%20everyone.
-&fontSize=19&fontColor=FFFFFF&animation=fadeIn&fontAlignY=68" width="100%"/></td>
+    <td width="76%" align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:6EE7B7,50:38BDF8,100:8A5CF5&height=160&section=footer&text=Governed%20by%20the%20Knights,%20followed%20by%20everyone.&fontSize=19&fontColor=FFFFFF&animation=fadeIn&fontAlignY=68" width="100%"/></td>
     <td width="12%" align="center"><img src="./binary-knights-logo.png" /></td>
   </tr>
 </table>
