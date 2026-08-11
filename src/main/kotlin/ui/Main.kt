@@ -158,7 +158,10 @@ fun main() {
     val result = simulationLogic.runSimulation()
 
     printAssignments(result.before, "--- Initial Assignment BEFORE Breakdown ---")
-    println("\nRemoving broken vehicle at slot ${result.breakdownEvent.slot} (${result.breakdownEvent.brokenVehicle.id})...")
+    println(
+        "\nRemoving broken vehicle at slot ${result.breakdownEvent.slot} " +
+                "(${result.breakdownEvent.brokenVehicle.id})..."
+    )
     printAssignments(result.after, "--- Re-routing Assignment AFTER Breakdown ---")
 
     val report = simulationLogic.createReport(result)
