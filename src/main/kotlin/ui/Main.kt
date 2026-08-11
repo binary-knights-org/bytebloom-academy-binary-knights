@@ -8,11 +8,15 @@ import data.parser.loadWarehouseData
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.GraphData
+import domain.model.Package
+import domain.model.Vehicle
 import domain.model.Warehouse
 import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.pricing.RoutePricingEngine
+import domain.ring.DeterministicHashingEngine
+import domain.ring.VerificationReport
 
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
@@ -116,6 +120,26 @@ private fun printStrategyResult(label: String, engine: RoutePricingEngine) {
     println("$label Strategy -> Cost = $cost, Priority Multiplier = $priority")
 }
 
+private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) {
+    println("\n$title")
+    assignments.forEach { (pkg, vehicle) ->
+        val slot = DeterministicHashingEngine.calculateSlot(pkg)
+        println("  - ${pkg.id} (Slot %02d) -> Assigned to ${vehicle.id}".format(slot))
+    }
+}
+
+private fun printVerificationReport(report: VerificationReport) {
+    println("\n=== VERIFICATION REPORT ===")
+    println("Packages migrated from broken vehicle: ${report.migratedPackageIds.size}")
+
+    if (report.migratedPackageIds.isNotEmpty()) {
+        println(
+            "SUCCESS: The following packages successfully moved from " +
+                    "${report.brokenVehicleId} to ${report.fallbackVehicleId}:"
+        )
+        println(" -> ${report.migratedPackageIds.joinToString(", ")}")
+    }
+}
 
 fun main() {
 
@@ -128,4 +152,18 @@ fun main() {
     printSortedCargoQueueForFirstWarehouse(graph)
 
     printDispatchStrategyDemo()
+
+
+    val simulationLogic = domain.ring.BreakdownSimulationLogic()
+    val result = simulationLogic.runSimulation()
+
+    printAssignments(result.before, "--- Initial Assignment BEFORE Breakdown ---")
+    println(
+        "\nRemoving broken vehicle at slot ${result.breakdownEvent.slot} " +
+                "(${result.breakdownEvent.brokenVehicle.id})..."
+    )
+    printAssignments(result.after, "--- Re-routing Assignment AFTER Breakdown ---")
+
+    val report = simulationLogic.createReport(result)
+    printVerificationReport(report)
 }
