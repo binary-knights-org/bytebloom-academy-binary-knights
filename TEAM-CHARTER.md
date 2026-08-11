@@ -3,7 +3,7 @@
 <table>
   <tr>
     <td width="12%" align="center"><img src="./binary-knights-logo.png" /></td>
-    <td width="76%" align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:8A5CF5,50:38BDF8,100:6EE7B7&height=260&section=header&text=BINARY%20KNIGHTS&fontSize=46&fontColor=FFFFFF&animation=fadeIn&fontAlignY=35&desc=One%20Charter%20%C2%B7%20Four%20Knights%20%C2%B7%20Zero%20Chaos&descAlignY=58&descAlign=50&descSize=16" width="100%" /></td>
+    <td width="76%" align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:8A5CF5,50:38BDF8,100:6EE7B7&height=320&section=header&text=BINARY%20KNIGHTS&fontSize=46&fontColor=FFFFFF&animation=fadeIn&fontAlignY=35&desc=One%20Charter%20%C2%B7%20Four%20Knights%20%C2%B7%20Zero%20Chaos%20%C2%B7%20To%20infinity%20and%20beyond!&descAlignY=58&descAlign=50&descSize=16" width="100%" /></td>
     <td width="12%" align="center"><img src="./binary-knights-logo.png" /></td>
   </tr>
 </table>
@@ -50,12 +50,12 @@ in this repository.*
 
 ### 1.1 Team Roles Outline
 
-| # | Member       | Responsibility                                                           |
-|---|--------------|--------------------------------------------------------------------------|
-| 1 | Ahmed Farani | Repository governance, branching model integrity, and commit monitoring. |
-| 2 | Roba Nassar  | Kotlin naming conventions, readability, and formatting rules.            |
-| 3 | Sabah Baraka | Scheduling syncs, internal review deadlines, and response times.         |
-| 4 | Kamal Ashour | Modular package architecture and root `.gitignore` maintenance.          |
+| # | Member        | Responsibility                                                           |
+|---|---------------|--------------------------------------------------------------------------|
+| 1 | Ahmed Farani  | Repository governance, branching model integrity, and commit monitoring. |
+| 2 | Ibrahim Salha | Kotlin naming conventions, readability, and formatting rules.            |
+| 3 | Sabah Baraka  | Scheduling syncs, internal review deadlines, and response times.         |
+| 4 | Kamal Ashour  | Modular package architecture and root `.gitignore` maintenance.          |
 
 ### 1.2 Selected Branching Model (Git Flow Lite)
 
@@ -87,9 +87,9 @@ Every commit must use one of the prefixes below. Commits missing a valid prefix 
 
 ---
 
-## 2. Clean Code Standards (By: Roba Nassar)
+## 2. Clean Code Standards (By: Ibrahim Salha)
 
-![owner](https://img.shields.io/badge/owner-Roba%20Nassar-6EE7B7?style=flat-square&logo=kotlin&logoColor=white)
+![owner](https://img.shields.io/badge/owner-Ibrahim%20Salha-6EE7B7?style=flat-square&logo=kotlin&logoColor=white)
 
 ### 2.1 Naming Conventions
 
