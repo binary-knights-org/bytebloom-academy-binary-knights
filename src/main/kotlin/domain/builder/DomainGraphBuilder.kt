@@ -8,8 +8,9 @@ import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
 import domain.model.Warehouse
+import domain.repository.WarehouseRepository
 
-class DomainGraphBuilder(private val rawData: GraphData) {
+class DomainGraphBuilder(private val rawData: GraphData , private val warehouseRepository: WarehouseRepository ) {
 
     private val warehousesId: Map<String, Warehouse> = createWarehouseNodes()
 
@@ -34,7 +35,7 @@ class DomainGraphBuilder(private val rawData: GraphData) {
     }
 
     private fun createWarehouseNodes(): Map<String, Warehouse> {
-        return rawData.rawWarehouses.associateBy(
+        return warehouseRepository.getWarehouses().associateBy(
             keySelector = { it.hubId },
             valueTransform = { createWarehouse(it) }
         )

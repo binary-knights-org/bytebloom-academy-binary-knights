@@ -4,7 +4,7 @@ import data.dataholder.PackageRaw
 import data.parser.loadFleetData
 import data.parser.loadPackageData
 import data.parser.loadRouteData
-import data.parser.loadWarehouseData
+import data.repository.CsvWarehouseRepository
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.GraphData
@@ -15,6 +15,7 @@ import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.pricing.RoutePricingEngine
+import domain.repository.WarehouseRepository
 import domain.ring.DeterministicHashingEngine
 import domain.ring.VerificationReport
 
@@ -29,12 +30,12 @@ private const val DEMO_WEIGHT_KG = 10.0
 private const val DEMO_DISTANCE_KM = 50.0
 
 
-private fun loadRawData(): GraphData {
+private fun loadRawData(warehouseRepository: WarehouseRepository): GraphData {
     val rawData = GraphData(
         loadFleetData(FLEET_FILE_PATH),
         loadPackageData(PACKAGE_FILE_PATH),
         loadRouteData(ROUTES_FILE_PATH),
-        loadWarehouseData(WAREHOUSES_FILE_PATH)
+        warehouseRepository.getWarehouses()
     )
     printParsingReport(rawData)
     return rawData
@@ -66,8 +67,8 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
 }
 
 
-private fun buildDomainGraph(rawData: GraphData): List<Warehouse> {
-    val graph = DomainGraphBuilder(rawData).buildGraph()
+private fun buildDomainGraph(rawData: GraphData , warehouseRepository: WarehouseRepository): List<Warehouse> {
+    val graph = DomainGraphBuilder(rawData,warehouseRepository).buildGraph()
     printGraphSummary(graph)
     return graph
 }
@@ -143,12 +144,14 @@ private fun printVerificationReport(report: VerificationReport) {
 
 fun main() {
 
-    val rawData = loadRawData()
+    val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+
+    val rawData = loadRawData(warehouseRepository)
 
     val sortedPackages = sortPackagesByImportance(rawData.rawPackages)
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
 
-    val graph = buildDomainGraph(rawData)
+    val graph = buildDomainGraph(rawData,warehouseRepository)
     printSortedCargoQueueForFirstWarehouse(graph)
 
     printDispatchStrategyDemo()
