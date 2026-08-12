@@ -8,9 +8,14 @@ import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
 import domain.model.Warehouse
+import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
 
-class DomainGraphBuilder(private val rawData: GraphData , private val warehouseRepository: WarehouseRepository ) {
+class DomainGraphBuilder(
+    private val rawData: GraphData,
+    private val warehouseRepository: WarehouseRepository,
+    private val packageRepository: PackageRepository
+) {
 
     private val warehousesId: Map<String, Warehouse> = createWarehouseNodes()
 
@@ -27,7 +32,8 @@ class DomainGraphBuilder(private val rawData: GraphData , private val warehouseR
     }
 
     private fun groupPackagesByOriginId(): Map<String, List<PackageRaw>> {
-        return rawData.rawPackages.groupBy { it.originHubId }
+
+        return packageRepository.getPackages().groupBy { it.originHubId }
     }
 
     private fun groupRoutesByOriginId(): Map<String, List<RouteRaw>> {
@@ -138,4 +144,3 @@ class DomainGraphBuilder(private val rawData: GraphData , private val warehouseR
         )
     }
 }
-
