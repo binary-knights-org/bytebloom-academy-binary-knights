@@ -2,8 +2,9 @@ package ui
 
 import data.dataholder.PackageRaw
 import data.parser.loadFleetData
-import data.parser.loadPackageData
+import domain.repository.PackageRepository
 import data.parser.loadRouteData
+import data.repository.CsvPackageRepository
 import data.repository.CsvWarehouseRepository
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
@@ -30,10 +31,13 @@ private const val DEMO_WEIGHT_KG = 10.0
 private const val DEMO_DISTANCE_KM = 50.0
 
 
-private fun loadRawData(warehouseRepository: WarehouseRepository): GraphData {
+private fun loadRawData(
+    warehouseRepository: WarehouseRepository,
+    packageRepository: PackageRepository
+): GraphData {
     val rawData = GraphData(
         loadFleetData(FLEET_FILE_PATH),
-        loadPackageData(PACKAGE_FILE_PATH),
+        packageRepository.getPackages(), // Use PackageRepository here
         loadRouteData(ROUTES_FILE_PATH),
         warehouseRepository.getWarehouses()
     )
@@ -145,8 +149,9 @@ private fun printVerificationReport(report: VerificationReport) {
 fun main() {
 
     val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+    val packageRepository: PackageRepository = CsvPackageRepository(PACKAGE_FILE_PATH)
 
-    val rawData = loadRawData(warehouseRepository)
+    val rawData = loadRawData(warehouseRepository, packageRepository)
 
     val sortedPackages = sortPackagesByImportance(rawData.rawPackages)
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
