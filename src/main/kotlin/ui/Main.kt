@@ -2,8 +2,8 @@ package ui
 
 import data.dataholder.PackageRaw
 import data.parser.loadFleetData
-import data.parser.loadRouteData
 import data.repository.CsvPackageRepository
+import data.repository.CsvRouteRepository
 import data.repository.CsvWarehouseRepository
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
@@ -16,6 +16,7 @@ import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.pricing.RoutePricingEngine
 import domain.repository.PackageRepository
+import domain.repository.RouteRepository
 import domain.repository.WarehouseRepository
 import domain.ring.DeterministicHashingEngine
 import domain.ring.VerificationReport
@@ -33,12 +34,13 @@ private const val DEMO_DISTANCE_KM = 50.0
 
 private fun loadRawData(
     warehouseRepository: WarehouseRepository,
-    packageRepository: PackageRepository
+    packageRepository: PackageRepository,
+    routeRepository: RouteRepository
 ): GraphData {
     val rawData = GraphData(
         loadFleetData(FLEET_FILE_PATH),
         packageRepository.getPackages(),
-        loadRouteData(ROUTES_FILE_PATH),
+        routeRepository.getRoutes(),
         warehouseRepository.getWarehouses()
     )
     printParsingReport(rawData)
@@ -74,9 +76,15 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
 private fun buildDomainGraph(
     rawData: GraphData,
     warehouseRepository: WarehouseRepository,
-    packageRepository: PackageRepository
+    packageRepository: PackageRepository,
+    routeRepository: RouteRepository
 ): List<Warehouse> {
-    val graph = DomainGraphBuilder(rawData, warehouseRepository, packageRepository).buildGraph()
+    val graph = DomainGraphBuilder(
+        rawData,
+        warehouseRepository,
+        packageRepository,
+        routeRepository
+    ).buildGraph()
     printGraphSummary(graph)
     return graph
 }
@@ -154,13 +162,14 @@ fun main() {
 
     val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
     val packageRepository: PackageRepository = CsvPackageRepository(PACKAGE_FILE_PATH)
+    val routeRepository: RouteRepository = CsvRouteRepository(ROUTES_FILE_PATH)
 
-    val rawData = loadRawData(warehouseRepository, packageRepository)
+    val rawData = loadRawData(warehouseRepository, packageRepository, routeRepository)
 
     val sortedPackages = sortPackagesByImportance(rawData.rawPackages)
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
 
-    val graph = buildDomainGraph(rawData, warehouseRepository, packageRepository)
+    val graph = buildDomainGraph(rawData, warehouseRepository, packageRepository, routeRepository)
     printSortedCargoQueueForFirstWarehouse(graph)
 
     printDispatchStrategyDemo()
