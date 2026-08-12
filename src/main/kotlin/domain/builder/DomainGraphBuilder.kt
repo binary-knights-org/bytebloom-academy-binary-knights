@@ -34,15 +34,15 @@ class DomainGraphBuilder(
     }
 
     private fun groupPackagesByOriginId(): Map<String, List<PackageRaw>> {
-        return packageRepository.getPackages().groupBy { it.originHubId }
+        return packageRepository.getAllPackages().groupBy { it.originHubId }
     }
 
     private fun groupRoutesByOriginId(): Map<String, List<RouteRaw>> {
-        return routeRepository.getRoutes().groupBy { it.originHubId }
+        return routeRepository.getAllRoutes().groupBy { it.originHubId }
     }
 
     private fun createWarehouseNodes(): Map<String, Warehouse> {
-        return warehouseRepository.getWarehouses().associateBy(
+        return warehouseRepository.getAllWarehouses().associateBy(
             keySelector = { it.hubId },
             valueTransform = { createWarehouse(it) }
         )

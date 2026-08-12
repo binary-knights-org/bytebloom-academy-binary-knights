@@ -1,7 +1,7 @@
 package ui
 
 import data.dataholder.PackageRaw
-import data.parser.loadFleetData
+import data.repository.CsvFleetRepository
 import data.repository.CsvPackageRepository
 import data.repository.CsvRouteRepository
 import data.repository.CsvWarehouseRepository
@@ -15,6 +15,7 @@ import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.pricing.RoutePricingEngine
+import domain.repository.FleetRepository
 import domain.repository.PackageRepository
 import domain.repository.RouteRepository
 import domain.repository.WarehouseRepository
@@ -33,15 +34,16 @@ private const val DEMO_DISTANCE_KM = 50.0
 
 
 private fun loadRawData(
-    warehouseRepository: WarehouseRepository,
+    fleetRepository: FleetRepository,
     packageRepository: PackageRepository,
-    routeRepository: RouteRepository
+    routeRepository: RouteRepository,
+    warehouseRepository: WarehouseRepository
 ): GraphData {
     val rawData = GraphData(
-        loadFleetData(FLEET_FILE_PATH),
+        fleetRepository.getFleet(),
         packageRepository.getPackages(),
-        routeRepository.getRoutes(),
-        warehouseRepository.getWarehouses()
+        routeRepository.getAllRoutes(),
+        warehouseRepository.getAllWarehouses()
     )
     printParsingReport(rawData)
     return rawData
@@ -160,11 +162,14 @@ private fun printVerificationReport(report: VerificationReport) {
 
 fun main() {
 
-    val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+
+    val fleetRepository: FleetRepository = CsvFleetRepository(FLEET_FILE_PATH)
     val packageRepository: PackageRepository = CsvPackageRepository(PACKAGE_FILE_PATH)
     val routeRepository: RouteRepository = CsvRouteRepository(ROUTES_FILE_PATH)
+    val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
 
-    val rawData = loadRawData(warehouseRepository, packageRepository, routeRepository)
+    val rawData =
+        loadRawData(fleetRepository, packageRepository, routeRepository, warehouseRepository)
 
     val sortedPackages = sortPackagesByImportance(rawData.rawPackages)
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
