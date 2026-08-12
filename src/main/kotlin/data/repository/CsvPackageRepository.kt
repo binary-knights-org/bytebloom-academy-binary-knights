@@ -1,15 +1,13 @@
 package data.repository
 
 import data.dataholder.PackageRaw
-import data.parser.checkFileExists
-import data.parser.hasValidFieldCount
-import data.parser.parseCsvFields
+import data.reader.CsvFileReader
+import data.utils.hasValidFieldCount
+import data.utils.parseCsvFields
 import domain.repository.PackageRepository
-import java.io.File
 
 private const val EXPECTED_PACKAGE_FIELDS = 5
 private const val CSV_DELIMITER = ","
-private const val HEADER_LINES_TO_SKIP = 1
 private const val WEIGHT_UNIT_KG = "kg"
 private const val INVALID_WEIGHT_DEFAULT = -1.0
 
@@ -25,15 +23,12 @@ private const val PRIORITY_LOW = "LOW"
 private const val DEFAULT_PRIORITY = PRIORITY_LOW
 
 class CsvPackageRepository(
-    private val filePath: String
+    private val filePath: String,
+    private val reader: CsvFileReader = CsvFileReader()
 ) : PackageRepository {
 
-    override fun getPackages(): List<PackageRaw> {
-        val file = File(filePath)
-        if (!checkFileExists(file)) {
-            return emptyList()
-        }
-        val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
+    override fun getAllPackages(): List<PackageRaw> {
+        val lines = reader.readLines(filePath)
         return extractPackages(lines)
     }
 
@@ -44,10 +39,10 @@ class CsvPackageRepository(
     private fun parseLine(line: String): PackageRaw? {
         val fields = parseCsvFields(line, CSV_DELIMITER)
         if (!hasValidFieldCount(fields, EXPECTED_PACKAGE_FIELDS)) return null
-        return mapFieldsToPackages(fields)
+        return mapFieldsToPackage(fields)
     }
 
-    private fun mapFieldsToPackages(fields: List<String>): PackageRaw {
+    private fun mapFieldsToPackage(fields: List<String>): PackageRaw {
         val packageId = fields[INDEX_ID]
         val weight = parseWeight(fields[INDEX_WEIGHT])
         val originHubId = fields[INDEX_ORIGIN_HUB]

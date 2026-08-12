@@ -3,5 +3,5 @@ package domain.repository
 import data.dataholder.PackageRaw
 
 interface PackageRepository {
-    fun getPackages(): List<PackageRaw>
+    fun getAllPackages(): List<PackageRaw>
 }
