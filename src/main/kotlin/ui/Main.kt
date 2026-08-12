@@ -40,8 +40,8 @@ private fun loadRawData(
     warehouseRepository: WarehouseRepository
 ): GraphData {
     val rawData = GraphData(
-        fleetRepository.getFleet(),
-        packageRepository.getPackages(),
+        fleetRepository.getAllFleets(),
+        packageRepository.getAllPackages(),
         routeRepository.getAllRoutes(),
         warehouseRepository.getAllWarehouses()
     )
