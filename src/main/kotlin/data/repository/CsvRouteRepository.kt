@@ -1,15 +1,13 @@
 package data.repository
 
 import data.dataholder.RouteRaw
-import data.parser.checkFileExists
-import data.parser.hasValidFieldCount
-import data.parser.parseCsvFields
+import data.reader.CsvFileReader
+import data.utils.hasValidFieldCount
+import data.utils.parseCsvFields
 import domain.repository.RouteRepository
-import java.io.File
 
 private const val EXPECTED_ROUTE_FIELDS = 5
 private const val CSV_DELIMITER = ","
-private const val HEADER_LINES_TO_SKIP = 1
 private const val DISTANCE_UNIT_KM = "km"
 
 private const val INDEX_ROUTE_ID = 0
@@ -19,15 +17,12 @@ private const val INDEX_DISTANCE = 3
 private const val INDEX_TYPICAL_DELAY = 4
 
 class CsvRouteRepository(
-    private val filePath: String
+    private val filePath: String,
+    private val reader: CsvFileReader = CsvFileReader()
 ) : RouteRepository {
 
-    override fun getRoutes(): List<RouteRaw> {
-        val file = File(filePath)
-        if (!checkFileExists(file)) {
-            return emptyList()
-        }
-        val lines = file.readLines().drop(HEADER_LINES_TO_SKIP)
+    override fun getAllRoutes(): List<RouteRaw> {
+        val lines = reader.readLines(filePath)
         return extractRoutes(lines)
     }
 
@@ -38,10 +33,10 @@ class CsvRouteRepository(
     private fun parseLine(line: String): RouteRaw? {
         val fields = parseCsvFields(line, CSV_DELIMITER)
         if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS)) return null
-        return mapFieldsToRoutes(fields)
+        return mapFieldsToRoute(fields)
     }
 
-    private fun mapFieldsToRoutes(fields: List<String>): RouteRaw? {
+    private fun mapFieldsToRoute(fields: List<String>): RouteRaw? {
         val routeId = fields[INDEX_ROUTE_ID]
         val originHubId = fields[INDEX_ORIGIN_HUB]
         val destinationHubId = fields[INDEX_DESTINATION_HUB]
