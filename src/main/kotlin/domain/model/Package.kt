@@ -1,9 +1,13 @@
 package domain.model
 
-data class Package (
-    val id: String,
-    val weight: Double,
-    val priority: String,
-    val originHub: Warehouse,
-    val destinationHub: Warehouse
-)
+class Package(
+    override val id: String,
+    override val weight: Double,
+    override val priority: String,
+    override val originHub: Warehouse,
+    override val destinationHub: Warehouse
+) : PackageComponent {
+    override fun calculateTransitRate(baseTransitRate: Double): Double {
+        return baseTransitRate
+    }
+}

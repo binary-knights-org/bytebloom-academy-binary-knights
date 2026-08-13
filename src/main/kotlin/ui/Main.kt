@@ -8,6 +8,9 @@ import data.repository.CsvWarehouseRepository
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.GraphData
+import domain.decorator.ColdChainDecorator
+import domain.decorator.ExpressInsuranceDecorator
+import domain.decorator.FragileHandlingDecorator
 import domain.model.Package
 import domain.model.Vehicle
 import domain.model.Warehouse
@@ -21,7 +24,6 @@ import domain.repository.RouteRepository
 import domain.repository.WarehouseRepository
 import domain.ring.DeterministicHashingEngine
 import domain.ring.VerificationReport
-
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -160,6 +162,30 @@ private fun printVerificationReport(report: VerificationReport) {
     }
 }
 
+private fun printDecoratorCostDemo(graph: List<Warehouse>) {
+    println("\n--- Decorator Pattern Cost Demo ---")
+
+    val firstWarehouse = graph.firstOrNull() ?: return
+    val firstRoute = firstWarehouse.outgoingRoutes.first()
+    val firstPackage = firstWarehouse.cargoQueue.first()
+
+    val pricingEngine = RoutePricingEngine(ExpressStrategy())
+    val baseCost = pricingEngine.calculateCost(firstPackage.weight, firstRoute.distanceKm)
+    println("Base Express Cost > $baseCost $")
+
+    val insuredPackage = ExpressInsuranceDecorator(firstPackage)
+    val insuredCost = insuredPackage.calculateTransitRate(baseCost)
+    println("With Express Insurance > $insuredCost $")
+
+    val coldChainPackage = ColdChainDecorator(insuredPackage)
+    val coldChainCost = coldChainPackage.calculateTransitRate(insuredCost)
+    println("With Insurance & Cold Chain > $coldChainCost $")
+
+    val fragilePackage = FragileHandlingDecorator(coldChainPackage)
+    val finalCost = fragilePackage.calculateTransitRate(coldChainCost)
+    println("With Insurance, Cold Chain & Fragile > $finalCost $")
+}
+
 fun main() {
 
 
@@ -179,7 +205,6 @@ fun main() {
 
     printDispatchStrategyDemo()
 
-
     val simulationLogic = domain.ring.BreakdownSimulationLogic()
     val result = simulationLogic.runSimulation()
 
@@ -192,4 +217,6 @@ fun main() {
 
     val report = simulationLogic.createReport(result)
     printVerificationReport(report)
+
+    printDecoratorCostDemo(graph)
 }
