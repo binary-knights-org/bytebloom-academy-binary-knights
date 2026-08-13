@@ -7,7 +7,7 @@ import data.repository.CsvRouteRepository
 import data.repository.CsvWarehouseRepository
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
-import domain.builder.GraphData
+import domain.builder.RepositoryProvider
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
@@ -40,23 +40,23 @@ private fun loadRawData(
     packageRepository: PackageRepository,
     routeRepository: RouteRepository,
     warehouseRepository: WarehouseRepository
-): GraphData {
-    val rawData = GraphData(
-        fleetRepository.getAllFleets(),
-        packageRepository.getAllPackages(),
-        routeRepository.getAllRoutes(),
-        warehouseRepository.getAllWarehouses()
+): RepositoryProvider {
+    val rawData = RepositoryProvider(
+        fleetRepository = fleetRepository,
+        packageRepository = packageRepository,
+        routeRepository = routeRepository,
+        warehouseRepository = warehouseRepository
     )
     printParsingReport(rawData)
     return rawData
 }
 
-private fun printParsingReport(rawData: GraphData) {
+private fun printParsingReport(rawData: RepositoryProvider) {
     println("\n--- Data Parsing Report ---")
-    println(" Successfully parsed Fleet: ${rawData.rawFleet.size} vehicle records.")
-    println(" Successfully parsed Packages: ${rawData.rawPackages.size} records.")
-    println(" Successfully parsed Routes: ${rawData.rawRoutes.size} records.")
-    println(" Successfully parsed Warehouses: ${rawData.rawWarehouses.size} records.")
+    println(" Successfully parsed Fleet: ${rawData.fleetRepository.getAllFleets().size} vehicle records.")
+    println(" Successfully parsed Packages: ${rawData.packageRepository.getAllPackages().size} records.")
+    println(" Successfully parsed Routes: ${rawData.routeRepository.getAllRoutes().size} records.")
+    println(" Successfully parsed Warehouses: ${rawData.warehouseRepository.getAllWarehouses().size} records.")
 }
 
 
@@ -77,18 +77,8 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
 }
 
 
-private fun buildDomainGraph(
-    rawData: GraphData,
-    warehouseRepository: WarehouseRepository,
-    packageRepository: PackageRepository,
-    routeRepository: RouteRepository
-): List<Warehouse> {
-    val graph = DomainGraphBuilder(
-        rawData,
-        warehouseRepository,
-        packageRepository,
-        routeRepository
-    ).buildGraph()
+private fun buildDomainGraph(rawData: RepositoryProvider): List<Warehouse> {
+    val graph = DomainGraphBuilder(rawData).buildGraph()
     printGraphSummary(graph)
     return graph
 }
@@ -197,10 +187,10 @@ fun main() {
     val rawData =
         loadRawData(fleetRepository, packageRepository, routeRepository, warehouseRepository)
 
-    val sortedPackages = sortPackagesByImportance(rawData.rawPackages)
+    val sortedPackages = sortPackagesByImportance(rawData.packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
 
-    val graph = buildDomainGraph(rawData, warehouseRepository, packageRepository, routeRepository)
+    val graph = buildDomainGraph(rawData)
     printSortedCargoQueueForFirstWarehouse(graph)
 
     printDispatchStrategyDemo()
