@@ -8,15 +8,9 @@ import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
 import domain.model.Warehouse
-import domain.repository.PackageRepository
-import domain.repository.RouteRepository
-import domain.repository.WarehouseRepository
 
 class DomainGraphBuilder(
-    private val rawData: GraphData,
-    private val warehouseRepository: WarehouseRepository,
-    private val packageRepository: PackageRepository,
-    private val routeRepository: RouteRepository
+    private val repositories: RepositoryProvider
 ) {
 
     private val warehousesId: Map<String, Warehouse> = createWarehouseNodes()
@@ -30,19 +24,19 @@ class DomainGraphBuilder(
     }
 
     private fun groupVehiclesByHubId(): Map<String, List<FleetRaw>> {
-        return rawData.rawFleet.groupBy { it.currentHubId }
+        return repositories.fleetRepository.getAllFleets().groupBy { it.currentHubId }
     }
 
     private fun groupPackagesByOriginId(): Map<String, List<PackageRaw>> {
-        return packageRepository.getAllPackages().groupBy { it.originHubId }
+        return repositories.packageRepository.getAllPackages().groupBy { it.originHubId }
     }
 
     private fun groupRoutesByOriginId(): Map<String, List<RouteRaw>> {
-        return routeRepository.getAllRoutes().groupBy { it.originHubId }
+        return repositories.routeRepository.getAllRoutes().groupBy { it.originHubId }
     }
 
     private fun createWarehouseNodes(): Map<String, Warehouse> {
-        return warehouseRepository.getAllWarehouses().associateBy(
+        return repositories.warehouseRepository.getAllWarehouses().associateBy(
             keySelector = { it.hubId },
             valueTransform = { createWarehouse(it) }
         )
@@ -59,8 +53,9 @@ class DomainGraphBuilder(
     }
 
     private fun attachVehiclesToWarehouses() {
+        val vehiclesGroupByHubId = groupVehiclesByHubId()
         for ((hubId, warehouse) in warehousesId) {
-            val rawFleet = groupVehiclesByHubId()[hubId] ?: continue
+            val rawFleet = vehiclesGroupByHubId[hubId] ?: continue
             populateWarehouseVehicles(warehouse, rawFleet)
         }
     }
@@ -82,8 +77,9 @@ class DomainGraphBuilder(
     }
 
     private fun attachPackagesToWarehouses() {
+        val packagesGroupByOriginId = groupPackagesByOriginId()
         for ((hubId, originWarehouse) in warehousesId) {
-            val rawPackages = groupPackagesByOriginId()[hubId] ?: continue
+            val rawPackages = packagesGroupByOriginId[hubId] ?: continue
             populateWarehousePackages(originWarehouse, rawPackages)
         }
     }
@@ -114,8 +110,9 @@ class DomainGraphBuilder(
     }
 
     private fun attachRoutesToWarehouses() {
+        val routesGroupByOriginId = groupRoutesByOriginId()
         for ((hubId, originWarehouse) in warehousesId) {
-            val rawRoutes = groupRoutesByOriginId()[hubId] ?: continue
+            val rawRoutes = routesGroupByOriginId[hubId] ?: continue
             populateWarehouseRoutes(originWarehouse, rawRoutes)
         }
     }
