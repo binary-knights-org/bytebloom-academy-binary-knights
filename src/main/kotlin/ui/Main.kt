@@ -5,6 +5,7 @@ import data.repository.CsvFleetRepository
 import data.repository.CsvPackageRepository
 import data.repository.CsvRouteRepository
 import data.repository.CsvWarehouseRepository
+import domain.algorithm.LeastHopRouter
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
@@ -176,6 +177,22 @@ private fun printDecoratorCostDemo(graph: List<Warehouse>) {
     println("With Insurance, Cold Chain & Fragile > $finalCost $")
 }
 
+private fun printLeastHopRouteDemo(graph: List<Warehouse>) {
+    println("\n--- Least-Hop Router Demo (BFS) ---")
+
+    val origin = graph.firstOrNull() ?: return
+    val destination = graph.lastOrNull() ?: return
+    println("Finding shortest path from ${origin.id} to ${destination.id}...")
+
+    val path = LeastHopRouter().findShortestPath(origin, destination)
+
+    if (path == null) {
+        println("No path found: ${destination.id} is not reachable from ${origin.id}.")
+    } else {
+        println("Shortest path (${path.size - 1} hop(s)): ${path.joinToString(" -> ") { it.id }}")
+    }
+}
+
 fun main() {
 
 
@@ -209,4 +226,5 @@ fun main() {
     printVerificationReport(report)
 
     printDecoratorCostDemo(graph)
+    printLeastHopRouteDemo(graph)
 }
