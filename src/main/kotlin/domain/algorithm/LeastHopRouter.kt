@@ -6,10 +6,12 @@ class LeastHopRouter {
 
     fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
         if (origin.id == destination.id) return listOf(origin)
+        return executeSearch(origin, destination)
+    }
 
+    private fun executeSearch(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
         val state = initializeState(origin)
         val previousWarehouseOf = exploreBreadthFirst(destination, state) ?: return null
-
         return reconstructPath(origin, destination, previousWarehouseOf)
     }
 
