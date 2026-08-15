@@ -3,6 +3,50 @@ package domain.algorithm
 import domain.model.Route
 import domain.model.Warehouse
 
+/**
+ * ==============================================================================
+ * SUB-TASK 4: OPTIMAL TRANSIT ROUTER (MANUAL DIJKSTRA'S ALGORITHM)
+ * ==============================================================================
+ *
+ * 1. THEORETICAL COMPARISON: DIJKSTRA VS. BFS ROUTER
+ * ------------------------------------------------------------------------------
+ * - BFS Router:
+ *   * Core Metric : Counts total transfers/hops (Number of Edges).
+ *   * Edge Weights: Assumes uniform edge distance for all routes (Weight = 1).
+ *   * Queue System: Standard First-In, First-Out (FIFO) Queue.
+ *
+ * - Manual Dijkstra Router:
+ *   * Core Metric : Calculates cumulative physical distance (distanceKm).
+ *   * Edge Weights: Accurately evaluates varying route distances between hubs.
+ *   * Node Lookup : Custom manual lookup (`extractLowestDistanceNode`) without
+ *                   built-in priority sorting libraries.
+ *
+ * 2. WHY BFS FAILS ON VARYING PHYSICAL DISTANCES
+ * ------------------------------------------------------------------------------
+ * BFS explores graphs level-by-level based purely on hop counts, assuming that a
+ * route with fewer transfers is always shorter.
+ *
+ * In real transit networks where route physical distances vary:
+ * - A direct 1-hop route might cover a physical distance of 100 km.
+ * - A 2-hop route via an intermediate hub might sum up to only 5 km (2 km + 3 km).
+ *
+ * Because BFS marks target nodes as visited upon their first discovery in Level 1,
+ * it prematurely terminates and returns the 100 km path, failing to discover
+ * the mathematically shorter 2-hop path.
+ *
+ * 3. COMPARISON DIAGRAM
+ * ------------------------------------------------------------------------------
+ *                (100 km - 1 Hop)
+ *          [S] -------------------> [T]  <-- BFS Choice (1 Hop = 100 km) ❌
+ *           |                        ^
+ *         (2 km)                  (3 km)
+ *           v                        |
+ *          [A] ----------------------+   <-- Dijkstra Choice (2 Hops = 5 km)
+ *                        (5 km total)
+ * ==============================================================================
+ */
+
+
 class OptimalTransitRouter {
 
     fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
