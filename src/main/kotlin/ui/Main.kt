@@ -6,6 +6,7 @@ import data.repository.CsvRouteRepository
 import data.repository.CsvVehicleRepository
 import data.repository.CsvWarehouseRepository
 import domain.algorithm.LeastHopRouter
+import domain.algorithm.OptimalTransitRouter
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
@@ -60,7 +61,6 @@ private fun printParsingReport(rawData: RepositoryProvider) {
     println(" Successfully parsed Warehouses: ${rawData.warehouseRepository.getAllWarehouses().size} records.")
 }
 
-
 private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
     println("\n--- Executing Manual Package Sorting ---")
     println("\n--- Top $limit Priority Shipments ---")
@@ -76,7 +76,6 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
         )
     }
 }
-
 
 private fun buildDomainGraph(rawData: RepositoryProvider): List<Warehouse> {
     val graph = DomainGraphBuilder(rawData).buildGraph()
@@ -96,7 +95,6 @@ private fun printGraphSummary(warehouses: List<Warehouse>) {
     }
 }
 
-
 private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
     val warehouse = warehouse.firstOrNull()
     if (warehouse == null) {
@@ -111,7 +109,6 @@ private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
         println("id = ${pkg.id}, weight = ${pkg.weight} kg")
     }
 }
-
 
 private fun printDispatchStrategyDemo() {
     println("\n--- Dispatch Strategy Demo ---")
@@ -193,6 +190,22 @@ private fun printLeastHopRouteDemo(graph: List<Warehouse>) {
     }
 }
 
+private fun printOptimalTransitRouteDemo(graph: List<Warehouse>) {
+    println("\n--- Optimal Transit Router Demo (Dijkstra) ---")
+
+    val origin = graph.firstOrNull() ?: return
+    val destination = graph.lastOrNull() ?: return
+    println("Finding optimal path (shortest distance) from ${origin.id} to ${destination.id}...")
+
+    val path = OptimalTransitRouter().findShortestPath(origin, destination)
+
+    if (path == null) {
+        println("No path found: ${destination.id} is not reachable from ${origin.id}.")
+    } else {
+        println("Optimal path (${path.size - 1} hop(s)): ${path.joinToString(" -> ") { it.id }}")
+    }
+}
+
 fun main() {
 
 
@@ -227,4 +240,5 @@ fun main() {
 
     printDecoratorCostDemo(graph)
     printLeastHopRouteDemo(graph)
+    printOptimalTransitRouteDemo(graph)
 }
