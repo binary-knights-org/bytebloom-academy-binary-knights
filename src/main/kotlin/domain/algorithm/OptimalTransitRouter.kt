@@ -33,17 +33,7 @@ import domain.model.Warehouse
  * Because BFS marks target nodes as visited upon their first discovery in Level 1,
  * it prematurely terminates and returns the 100 km path, failing to discover
  * the mathematically shorter 2-hop path.
- *
- * 3. COMPARISON DIAGRAM
- * ------------------------------------------------------------------------------
- *                (100 km - 1 Hop)
- *          [S] -------------------> [T]  <-- BFS Choice (1 Hop = 100 km) ❌
- *           |                        ^
- *         (2 km)                  (3 km)
- *           v                        |
- *          [A] ----------------------+   <-- Dijkstra Choice (2 Hops = 5 km)
- *                        (5 km total)
- * ==============================================================================
+
  */
 
 
