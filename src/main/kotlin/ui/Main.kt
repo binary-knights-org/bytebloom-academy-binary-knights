@@ -6,6 +6,7 @@ import data.repository.CsvRouteRepository
 import data.repository.CsvVehicleRepository
 import data.repository.CsvWarehouseRepository
 import domain.algorithm.LeastHopRouter
+import domain.algorithm.OptimalTransitRouter
 import domain.algorithm.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
@@ -189,6 +190,22 @@ private fun printLeastHopRouteDemo(graph: List<Warehouse>) {
     }
 }
 
+private fun printOptimalTransitRouteDemo(graph: List<Warehouse>) {
+    println("\n--- Optimal Transit Router Demo (Dijkstra) ---")
+
+    val origin = graph.firstOrNull() ?: return
+    val destination = graph.lastOrNull() ?: return
+    println("Finding optimal path (shortest distance) from ${origin.id} to ${destination.id}...")
+
+    val path = OptimalTransitRouter().findShortestPath(origin, destination)
+
+    if (path == null) {
+        println("No path found: ${destination.id} is not reachable from ${origin.id}.")
+    } else {
+        println("Optimal path (${path.size - 1} hop(s)): ${path.joinToString(" -> ") { it.id }}")
+    }
+}
+
 fun main() {
 
 
@@ -223,4 +240,5 @@ fun main() {
 
     printDecoratorCostDemo(graph)
     printLeastHopRouteDemo(graph)
+    printOptimalTransitRouteDemo(graph)
 }
