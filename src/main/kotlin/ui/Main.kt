@@ -1,9 +1,9 @@
 package ui
 
 import data.dataholder.PackageRaw
-import data.repository.CsvFleetRepository
 import data.repository.CsvPackageRepository
 import data.repository.CsvRouteRepository
+import data.repository.CsvVehicleRepository
 import data.repository.CsvWarehouseRepository
 import domain.algorithm.LeastHopRouter
 import domain.algorithm.sortPackagesByImportance
@@ -19,9 +19,9 @@ import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.pricing.RoutePricingEngine
-import domain.repository.FleetRepository
 import domain.repository.PackageRepository
 import domain.repository.RouteRepository
+import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
 import domain.ring.DeterministicHashingEngine
 import domain.ring.VerificationReport
@@ -29,32 +29,32 @@ import domain.ring.VerificationReport
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
 private const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
-private const val FLEET_FILE_PATH = "src/main/resources/fleet.csv"
+private const val VEHICLES_FILE_PATH = "src/main/resources/fleet.csv"
 
 private const val TOP_SHIPMENTS_LIMIT = 3
 private const val DEMO_WEIGHT_KG = 10.0
 private const val DEMO_DISTANCE_KM = 50.0
 
 
-private fun loadRawData(
-    fleetRepository: FleetRepository,
+private fun assembleRepositories(
+    vehicleRepository: VehicleRepository,
     packageRepository: PackageRepository,
     routeRepository: RouteRepository,
     warehouseRepository: WarehouseRepository
 ): RepositoryProvider {
-    val rawData = RepositoryProvider(
-        fleetRepository = fleetRepository,
+    val repositories = RepositoryProvider(
+        vehicleRepository = vehicleRepository,
         packageRepository = packageRepository,
         routeRepository = routeRepository,
         warehouseRepository = warehouseRepository
     )
-    printParsingReport(rawData)
-    return rawData
+    printParsingReport(repositories)
+    return repositories
 }
 
 private fun printParsingReport(rawData: RepositoryProvider) {
     println("\n--- Data Parsing Report ---")
-    println(" Successfully parsed Fleet: ${rawData.fleetRepository.getAllFleets().size} vehicle records.")
+    println(" Successfully parsed Fleet: ${rawData.vehicleRepository.getAllVehicles().size} vehicle records.")
     println(" Successfully parsed Packages: ${rawData.packageRepository.getAllPackages().size} records.")
     println(" Successfully parsed Routes: ${rawData.routeRepository.getAllRoutes().size} records.")
     println(" Successfully parsed Warehouses: ${rawData.warehouseRepository.getAllWarehouses().size} records.")
@@ -141,7 +141,7 @@ private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) 
 }
 
 private fun printVerificationReport(report: VerificationReport) {
-    println("\n=== VERIFICATION REPORT ===")
+    println("\n--- Verification Report ---")
     println("Packages migrated from broken vehicle: ${report.migratedPackageIds.size}")
 
     if (report.migratedPackageIds.isNotEmpty()) {
@@ -196,18 +196,18 @@ private fun printLeastHopRouteDemo(graph: List<Warehouse>) {
 fun main() {
 
 
-    val fleetRepository: FleetRepository = CsvFleetRepository(FLEET_FILE_PATH)
+    val vehicleRepository: VehicleRepository = CsvVehicleRepository(VEHICLES_FILE_PATH)
     val packageRepository: PackageRepository = CsvPackageRepository(PACKAGE_FILE_PATH)
     val routeRepository: RouteRepository = CsvRouteRepository(ROUTES_FILE_PATH)
     val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
 
-    val rawData =
-        loadRawData(fleetRepository, packageRepository, routeRepository, warehouseRepository)
+    val repositories =
+        assembleRepositories(vehicleRepository, packageRepository, routeRepository, warehouseRepository)
 
-    val sortedPackages = sortPackagesByImportance(rawData.packageRepository.getAllPackages())
+    val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
 
-    val graph = buildDomainGraph(rawData)
+    val graph = buildDomainGraph(repositories)
     printSortedCargoQueueForFirstWarehouse(graph)
 
     printDispatchStrategyDemo()

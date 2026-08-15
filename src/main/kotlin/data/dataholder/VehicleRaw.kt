@@ -1,6 +1,6 @@
 package data.dataholder
 
-data class FleetRaw(
+data class VehicleRaw(
     val vehicleIds: List<String>,
     val currentHubId: String,
     val maxCapacityKg: Double,

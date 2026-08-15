@@ -1,8 +1,8 @@
 package domain.builder
 
-import data.dataholder.FleetRaw
 import data.dataholder.PackageRaw
 import data.dataholder.RouteRaw
+import data.dataholder.VehicleRaw
 import data.dataholder.WarehouseRaw
 import domain.model.Package
 import domain.model.Route
@@ -23,8 +23,8 @@ class DomainGraphBuilder(
         return warehousesId.values.toList()
     }
 
-    private fun groupVehiclesByHubId(): Map<String, List<FleetRaw>> {
-        return repositories.fleetRepository.getAllFleets().groupBy { it.currentHubId }
+    private fun groupVehiclesByHubId(): Map<String, List<VehicleRaw>> {
+        return repositories.vehicleRepository.getAllVehicles().groupBy { it.currentHubId }
     }
 
     private fun groupPackagesByOriginId(): Map<String, List<PackageRaw>> {
@@ -60,14 +60,14 @@ class DomainGraphBuilder(
         }
     }
 
-    private fun populateWarehouseVehicles(warehouse: Warehouse, rawVehicles: List<FleetRaw>) {
+    private fun populateWarehouseVehicles(warehouse: Warehouse, rawVehicles: List<VehicleRaw>) {
         for (rawVehicle in rawVehicles) {
             val vehicle = createVehicle(rawVehicle, warehouse)
             warehouse.addVehicle(vehicle)
         }
     }
 
-    private fun createVehicle(rawVehicle: FleetRaw, currentHub: Warehouse): Vehicle {
+    private fun createVehicle(rawVehicle: VehicleRaw, currentHub: Warehouse): Vehicle {
         return Vehicle(
             id = rawVehicle.vehicleIds.first(),
             maxCapacityKg = rawVehicle.maxCapacityKg,
