@@ -60,7 +60,6 @@ private fun printParsingReport(rawData: RepositoryProvider) {
     println(" Successfully parsed Warehouses: ${rawData.warehouseRepository.getAllWarehouses().size} records.")
 }
 
-
 private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
     println("\n--- Executing Manual Package Sorting ---")
     println("\n--- Top $limit Priority Shipments ---")
@@ -76,7 +75,6 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
         )
     }
 }
-
 
 private fun buildDomainGraph(rawData: RepositoryProvider): List<Warehouse> {
     val graph = DomainGraphBuilder(rawData).buildGraph()
@@ -96,7 +94,6 @@ private fun printGraphSummary(warehouses: List<Warehouse>) {
     }
 }
 
-
 private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
     val warehouse = warehouse.firstOrNull()
     if (warehouse == null) {
@@ -111,7 +108,6 @@ private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
         println("id = ${pkg.id}, weight = ${pkg.weight} kg")
     }
 }
-
 
 private fun printDispatchStrategyDemo() {
     println("\n--- Dispatch Strategy Demo ---")
