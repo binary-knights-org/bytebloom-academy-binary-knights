@@ -13,9 +13,8 @@ import domain.builder.RepositoryProvider
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
-import domain.model.PackageComponent
 import domain.model.Package
-import domain.model.Route
+import domain.model.PackageComponent
 import domain.model.Vehicle
 import domain.model.Warehouse
 import domain.pricing.EcoStrategy
@@ -116,7 +115,7 @@ private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
 private fun printDispatchStrategyDemo(
     pricingEngine: RoutePricingEngine,
     expressStrategy: ExpressStrategy,
-     fragileStrategy: FragileStrategy
+    fragileStrategy: FragileStrategy
 ) {
     println("\n--- Dispatch Strategy Demo ---")
 
@@ -169,28 +168,44 @@ private fun printBreakdownSimulationDemo(simulationLogic: BreakdownSimulationLog
     val report = simulationLogic.createReport(result)
     printVerificationReport(report)
 }
+
 private fun printDecoratorCostDemo(
-    pricingEngine:RoutePricingEngine,
-    firstRoute:Route ,
-    firstPackage:Package,
+    baseCost: Double,
     insuredPackage: PackageComponent,
     coldChainPackage: PackageComponent,
     fragilePackage: PackageComponent
-    ) {
+) {
     println("\n--- Decorator Pattern Cost Demo ---")
-
-
-    val baseCost = pricingEngine.calculateCost(firstPackage.weight, firstRoute.distanceKm)
-    println("Base Express Cost > $baseCost $")
+    println("Base Express Cost = $baseCost $")
 
     val insuredCost = insuredPackage.calculateTransitRate(baseCost)
-    println("With Express Insurance > $insuredCost $")
+    println("With Express Insurance = $insuredCost $")
 
     val coldChainCost = coldChainPackage.calculateTransitRate(insuredCost)
-    println("With Insurance & Cold Chain > $coldChainCost $")
+    println("With Insurance & Cold Chain = $coldChainCost $")
 
     val finalCost = fragilePackage.calculateTransitRate(coldChainCost)
-    println("With Insurance, Cold Chain & Fragile > $finalCost $")
+    println("With Insurance, Cold Chain & Fragile = $finalCost $")
+}
+
+private fun runDecoratorDemo(
+    graph: List<Warehouse>,
+    pricingEngine: RoutePricingEngine,
+    expressStrategy: ExpressStrategy
+) {
+    val firstWarehouse = graph.firstOrNull()
+    val firstRoute = firstWarehouse?.outgoingRoutes?.firstOrNull()
+    val firstPackage = firstWarehouse?.cargoQueue?.firstOrNull()
+
+    if (firstRoute != null && firstPackage != null) {
+        pricingEngine.setStrategy(expressStrategy)
+        val baseCost = pricingEngine.calculateCost(firstPackage.weight, firstRoute.distanceKm)
+        val insuredPackage = ExpressInsuranceDecorator(firstPackage)
+        val coldChainPackage = ColdChainDecorator(insuredPackage)
+        val fragilePackage = FragileHandlingDecorator(coldChainPackage)
+
+        printDecoratorCostDemo(baseCost, insuredPackage, coldChainPackage, fragilePackage)
+    }
 }
 
 private fun printLeastHopRouteDemo(graph: List<Warehouse>, router: LeastHopRouter) {
@@ -226,35 +241,25 @@ private fun printOptimalTransitRouteDemo(graph: List<Warehouse>, router: Optimal
 }
 
 fun main() {
-
-    val vehicleRepository: VehicleRepository = CsvVehicleRepository(VEHICLES_FILE_PATH)
-    val packageRepository: PackageRepository = CsvPackageRepository(PACKAGE_FILE_PATH)
-    val routeRepository: RouteRepository = CsvRouteRepository(ROUTES_FILE_PATH)
-    val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
-        val ecoStrategy = EcoStrategy()
-        val expressStrategy = ExpressStrategy()
-        val fragileStrategy = FragileStrategy()
-        val pricingEngine = RoutePricingEngine(ecoStrategy)
-        val leastHopRouter = LeastHopRouter()
-        val optimalTransitRouter = OptimalTransitRouter()
-        val simulationLogic = BreakdownSimulationLogic()
-    val repositories = assembleRepositories(vehicleRepository, packageRepository, routeRepository, warehouseRepository)
+    val repositories = assembleRepositories(
+        CsvVehicleRepository(VEHICLES_FILE_PATH),
+        CsvPackageRepository(PACKAGE_FILE_PATH),
+        CsvRouteRepository(ROUTES_FILE_PATH),
+        CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+    )
     val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
-        printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
+    printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
+
     val graph = buildDomainGraph(repositories)
-        printSortedCargoQueueForFirstWarehouse(graph)
-        printDispatchStrategyDemo(pricingEngine, expressStrategy, fragileStrategy)
-        printBreakdownSimulationDemo(simulationLogic)
-    val firstWarehouse = graph.firstOrNull()
-    val firstRoute = firstWarehouse?.outgoingRoutes?.firstOrNull()
-    val firstPackage = firstWarehouse?.cargoQueue?.firstOrNull()
-    if (firstRoute != null && firstPackage != null) {
-        val expressPricingEngine = RoutePricingEngine(expressStrategy)
-        val insuredPackage = ExpressInsuranceDecorator(firstPackage)
-        val coldChainPackage = ColdChainDecorator(insuredPackage)
-        val fragilePackage = FragileHandlingDecorator(coldChainPackage)
-        printDecoratorCostDemo(expressPricingEngine, firstRoute, firstPackage, insuredPackage, coldChainPackage, firstPackage)
-        printLeastHopRouteDemo(graph, leastHopRouter)
-        printOptimalTransitRouteDemo(graph, optimalTransitRouter)
-    }
+    printSortedCargoQueueForFirstWarehouse(graph)
+
+    val pricingEngine = RoutePricingEngine(EcoStrategy())
+    val expressStrategy = ExpressStrategy()
+    val fragileStrategy = FragileStrategy()
+    printDispatchStrategyDemo(pricingEngine, expressStrategy, fragileStrategy)
+    printBreakdownSimulationDemo(BreakdownSimulationLogic())
+
+    runDecoratorDemo(graph, pricingEngine, expressStrategy)
+    printLeastHopRouteDemo(graph, LeastHopRouter())
+    printOptimalTransitRouteDemo(graph, OptimalTransitRouter())
 }
