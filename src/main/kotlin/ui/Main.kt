@@ -13,7 +13,9 @@ import domain.builder.RepositoryProvider
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
+import domain.model.PackageComponent
 import domain.model.Package
+import domain.model.Route
 import domain.model.Vehicle
 import domain.model.Warehouse
 import domain.pricing.EcoStrategy
@@ -24,6 +26,7 @@ import domain.repository.PackageRepository
 import domain.repository.RouteRepository
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
+import domain.ring.BreakdownSimulationLogic
 import domain.ring.DeterministicHashingEngine
 import domain.ring.VerificationReport
 
@@ -53,12 +56,12 @@ private fun assembleRepositories(
     return repositories
 }
 
-private fun printParsingReport(rawData: RepositoryProvider) {
+private fun printParsingReport(repositories: RepositoryProvider) {
     println("\n--- Data Parsing Report ---")
-    println(" Successfully parsed Fleet: ${rawData.vehicleRepository.getAllVehicles().size} vehicle records.")
-    println(" Successfully parsed Packages: ${rawData.packageRepository.getAllPackages().size} records.")
-    println(" Successfully parsed Routes: ${rawData.routeRepository.getAllRoutes().size} records.")
-    println(" Successfully parsed Warehouses: ${rawData.warehouseRepository.getAllWarehouses().size} records.")
+    println(" Successfully parsed Fleet: ${repositories.vehicleRepository.getAllVehicles().size} vehicle records.")
+    println(" Successfully parsed Packages: ${repositories.packageRepository.getAllPackages().size} records.")
+    println(" Successfully parsed Routes: ${repositories.routeRepository.getAllRoutes().size} records.")
+    println(" Successfully parsed Warehouses: ${repositories.warehouseRepository.getAllWarehouses().size} records.")
 }
 
 private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
@@ -77,8 +80,8 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
     }
 }
 
-private fun buildDomainGraph(rawData: RepositoryProvider): List<Warehouse> {
-    val graph = DomainGraphBuilder(rawData).buildGraph()
+private fun buildDomainGraph(repositories: RepositoryProvider): List<Warehouse> {
+    val graph = DomainGraphBuilder(repositories).buildGraph()
     printGraphSummary(graph)
     return graph
 }
@@ -110,16 +113,19 @@ private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
     }
 }
 
-private fun printDispatchStrategyDemo() {
+private fun printDispatchStrategyDemo(
+    pricingEngine: RoutePricingEngine,
+    expressStrategy: ExpressStrategy,
+     fragileStrategy: FragileStrategy
+) {
     println("\n--- Dispatch Strategy Demo ---")
 
-    val pricingEngine = RoutePricingEngine(EcoStrategy())
     printStrategyResult("Eco", pricingEngine)
 
-    pricingEngine.setStrategy(ExpressStrategy())
+    pricingEngine.setStrategy(expressStrategy)
     printStrategyResult("Express", pricingEngine)
 
-    pricingEngine.setStrategy(FragileStrategy())
+    pricingEngine.setStrategy(fragileStrategy)
     printStrategyResult("Fragile", pricingEngine)
 }
 
@@ -150,38 +156,51 @@ private fun printVerificationReport(report: VerificationReport) {
     }
 }
 
-private fun printDecoratorCostDemo(graph: List<Warehouse>) {
+private fun printBreakdownSimulationDemo(simulationLogic: BreakdownSimulationLogic) {
+    val result = simulationLogic.runSimulation()
+
+    printAssignments(result.before, "--- Initial Assignment BEFORE Breakdown ---")
+    println(
+        "\nRemoving broken vehicle at slot ${result.breakdownEvent.slot} " +
+                "(${result.breakdownEvent.brokenVehicle.id})..."
+    )
+    printAssignments(result.after, "--- Re-routing Assignment AFTER Breakdown ---")
+
+    val report = simulationLogic.createReport(result)
+    printVerificationReport(report)
+}
+private fun printDecoratorCostDemo(
+    pricingEngine:RoutePricingEngine,
+    firstRoute:Route ,
+    firstPackage:Package,
+    insuredPackage: PackageComponent,
+    coldChainPackage: PackageComponent,
+    fragilePackage: PackageComponent
+    ) {
     println("\n--- Decorator Pattern Cost Demo ---")
 
-    val firstWarehouse = graph.firstOrNull() ?: return
-    val firstRoute = firstWarehouse.outgoingRoutes.first()
-    val firstPackage = firstWarehouse.cargoQueue.first()
 
-    val pricingEngine = RoutePricingEngine(ExpressStrategy())
     val baseCost = pricingEngine.calculateCost(firstPackage.weight, firstRoute.distanceKm)
     println("Base Express Cost > $baseCost $")
 
-    val insuredPackage = ExpressInsuranceDecorator(firstPackage)
     val insuredCost = insuredPackage.calculateTransitRate(baseCost)
     println("With Express Insurance > $insuredCost $")
 
-    val coldChainPackage = ColdChainDecorator(insuredPackage)
     val coldChainCost = coldChainPackage.calculateTransitRate(insuredCost)
     println("With Insurance & Cold Chain > $coldChainCost $")
 
-    val fragilePackage = FragileHandlingDecorator(coldChainPackage)
     val finalCost = fragilePackage.calculateTransitRate(coldChainCost)
     println("With Insurance, Cold Chain & Fragile > $finalCost $")
 }
 
-private fun printLeastHopRouteDemo(graph: List<Warehouse>) {
+private fun printLeastHopRouteDemo(graph: List<Warehouse>, router: LeastHopRouter) {
     println("\n--- Least-Hop Router Demo (BFS) ---")
 
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
     println("Finding shortest path from ${origin.id} to ${destination.id}...")
 
-    val path = LeastHopRouter().findShortestPath(origin, destination)
+    val path = router.findShortestPath(origin, destination)
 
     if (path == null) {
         println("No path found: ${destination.id} is not reachable from ${origin.id}.")
@@ -190,14 +209,14 @@ private fun printLeastHopRouteDemo(graph: List<Warehouse>) {
     }
 }
 
-private fun printOptimalTransitRouteDemo(graph: List<Warehouse>) {
+private fun printOptimalTransitRouteDemo(graph: List<Warehouse>, router: OptimalTransitRouter) {
     println("\n--- Optimal Transit Router Demo (Dijkstra) ---")
 
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
     println("Finding optimal path (shortest distance) from ${origin.id} to ${destination.id}...")
 
-    val path = OptimalTransitRouter().findShortestPath(origin, destination)
+    val path = router.findShortestPath(origin, destination)
 
     if (path == null) {
         println("No path found: ${destination.id} is not reachable from ${origin.id}.")
@@ -214,6 +233,20 @@ fun main() {
     val routeRepository: RouteRepository = CsvRouteRepository(ROUTES_FILE_PATH)
     val warehouseRepository: WarehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
 
+
+    // ---------- 3. Pricing Strategies & Engines ----------
+    val ecoStrategy = EcoStrategy()
+    val expressStrategy = ExpressStrategy()
+    val fragileStrategy = FragileStrategy()
+    val pricingEngine = RoutePricingEngine(ecoStrategy)
+
+    // ---------- 4. Routing Engines ----------
+    val leastHopRouter = LeastHopRouter()
+    val optimalTransitRouter = OptimalTransitRouter()
+
+    // ---------- 5. Breakdown Simulation ----------
+    val simulationLogic = BreakdownSimulationLogic()
+
     val repositories =
         assembleRepositories(vehicleRepository, packageRepository, routeRepository, warehouseRepository)
 
@@ -223,22 +256,33 @@ fun main() {
     val graph = buildDomainGraph(repositories)
     printSortedCargoQueueForFirstWarehouse(graph)
 
-    printDispatchStrategyDemo()
+    printDispatchStrategyDemo(pricingEngine, expressStrategy, fragileStrategy)
 
-    val simulationLogic = domain.ring.BreakdownSimulationLogic()
-    val result = simulationLogic.runSimulation()
+    printBreakdownSimulationDemo(simulationLogic)
 
-    printAssignments(result.before, "--- Initial Assignment BEFORE Breakdown ---")
-    println(
-        "\nRemoving broken vehicle at slot ${result.breakdownEvent.slot} " +
-                "(${result.breakdownEvent.brokenVehicle.id})..."
-    )
-    printAssignments(result.after, "--- Re-routing Assignment AFTER Breakdown ---")
 
-    val report = simulationLogic.createReport(result)
-    printVerificationReport(report)
+    val firstWarehouse = graph.firstOrNull()
+    val firstRoute = firstWarehouse?.outgoingRoutes?.firstOrNull()
+    val firstPackage = firstWarehouse?.cargoQueue?.firstOrNull()
 
-    printDecoratorCostDemo(graph)
-    printLeastHopRouteDemo(graph)
-    printOptimalTransitRouteDemo(graph)
+    if (firstRoute != null && firstPackage != null) {
+        val expressPricingEngine = RoutePricingEngine(expressStrategy)
+        val insuredPackage = ExpressInsuranceDecorator(firstPackage)
+        val coldChainPackage = ColdChainDecorator(insuredPackage)
+        val fragilePackage = FragileHandlingDecorator(coldChainPackage)
+
+
+        printDecoratorCostDemo(
+            expressPricingEngine,
+            firstRoute,
+            firstPackage,
+            insuredPackage,
+            coldChainPackage,
+            firstPackage
+        )
+        printLeastHopRouteDemo(graph, leastHopRouter)
+        printOptimalTransitRouteDemo(graph, optimalTransitRouter)
+
+
+    }
 }
