@@ -27,20 +27,18 @@ class BidirectionalBfsRouter : ShortestPathRouter {
         currentState: BfsState,
         oppositeState: BfsState
     ): Warehouse? {
+        if (currentState.queue.isEmpty()) return null
+        val current = currentState.queue.removeFirst()
         var intersection: Warehouse? = null
-        if (currentState.queue.isNotEmpty()) {
-            val current = currentState.queue.removeFirst()
-            for (route in current.outgoingRoutes) {
-                val neighbor = route.destinationHub
-                if (currentState.visitedWarehouseIds.add(neighbor.id)) {
-                    currentState.previousWarehouseOf[neighbor.id] = current
-                    if (neighbor.id in oppositeState.visitedWarehouseIds) {
-                        intersection = neighbor
-                        break
-                    }
-                    currentState.queue.addLast(neighbor)
-                }
+        for (route in current.outgoingRoutes) {
+            val neighbor = route.destinationHub
+            if (!currentState.visitedWarehouseIds.add(neighbor.id)) continue
+            currentState.previousWarehouseOf[neighbor.id] = current
+            if (neighbor.id in oppositeState.visitedWarehouseIds) {
+                intersection = neighbor
+                break
             }
+            currentState.queue.addLast(neighbor)
         }
         return intersection
     }
