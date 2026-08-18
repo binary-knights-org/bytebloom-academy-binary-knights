@@ -102,14 +102,4 @@ class OptimalTransitRouter : ShortestPathRouter {
 
     private fun isSmallerDistance(dist: Double, lowestDistance: Double): Boolean =
         dist < lowestDistance
-
-    private fun reconstructPath(destination: Warehouse, previousWarehouseOf: Map<String, Warehouse>): List<Warehouse>? {
-        val path = mutableListOf<Warehouse>()
-        var current: Warehouse? = destination
-        while (current != null) {
-            path.add(current)
-            current = previousWarehouseOf[current.id]
-        }
-        return path.reversed()
-    }
 }
