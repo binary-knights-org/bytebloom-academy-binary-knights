@@ -18,8 +18,9 @@ class BidirectionalBfsRouter : ShortestPathRouter {
                 intersection = expandOneStep(backwardState, forwardState)
             }
         }
+        if (intersection == null) return null
 
-        return null
+        return buildUnifiedPath(intersection, forwardState, backwardState)
     }
 
     private fun createInitialState(startWarehouse: Warehouse): BfsState {
