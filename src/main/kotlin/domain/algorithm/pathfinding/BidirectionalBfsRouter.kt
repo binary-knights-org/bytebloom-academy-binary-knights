@@ -18,9 +18,8 @@ class BidirectionalBfsRouter : ShortestPathRouter {
                 intersection = expandOneStep(backwardState, forwardState)
             }
         }
-        if (intersection == null) return null
 
-        return buildUnifiedPath(intersection, forwardState, backwardState)
+        return intersection?.let { buildUnifiedPath(it, forwardState, backwardState) }
     }
 
     private fun createInitialState(startWarehouse: Warehouse): BfsState {
@@ -70,23 +69,15 @@ class BidirectionalBfsRouter : ShortestPathRouter {
 
         return if (isIntersection) neighbor else null
     }
-    private fun reconstructPath(node: Warehouse, state: BfsState): List<Warehouse> {
-        val path = mutableListOf<Warehouse>()
-        var current: Warehouse? = node
-        while (current != null) {
-            path.add(current)
-            current = state.previousWarehouseOf[current.id]
-        }
-        return path
-    }
+
 
     private fun buildUnifiedPath(
         intersection: Warehouse,
         forwardState: BfsState,
         backwardState: BfsState
     ): List<Warehouse> {
-        val forwardSubPath = reconstructPath(intersection, forwardState).reversed()
-        val backwardSubPath = reconstructPath(intersection, backwardState)
+        val forwardSubPath = reconstructPath(intersection, forwardState.previousWarehouseOf).reversed()
+        val backwardSubPath = reconstructPath(intersection, backwardState.previousWarehouseOf)
 
         val formattedBackwardSubPath = backwardSubPath.drop(SKIP_DUPLICATE_INTERSECTION_NODE_COUNT)
         val fullPath = forwardSubPath + formattedBackwardSubPath
