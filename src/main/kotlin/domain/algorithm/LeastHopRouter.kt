@@ -2,9 +2,9 @@ package domain.algorithm
 
 import domain.model.Warehouse
 
-class LeastHopRouter {
+class LeastHopRouter : ShortestPathRouter {
 
-    fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
+    override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
         if (hasReachedDestination(origin, destination)) return listOf(origin)
         return executeSearch(origin, destination)
     }
