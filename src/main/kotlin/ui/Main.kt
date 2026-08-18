@@ -5,9 +5,9 @@ import data.repository.CsvPackageRepository
 import data.repository.CsvRouteRepository
 import data.repository.CsvVehicleRepository
 import data.repository.CsvWarehouseRepository
-import domain.algorithm.LeastHopRouter
-import domain.algorithm.OptimalTransitRouter
-import domain.algorithm.sortPackagesByImportance
+import domain.algorithm.pathfinding.LeastHopRouter
+import domain.algorithm.pathfinding.OptimalTransitRouter
+import domain.algorithm.sorting.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
 import domain.decorator.ColdChainDecorator

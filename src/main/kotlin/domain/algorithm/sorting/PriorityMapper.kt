@@ -1,4 +1,4 @@
-package domain.algorithm
+package domain.algorithm.sorting
 
 
 private const val PRIORITY_URGENT_TEXT = "URGENT"

@@ -1,4 +1,4 @@
-package domain.algorithm
+package domain.algorithm.pathfinding
 
 import domain.model.Route
 import domain.model.Warehouse
