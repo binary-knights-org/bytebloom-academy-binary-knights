@@ -5,20 +5,15 @@ import domain.model.Warehouse
 class BidirectionalBfsRouter : ShortestPathRouter {
 
     override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
-        if (origin.id == destination.id) return listOf(origin)
+        if (origin.id == destination.id) return listOf(origin) // return 1
         val forwardState = createInitialState(origin)
         val backwardState = createInitialState(destination)
-        while (forwardState.queue.isNotEmpty() && backwardState.queue.isNotEmpty()) {
-            val forwardIntersection = expandOneStep(forwardState, backwardState)
-            if (forwardIntersection != null) {
-                return reconstructBidirectionalPath(forwardIntersection, forwardState, backwardState)
-            }
-            val backwardIntersection = expandOneStep(backwardState, forwardState)
-            if (backwardIntersection != null) {
-                return reconstructBidirectionalPath(backwardIntersection, forwardState, backwardState)
-            }
+        var intersection: Warehouse? = null
+        while (forwardState.queue.isNotEmpty() && backwardState.queue.isNotEmpty() && intersection == null) {
+            intersection = expandOneStep(forwardState, backwardState)
+                ?: expandOneStep(backwardState, forwardState)
         }
-        return null
+        return intersection?.let { reconstructBidirectionalPath(it, forwardState, backwardState) } // return 2
     }
 
     private fun createInitialState(startWarehouse: Warehouse): BfsState {
@@ -32,20 +27,22 @@ class BidirectionalBfsRouter : ShortestPathRouter {
         currentState: BfsState,
         oppositeState: BfsState
     ): Warehouse? {
-        if (currentState.queue.isEmpty()) return null
-        val current = currentState.queue.removeFirst()
-        for (route in current.outgoingRoutes) {
-            val neighbor = route.destinationHub
-            if (currentState.visitedWarehouseIds.add(neighbor.id)) {
-                currentState.previousWarehouseOf[neighbor.id] = current
-
-                if (neighbor.id in oppositeState.visitedWarehouseIds) {
-                    return neighbor
+        var intersection: Warehouse? = null
+        if (currentState.queue.isNotEmpty()) {
+            val current = currentState.queue.removeFirst()
+            for (route in current.outgoingRoutes) {
+                val neighbor = route.destinationHub
+                if (currentState.visitedWarehouseIds.add(neighbor.id)) {
+                    currentState.previousWarehouseOf[neighbor.id] = current
+                    if (neighbor.id in oppositeState.visitedWarehouseIds) {
+                        intersection = neighbor
+                        break
+                    }
+                    currentState.queue.addLast(neighbor)
                 }
-                currentState.queue.addLast(neighbor)
             }
         }
-        return null
+        return intersection
     }
 
     private fun reconstructBidirectionalPath(
