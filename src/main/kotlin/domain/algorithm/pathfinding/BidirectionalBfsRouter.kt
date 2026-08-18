@@ -88,3 +88,4 @@ class BidirectionalBfsRouter : ShortestPathRouter {
         return path
     }
 }
+
