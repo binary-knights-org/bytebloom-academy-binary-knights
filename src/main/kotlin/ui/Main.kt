@@ -7,6 +7,7 @@ import data.repository.CsvVehicleRepository
 import data.repository.CsvWarehouseRepository
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
+import domain.algorithm.pathfinding.ShortestPathRouter
 import domain.algorithm.sorting.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
@@ -208,35 +209,19 @@ private fun runDecoratorDemo(
     }
 }
 
-private fun printLeastHopRouteDemo(graph: List<Warehouse>, router: LeastHopRouter) {
-    println("\n--- Least-Hop Router Demo (BFS) ---")
+private fun printRouteDemo(graph: List<Warehouse>, router: ShortestPathRouter, label: String) {
+    println("\n--- $label ---")
 
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
-    println("Finding shortest path from ${origin.id} to ${destination.id}...")
+    println("Finding path from ${origin.id} to ${destination.id}...")
 
     val path = router.findShortestPath(origin, destination)
 
     if (path == null) {
         println("No path found: ${destination.id} is not reachable from ${origin.id}.")
     } else {
-        println("Shortest path (${path.size - 1} hop(s)): ${path.joinToString(" -> ") { it.id }}")
-    }
-}
-
-private fun printOptimalTransitRouteDemo(graph: List<Warehouse>, router: OptimalTransitRouter) {
-    println("\n--- Optimal Transit Router Demo (Dijkstra) ---")
-
-    val origin = graph.firstOrNull() ?: return
-    val destination = graph.lastOrNull() ?: return
-    println("Finding optimal path (shortest distance) from ${origin.id} to ${destination.id}...")
-
-    val path = router.findShortestPath(origin, destination)
-
-    if (path == null) {
-        println("No path found: ${destination.id} is not reachable from ${origin.id}.")
-    } else {
-        println("Optimal path (${path.size - 1} hop(s)): ${path.joinToString(" -> ") { it.id }}")
+        println("Path (${path.size - 1} hop(s)): ${path.joinToString(" -> ") { it.id }}")
     }
 }
 
@@ -260,6 +245,6 @@ fun main() {
     printBreakdownSimulationDemo(BreakdownSimulationLogic())
 
     runDecoratorDemo(graph, pricingEngine, expressStrategy)
-    printLeastHopRouteDemo(graph, LeastHopRouter())
-    printOptimalTransitRouteDemo(graph, OptimalTransitRouter())
+    printRouteDemo(graph, LeastHopRouter(), "Least-Hop Router Demo (BFS)")
+    printRouteDemo(graph, OptimalTransitRouter(), "Optimal Transit Router Demo (Dijkstra)")
 }
