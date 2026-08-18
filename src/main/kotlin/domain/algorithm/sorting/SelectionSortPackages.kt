@@ -1,4 +1,4 @@
-package domain.algorithm
+package domain.algorithm.sorting
 
 import data.dataholder.PackageRaw
 private const val NEXT_INDEX_OFFSET = 1

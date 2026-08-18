@@ -1,4 +1,4 @@
-package domain.algorithm
+package domain.algorithm.pathfinding
 
 import domain.model.Route
 import domain.model.Warehouse
@@ -37,9 +37,9 @@ import domain.model.Warehouse
  */
 
 
-class OptimalTransitRouter {
+class OptimalTransitRouter : ShortestPathRouter {
 
-    fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
+    override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
         val state = DijkstraState(origin)
         while (state.unvisitedWarehouses.isNotEmpty()) {
             val current = extractLowestDistanceNode(state) ?: break
