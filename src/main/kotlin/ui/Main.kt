@@ -1,10 +1,13 @@
 package ui
+import java.util.Locale
+
 
 import data.dataholder.PackageRaw
 import data.repository.CsvPackageRepository
 import data.repository.CsvRouteRepository
 import data.repository.CsvVehicleRepository
 import data.repository.CsvWarehouseRepository
+import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
 import domain.algorithm.pathfinding.ShortestPathRouter
@@ -225,6 +228,115 @@ private fun printRouteDemo(graph: List<Warehouse>, router: ShortestPathRouter, l
     }
 }
 
+private fun printComparisonReport(
+    origin: Warehouse,
+    destination: Warehouse,
+    bfsPath: List<Warehouse>?,
+    bfsExecutionTime: Double,
+    bfsEvaluatedWarehouses: Int,
+    bidirectionalPath: List<Warehouse>?,
+    bidirectionalExecutionTime: Double,
+    bidirectionalEvaluatedWarehouses: Int
+) {
+    println()
+    println("============================================================")
+    println("              ROUTING ALGORITHM COMPARISON")
+    println("============================================================")
+    println("Origin      : ${origin.id}")
+    println("Destination : ${destination.id}")
+
+    printRouterReport(
+        name = "Standard BFS (Least-Hop Router)",
+        path = bfsPath,
+        executionTime = bfsExecutionTime,
+        evaluatedWarehouses = bfsEvaluatedWarehouses
+    )
+
+    printRouterReport(
+        name = "Bidirectional BFS",
+        path = bidirectionalPath,
+        executionTime = bidirectionalExecutionTime,
+        evaluatedWarehouses = bidirectionalEvaluatedWarehouses
+    )
+
+    printPathVerification(
+        bfsPath = bfsPath,
+        bidirectionalPath = bidirectionalPath
+    )
+
+    printEfficiencyComparison(
+        bfsEvaluatedWarehouses = bfsEvaluatedWarehouses,
+        bidirectionalEvaluatedWarehouses =
+            bidirectionalEvaluatedWarehouses
+    )
+}
+
+private fun printRouterReport(
+    name: String,
+    path: List<Warehouse>?,
+    executionTime: Double,
+    evaluatedWarehouses: Int
+) {
+    println()
+    println("------------------------------------------------------------")
+    println(name)
+    println("------------------------------------------------------------")
+
+    if (path == null) {
+        println("No path found.")
+        return
+    }
+
+    println("Path       : ${path.joinToString(" -> ") { it.id }}")
+    println("Hops       : ${path.size - 1}")
+    println("Evaluated  : $evaluatedWarehouses")
+    println("Time       : %.4f ms".format(Locale.US, executionTime))
+}
+
+private fun printPathVerification(
+    bfsPath: List<Warehouse>?,
+    bidirectionalPath: List<Warehouse>?
+) {
+    println()
+    println("------------------------------------------------------------")
+    println("Verification")
+    println("------------------------------------------------------------")
+
+    if (bfsPath == null || bidirectionalPath == null) {
+        println("Cannot compare paths.")
+        return
+    }
+
+    val bfsHops = bfsPath.size - 1
+    val bidirectionalHops = bidirectionalPath.size - 1
+
+    println("BFS Hops                : $bfsHops")
+    println("Bidirectional BFS Hops  : $bidirectionalHops")
+    println("Same path length        : ${bfsHops == bidirectionalHops}")
+}
+
+private fun printEfficiencyComparison(
+    bfsEvaluatedWarehouses: Int,
+    bidirectionalEvaluatedWarehouses: Int
+) {
+    if (bfsEvaluatedWarehouses == 0) return
+
+    val improvement =
+        (bfsEvaluatedWarehouses - bidirectionalEvaluatedWarehouses) *
+                100.0 / bfsEvaluatedWarehouses
+
+    println()
+    println("------------------------------------------------------------")
+    println("Efficiency")
+    println("------------------------------------------------------------")
+
+    println(
+        "Bidirectional BFS evaluated " +
+                "%.2f%% fewer warehouses."
+                    .format(Locale.US, improvement)
+    )
+}
+
 fun main() {
     val repositories = assembleRepositories(
         CsvVehicleRepository(VEHICLES_FILE_PATH),
@@ -247,4 +359,44 @@ fun main() {
     runDecoratorDemo(graph, pricingEngine, expressStrategy)
     printRouteDemo(graph, LeastHopRouter(), "Least-Hop Router Demo (BFS)")
     printRouteDemo(graph, OptimalTransitRouter(), "Optimal Transit Router Demo (Dijkstra)")
+    printRouteDemo(graph, BidirectionalBfsRouter(), "Bidirectional Transit Router Demo (Dijkstra)")
+
+    // Composition Root
+    val leastHopRouter = LeastHopRouter()
+    val bidirectionalRouter = BidirectionalBfsRouter()
+
+    val origin = graph.firstOrNull() ?: return
+    val destination = graph.lastOrNull() ?: return
+
+    val bfsStartTime = System.nanoTime()
+
+    val bfsPath = leastHopRouter.findShortestPath(
+        origin,
+        destination
+    )
+
+    val bfsExecutionTime =
+        (System.nanoTime() - bfsStartTime) / 1_000_000.0
+
+    val bidirectionalStartTime = System.nanoTime()
+
+    val bidirectionalPath = bidirectionalRouter.findShortestPath(
+        origin,
+        destination
+    )
+
+    val bidirectionalExecutionTime =
+        (System.nanoTime() - bidirectionalStartTime) / 1_000_000.0
+
+    printComparisonReport(
+        origin = origin,
+        destination = destination,
+        bfsPath = bfsPath,
+        bfsExecutionTime = bfsExecutionTime,
+        bfsEvaluatedWarehouses = leastHopRouter.visitedWarehouseCount,
+        bidirectionalPath = bidirectionalPath,
+        bidirectionalExecutionTime = bidirectionalExecutionTime,
+        bidirectionalEvaluatedWarehouses =
+            bidirectionalRouter.visitedWarehouseCount
+    )
 }

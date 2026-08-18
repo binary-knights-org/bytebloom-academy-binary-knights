@@ -4,6 +4,9 @@ import domain.model.Warehouse
 
 class LeastHopRouter : ShortestPathRouter {
 
+    var visitedWarehouseCount: Int = 0
+        private set
+
     override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
         if (hasReachedDestination(origin, destination)) return listOf(origin)
         return executeSearch(origin, destination)
@@ -12,6 +15,7 @@ class LeastHopRouter : ShortestPathRouter {
     private fun executeSearch(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
         val state = initializeState(origin)
         val previousWarehouseOf = exploreBreadthFirst(destination, state) ?: return null
+        visitedWarehouseCount = state.visitedWarehouseIds.size
         return reconstructPath(destination, previousWarehouseOf)
     }
 
