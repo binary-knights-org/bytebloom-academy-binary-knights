@@ -10,10 +10,10 @@ class BidirectionalBfsRouter : ShortestPathRouter {
         return null
     }
 
-    private fun createInitialState(startWarehouse: Warehouse): BfsState {
-        return BfsState().apply {
-            queue.add(startWarehouse)
-            visitedWarehouseIds.add(startWarehouse.id)
-        }
-    }
+//    private fun createInitialState(startWarehouse: Warehouse): BfsState {
+//        return BfsState().apply {
+//            queue.add(startWarehouse)
+//            visitedWarehouseIds.add(startWarehouse.id)
+//        }
+//    }
 }
