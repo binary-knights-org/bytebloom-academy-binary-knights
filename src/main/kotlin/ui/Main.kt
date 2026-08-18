@@ -26,9 +26,9 @@ import domain.repository.PackageRepository
 import domain.repository.RouteRepository
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
-import domain.ring.BreakdownSimulationLogic
 import domain.ring.DeterministicHashingEngine
-import domain.ring.VerificationReport
+import domain.ring.breakdown.BreakdownSimulationLogic
+import domain.ring.breakdown.VerificationReport
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
