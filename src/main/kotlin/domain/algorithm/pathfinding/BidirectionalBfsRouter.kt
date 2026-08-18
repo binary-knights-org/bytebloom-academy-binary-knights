@@ -5,7 +5,7 @@ import domain.model.Warehouse
 class BidirectionalBfsRouter : ShortestPathRouter {
 
     override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
-        if (origin.id == destination.id) return listOf(origin) // return 1
+        if (origin.id == destination.id) return listOf(origin)
         val forwardState = createInitialState(origin)
         val backwardState = createInitialState(destination)
         var intersection: Warehouse? = null
@@ -13,7 +13,7 @@ class BidirectionalBfsRouter : ShortestPathRouter {
             intersection = expandOneStep(forwardState, backwardState)
                 ?: expandOneStep(backwardState, forwardState)
         }
-        return intersection?.let { reconstructBidirectionalPath(it, forwardState, backwardState) } // return 2
+        return intersection?.let { reconstructBidirectionalPath(it, forwardState, backwardState) }
     }
 
     private fun createInitialState(startWarehouse: Warehouse): BfsState {
@@ -29,18 +29,38 @@ class BidirectionalBfsRouter : ShortestPathRouter {
     ): Warehouse? {
         if (currentState.queue.isEmpty()) return null
         val current = currentState.queue.removeFirst()
+        return expandNeighbors(current, currentState, oppositeState)
+    }
+
+    private fun expandNeighbors(
+        current: Warehouse,
+        currentState: BfsState,
+        oppositeState: BfsState
+    ): Warehouse? {
         var intersection: Warehouse? = null
         for (route in current.outgoingRoutes) {
-            val neighbor = route.destinationHub
-            if (!currentState.visitedWarehouseIds.add(neighbor.id)) continue
-            currentState.previousWarehouseOf[neighbor.id] = current
-            if (neighbor.id in oppositeState.visitedWarehouseIds) {
-                intersection = neighbor
-                break
-            }
-            currentState.queue.addLast(neighbor)
+            intersection = processNeighbor(route.destinationHub, current, currentState, oppositeState)
+            if (intersection != null) break
         }
         return intersection
+    }
+
+    private fun processNeighbor(
+        neighbor: Warehouse,
+        current: Warehouse,
+        currentState: BfsState,
+        oppositeState: BfsState
+    ): Warehouse? {
+        if (!currentState.visitedWarehouseIds.add(neighbor.id)) return null
+
+        currentState.previousWarehouseOf[neighbor.id] = current
+        val isIntersection = neighbor.id in oppositeState.visitedWarehouseIds
+
+        if (!isIntersection) {
+            currentState.queue.addLast(neighbor)
+        }
+
+        return if (isIntersection) neighbor else null
     }
 
     private fun reconstructBidirectionalPath(
@@ -48,20 +68,23 @@ class BidirectionalBfsRouter : ShortestPathRouter {
         forwardState: BfsState,
         backwardState: BfsState
     ): List<Warehouse> {
-        val pathFromOrigin = mutableListOf<Warehouse>()
-        var currForward: Warehouse? = intersection
-        while (currForward != null) {
-            pathFromOrigin.add(currForward)
-            currForward = forwardState.previousWarehouseOf[currForward.id]
+        val forwardPath = tracePath(intersection, forwardState.previousWarehouseOf).reversed()
+        val backwardStart = backwardState.previousWarehouseOf[intersection.id]
+        val backwardPath = tracePath(backwardStart, backwardState.previousWarehouseOf)
+
+        return forwardPath + backwardPath
+    }
+
+    private fun tracePath(
+        start: Warehouse?,
+        previousMap: Map<String, Warehouse>
+    ): List<Warehouse> {
+        val path = mutableListOf<Warehouse>()
+        var current = start
+        while (current != null) {
+            path.add(current)
+            current = previousMap[current.id]
         }
-        val forwardPath = pathFromOrigin.reversed()
-        val pathToDestination = mutableListOf<Warehouse>()
-        var currBackward = backwardState.previousWarehouseOf[intersection.id]
-        while (currBackward != null) {
-            pathToDestination.add(currBackward)
-            currBackward = backwardState.previousWarehouseOf[currBackward.id]
-        }
-        return forwardPath + pathToDestination
+        return path
     }
 }
-
