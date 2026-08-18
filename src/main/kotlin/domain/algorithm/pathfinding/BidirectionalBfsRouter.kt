@@ -2,6 +2,8 @@ package domain.algorithm.pathfinding
 
 import domain.model.Warehouse
 
+private const val SKIP_DUPLICATE_INTERSECTION_NODE_COUNT = 1
+
 class BidirectionalBfsRouter : ShortestPathRouter {
 
     override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
@@ -17,7 +19,7 @@ class BidirectionalBfsRouter : ShortestPathRouter {
             }
         }
 
-        return null
+        return intersection?.let { buildUnifiedPath(it, forwardState, backwardState) }
     }
 
     private fun createInitialState(startWarehouse: Warehouse): BfsState {
@@ -66,5 +68,20 @@ class BidirectionalBfsRouter : ShortestPathRouter {
         }
 
         return if (isIntersection) neighbor else null
+    }
+
+
+    private fun buildUnifiedPath(
+        intersection: Warehouse,
+        forwardState: BfsState,
+        backwardState: BfsState
+    ): List<Warehouse> {
+        val forwardSubPath = reconstructPath(intersection, forwardState.previousWarehouseOf).reversed()
+        val backwardSubPath = reconstructPath(intersection, backwardState.previousWarehouseOf)
+
+        val formattedBackwardSubPath = backwardSubPath.drop(SKIP_DUPLICATE_INTERSECTION_NODE_COUNT)
+        val fullPath = forwardSubPath + formattedBackwardSubPath
+
+        return fullPath
     }
 }
