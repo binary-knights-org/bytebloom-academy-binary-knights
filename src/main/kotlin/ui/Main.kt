@@ -1,6 +1,6 @@
 package ui
-import java.util.Locale
 
+import java.util.Locale
 
 import data.dataholder.PackageRaw
 import data.repository.CsvPackageRepository
@@ -42,6 +42,15 @@ private const val TOP_SHIPMENTS_LIMIT = 3
 private const val DEMO_WEIGHT_KG = 10.0
 private const val DEMO_DISTANCE_KM = 50.0
 
+private const val NANOS_TO_MILLIS = 1_000_000.0
+private const val PERCENTAGE_MULTIPLIER = 100.0
+
+data class RoutingResult(
+    val path: List<Warehouse>?,
+    val executionTime: Double,
+    val evaluatedWarehouses: Int,
+    val totalDistanceKm: Double
+)
 
 private fun assembleRepositories(
     vehicleRepository: VehicleRepository,
@@ -101,8 +110,8 @@ private fun printGraphSummary(warehouses: List<Warehouse>) {
     }
 }
 
-private fun printSortedCargoQueueForFirstWarehouse(warehouse: List<Warehouse>) {
-    val warehouse = warehouse.firstOrNull()
+private fun printSortedCargoQueueForFirstWarehouse(warehouses: List<Warehouse>) {
+    val warehouse = warehouses.firstOrNull()
     if (warehouse == null) {
         println("\nNo warehouse available to sort cargo queue.")
         return
@@ -212,6 +221,22 @@ private fun runDecoratorDemo(
     }
 }
 
+private fun calculateTotalDistance(path: List<Warehouse>?): Double {
+    if (path == null || path.size < 2) return 0.0
+    var distance = 0.0
+    for (i in 0 until path.size - 1) {
+        val currentWarehouse = path[i]
+        val nextWarehouse = path[i + 1]
+
+        val route = currentWarehouse.outgoingRoutes.find { it.destinationHub.id == nextWarehouse.id }
+
+        if (route != null) {
+            distance += route.distanceKm
+        }
+    }
+    return distance
+}
+
 private fun printRouteDemo(graph: List<Warehouse>, router: ShortestPathRouter, label: String) {
     println("\n--- $label ---")
 
@@ -224,19 +249,19 @@ private fun printRouteDemo(graph: List<Warehouse>, router: ShortestPathRouter, l
     if (path == null) {
         println("No path found: ${destination.id} is not reachable from ${origin.id}.")
     } else {
-        println("Path (${path.size - 1} hop(s)): ${path.joinToString(" -> ") { it.id }}")
+        val distance = calculateTotalDistance(path) // حساب المسافة هنا
+        println(
+            "Path (${path.size - 1} hop(s), %.2f km): ${path.joinToString(" -> ") { it.id }}"
+                .format(Locale.US, distance)
+        )
     }
 }
 
 private fun printComparisonReport(
     origin: Warehouse,
     destination: Warehouse,
-    bfsPath: List<Warehouse>?,
-    bfsExecutionTime: Double,
-    bfsEvaluatedWarehouses: Int,
-    bidirectionalPath: List<Warehouse>?,
-    bidirectionalExecutionTime: Double,
-    bidirectionalEvaluatedWarehouses: Int
+    bfsResult: RoutingResult,
+    bidirectionalResult: RoutingResult
 ) {
     println()
     println("============================================================")
@@ -247,50 +272,44 @@ private fun printComparisonReport(
 
     printRouterReport(
         name = "Standard BFS (Least-Hop Router)",
-        path = bfsPath,
-        executionTime = bfsExecutionTime,
-        evaluatedWarehouses = bfsEvaluatedWarehouses
+        result = bfsResult
     )
 
     printRouterReport(
         name = "Bidirectional BFS",
-        path = bidirectionalPath,
-        executionTime = bidirectionalExecutionTime,
-        evaluatedWarehouses = bidirectionalEvaluatedWarehouses
+        result = bidirectionalResult
     )
 
     printPathVerification(
-        bfsPath = bfsPath,
-        bidirectionalPath = bidirectionalPath
+        bfsPath = bfsResult.path,
+        bidirectionalPath = bidirectionalResult.path
     )
 
     printEfficiencyComparison(
-        bfsEvaluatedWarehouses = bfsEvaluatedWarehouses,
-        bidirectionalEvaluatedWarehouses =
-            bidirectionalEvaluatedWarehouses
+        bfsEvaluatedWarehouses = bfsResult.evaluatedWarehouses,
+        bidirectionalEvaluatedWarehouses = bidirectionalResult.evaluatedWarehouses
     )
 }
 
 private fun printRouterReport(
     name: String,
-    path: List<Warehouse>?,
-    executionTime: Double,
-    evaluatedWarehouses: Int
+    result: RoutingResult
 ) {
     println()
     println("------------------------------------------------------------")
     println(name)
     println("------------------------------------------------------------")
 
-    if (path == null) {
+    if (result.path == null) {
         println("No path found.")
         return
     }
 
-    println("Path       : ${path.joinToString(" -> ") { it.id }}")
-    println("Hops       : ${path.size - 1}")
-    println("Evaluated  : $evaluatedWarehouses")
-    println("Time       : %.4f ms".format(Locale.US, executionTime))
+    println("Path       : ${result.path.joinToString(" -> ") { it.id }}")
+    println("Hops       : ${result.path.size - 1}")
+    println("Distance   : %.2f km".format(Locale.US, result.totalDistanceKm)) // <-- عرض المسافة هنا
+    println("Evaluated  : ${result.evaluatedWarehouses}")
+    println("Time       : %.4f ms".format(Locale.US, result.executionTime))
 }
 
 private fun printPathVerification(
@@ -323,7 +342,7 @@ private fun printEfficiencyComparison(
 
     val improvement =
         (bfsEvaluatedWarehouses - bidirectionalEvaluatedWarehouses) *
-                100.0 / bfsEvaluatedWarehouses
+                PERCENTAGE_MULTIPLIER / bfsEvaluatedWarehouses
 
     println()
     println("------------------------------------------------------------")
@@ -337,31 +356,36 @@ private fun printEfficiencyComparison(
     )
 }
 
-fun main() {
-    val repositories = assembleRepositories(
+private fun initializeRepositories(): RepositoryProvider {
+    return assembleRepositories(
         CsvVehicleRepository(VEHICLES_FILE_PATH),
         CsvPackageRepository(PACKAGE_FILE_PATH),
         CsvRouteRepository(ROUTES_FILE_PATH),
         CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
     )
+}
+
+private fun runCoreDemos(repositories: RepositoryProvider, graph: List<Warehouse>) {
     val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
-
-    val graph = buildDomainGraph(repositories)
     printSortedCargoQueueForFirstWarehouse(graph)
 
     val pricingEngine = RoutePricingEngine(EcoStrategy())
     val expressStrategy = ExpressStrategy()
     val fragileStrategy = FragileStrategy()
+
     printDispatchStrategyDemo(pricingEngine, expressStrategy, fragileStrategy)
     printBreakdownSimulationDemo(BreakdownSimulationLogic())
-
     runDecoratorDemo(graph, pricingEngine, expressStrategy)
-    printRouteDemo(graph, LeastHopRouter(), "Least-Hop Router Demo (BFS)")
-    printRouteDemo(graph, OptimalTransitRouter(), "Optimal Transit Router Demo (Dijkstra)")
-    printRouteDemo(graph, BidirectionalBfsRouter(), "Bidirectional Transit Router Demo (Dijkstra)")
+}
 
-    // Composition Root
+private fun runRoutingDemos(graph: List<Warehouse>) {
+    printRouteDemo(graph, LeastHopRouter(), "Least-Hop Router Demo (BFS)")
+    printRouteDemo(graph, BidirectionalBfsRouter(), "Bidirectional Transit Router Demo")
+    printRouteDemo(graph, OptimalTransitRouter(), "Optimal Transit Router Demo (Dijkstra)")
+}
+
+private fun compareRoutingAlgorithms(graph: List<Warehouse>) {
     val leastHopRouter = LeastHopRouter()
     val bidirectionalRouter = BidirectionalBfsRouter()
 
@@ -369,34 +393,40 @@ fun main() {
     val destination = graph.lastOrNull() ?: return
 
     val bfsStartTime = System.nanoTime()
+    val bfsPath = leastHopRouter.findShortestPath(origin, destination)
+    val bfsExecutionTime = (System.nanoTime() - bfsStartTime) / NANOS_TO_MILLIS
 
-    val bfsPath = leastHopRouter.findShortestPath(
-        origin,
-        destination
+    val bfsResult = RoutingResult(
+        path = bfsPath,
+        executionTime = bfsExecutionTime,
+        evaluatedWarehouses = leastHopRouter.visitedWarehouseCount,
+        totalDistanceKm = calculateTotalDistance(bfsPath) // <-- استدعاء الدالة لحساب المسافة
     )
-
-    val bfsExecutionTime =
-        (System.nanoTime() - bfsStartTime) / 1_000_000.0
 
     val bidirectionalStartTime = System.nanoTime()
+    val bidirectionalPath = bidirectionalRouter.findShortestPath(origin, destination)
+    val bidirectionalExecutionTime = (System.nanoTime() - bidirectionalStartTime) / NANOS_TO_MILLIS
 
-    val bidirectionalPath = bidirectionalRouter.findShortestPath(
-        origin,
-        destination
+    val bidirectionalResult = RoutingResult(
+        path = bidirectionalPath,
+        executionTime = bidirectionalExecutionTime,
+        evaluatedWarehouses = bidirectionalRouter.visitedWarehouseCount,
+        totalDistanceKm = calculateTotalDistance(bidirectionalPath) // <-- استدعاء الدالة لحساب المسافة
     )
-
-    val bidirectionalExecutionTime =
-        (System.nanoTime() - bidirectionalStartTime) / 1_000_000.0
 
     printComparisonReport(
         origin = origin,
         destination = destination,
-        bfsPath = bfsPath,
-        bfsExecutionTime = bfsExecutionTime,
-        bfsEvaluatedWarehouses = leastHopRouter.visitedWarehouseCount,
-        bidirectionalPath = bidirectionalPath,
-        bidirectionalExecutionTime = bidirectionalExecutionTime,
-        bidirectionalEvaluatedWarehouses =
-            bidirectionalRouter.visitedWarehouseCount
+        bfsResult = bfsResult,
+        bidirectionalResult = bidirectionalResult
     )
+}
+
+fun main() {
+    val repositories = initializeRepositories()
+    val graph = buildDomainGraph(repositories)
+
+    runCoreDemos(repositories, graph)
+    runRoutingDemos(graph)
+    compareRoutingAlgorithms(graph)
 }
