@@ -10,34 +10,40 @@ internal fun runBreakdownSimulationDemo() {
     val simulationLogic = BreakdownSimulationLogic()
     val result = simulationLogic.runSimulation()
 
-    printAssignments(result.before, "--- Initial Assignment BEFORE Breakdown ---")
-    println(
-        "\nRemoving broken vehicle at slot ${result.breakdownEvent.slot} " +
-                "(${result.breakdownEvent.brokenVehicle.id})..."
-    )
-    printAssignments(result.after, "--- Re-routing Assignment AFTER Breakdown ---")
+    println("\n[CONSISTENT HASHING & FAILOVER SIMULATION]")
+    println("============================================================")
+    printAssignments(result.before, "INITIAL ASSIGNMENT (SYSTEM HEALTHY)")
+
+    println("\n ALERT: Vehicle ${result.breakdownEvent.brokenVehicle.id} (Slot ${result.breakdownEvent.slot}) went offline!")
+    println("INITIATING FAILOVER PROTOCOL...\n")
+
+    printAssignments(result.after, "RE-ROUTING ASSIGNMENT (AFTER BREAKDOWN)")
 
     val report = simulationLogic.createReport(result)
     printVerificationReport(report)
 }
 
 private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) {
-    println("\n$title")
-    assignments.forEach { (pkg, vehicle) ->
+    println(title)
+    println("------------------------------------------------------------")
+    assignments.entries.take(3).forEach { (pkg, vehicle) ->
         val slot = DeterministicHashingEngine.calculateSlot(pkg)
-        println("  - ${pkg.id} (Slot %02d) -> Assigned to ${vehicle.id}".format(slot))
+        println("   [${pkg.id}] -> Slot %02d -> Assigned to: ${vehicle.id}".format(slot))
     }
+    if (assignments.size > 3) println("   ... and ${assignments.size - 3} more packages.")
 }
 
 private fun printVerificationReport(report: VerificationReport) {
-    println("\n--- Verification Report ---")
-    println("Packages migrated from broken vehicle: ${report.migratedPackageIds.size}")
-
+    println("\n[FAILOVER VERIFICATION REPORT]")
+    println("------------------------------------------------------------")
+    println(" Packages Migrated: ${report.migratedPackageIds.size}")
     if (report.migratedPackageIds.isNotEmpty()) {
+        println(" SUCCESS: Packages safely moved from ${report.brokenVehicleId} to fallback ${report.fallbackVehicleId}.")
         println(
-            "SUCCESS: The following packages successfully moved from " +
-                    "${report.brokenVehicleId} to ${report.fallbackVehicleId}:"
+            "    Moved IDs: ${
+                report.migratedPackageIds.take(5).joinToString(", ")
+            }${if (report.migratedPackageIds.size > 5) "..." else ""}"
         )
-        println(" -> ${report.migratedPackageIds.joinToString(", ")}")
     }
+    println("============================================================")
 }
