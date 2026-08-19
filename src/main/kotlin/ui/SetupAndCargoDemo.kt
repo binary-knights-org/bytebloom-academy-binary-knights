@@ -16,6 +16,11 @@ internal const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
 internal const val VEHICLES_FILE_PATH = "src/main/resources/fleet.csv"
 internal const val TOP_SHIPMENTS_LIMIT = 3
 
+private const val PAD_SMALL = 4
+private const val PAD_MEDIUM = 5
+private const val PAD_LARGE = 8
+private const val QUEUE_DISPLAY_LIMIT = 5
+
 internal fun initializeRepositories(): RepositoryProvider {
     val repositories = RepositoryProvider(
         vehicleRepository = CsvVehicleRepository(VEHICLES_FILE_PATH),
@@ -32,18 +37,22 @@ private fun printParsingReport(repositories: RepositoryProvider) {
     println("------------------------------------------------------------")
     println(
         " Fleet       : ${
-            repositories.vehicleRepository.getAllVehicles().size.toString().padEnd(4)
+            repositories.vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println(
         " Packages    : ${
-            repositories.packageRepository.getAllPackages().size.toString().padEnd(4)
+            repositories.packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
-    println(" Routes      : ${repositories.routeRepository.getAllRoutes().size.toString().padEnd(4)} records parsed.")
+    println(
+        " Routes      : ${
+            repositories.routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
+        } records parsed."
+    )
     println(
         " Warehouses  : ${
-            repositories.warehouseRepository.getAllWarehouses().size.toString().padEnd(4)
+            repositories.warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println("------------------------------------------------------------")
@@ -79,8 +88,11 @@ private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
     println("\n[TOP $limit PRIORITY SHIPMENTS]")
     println("------------------------------------------------------------")
     packages.take(limit).forEachIndexed { index, pkg ->
-        val weightFormatted = "${pkg.weight} kg".padEnd(8)
-        println(" ${index + 1}. [${pkg.packageId}] To: ${pkg.destinationHubId.padEnd(5)} | $weightFormatted | ${pkg.priority}")
+        val weightFormatted = "${pkg.weight} kg".padEnd(PAD_LARGE)
+        println(
+            " ${index + 1}. [${pkg.packageId}] To: ${pkg.destinationHubId.padEnd(PAD_MEDIUM)}" +
+                    " | $weightFormatted | ${pkg.priority}"
+        )
     }
 }
 
@@ -91,9 +103,11 @@ private fun printSortedCargoQueueForFirstWarehouse(warehouses: List<Warehouse>) 
     println("\n[SORTED CARGO QUEUE - DESCENDING BY WEIGHT]")
     println("------------------------------------------------------------")
     println(" Warehouse: ${warehouse.id} (${warehouse.name})")
-    warehouse.cargoQueue.take(5).forEach { pkg ->
+    warehouse.cargoQueue.take(PAD_MEDIUM).forEach { pkg ->
         println("   [${pkg.id}] -> ${pkg.weight} kg")
     }
-    if (warehouse.cargoQueue.size > 5) println("   ... and ${warehouse.cargoQueue.size - 5} more.")
+    if (warehouse.cargoQueue.size > PAD_MEDIUM)
+
+        println("   ... and ${warehouse.cargoQueue.size - QUEUE_DISPLAY_LIMIT} more.")
     println("------------------------------------------------------------")
 }

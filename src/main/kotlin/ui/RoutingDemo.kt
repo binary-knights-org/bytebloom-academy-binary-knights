@@ -9,6 +9,7 @@ import java.util.*
 
 internal const val NANOS_TO_MILLIS = 1_000_000.0
 internal const val PERCENTAGE_MULTIPLIER = 100.0
+private const val ROUTER_LABEL_PADDING = 35
 
 internal data class RoutingResult(
     val path: List<Warehouse>?,
@@ -45,7 +46,7 @@ private fun printRouteDemo(graph: List<Warehouse>, router: ShortestPathRouter, l
     val destination = graph.lastOrNull() ?: return
 
     val path = router.findShortestPath(origin, destination)
-    print(" ${label.padEnd(35)} -> ")
+    print(" ${label.padEnd(ROUTER_LABEL_PADDING)} -> ")
 
     if (path == null) {
         println("No Path")

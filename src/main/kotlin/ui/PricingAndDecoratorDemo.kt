@@ -11,6 +11,8 @@ import domain.pricing.RoutePricingEngine
 
 internal const val DEMO_WEIGHT_KG = 10.0
 internal const val DEMO_DISTANCE_KM = 50.0
+private const val LABEL_PADDING = 12
+private const val LABEL_PADDING_HALF = 6
 
 internal fun runPricingAndDecoratorDemos(graph: List<Warehouse>) {
     val pricingEngine = RoutePricingEngine(EcoStrategy())
@@ -29,8 +31,11 @@ internal fun runPricingAndDecoratorDemos(graph: List<Warehouse>) {
 private fun printStrategyResult(label: String, engine: RoutePricingEngine) {
     val cost = engine.calculateCost(weight = DEMO_WEIGHT_KG, distance = DEMO_DISTANCE_KM)
     val priority = engine.getPriority()
-    val paddedLabel = label.padEnd(12)
-    println($$" $$paddedLabel | Cost: $$${cost.toString().padEnd(6)} | Priority Multiplier: $${priority}x")
+    val paddedLabel = label.padEnd(LABEL_PADDING)
+    println(
+        $$" $$paddedLabel | Cost: $$${cost.toString().padEnd(LABEL_PADDING_HALF)}" +
+                " | Priority Multiplier: $${priority}x"
+    )
 }
 
 private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricingEngine) {
@@ -53,9 +58,7 @@ private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricing
         println(
             $$" 3. + Cold Chain (Refrigeration) : $$${
                 coldChainPackage.calculateTransitRate(
-                    insuredPackage.calculateTransitRate(
-                        baseCost
-                    )
+                    insuredPackage.calculateTransitRate(baseCost)
                 )
             }"
         )
@@ -70,4 +73,5 @@ private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricing
         )
         println("------------------------------------------------------------")
     }
+
 }
