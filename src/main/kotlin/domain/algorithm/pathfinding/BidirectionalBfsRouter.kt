@@ -6,6 +6,10 @@ private const val SKIP_DUPLICATE_INTERSECTION_NODE_COUNT = 1
 
 class BidirectionalBfsRouter : ShortestPathRouter {
 
+    var visitedWarehouseCount: Int = 0
+        private set
+
+
     override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
         if (origin.id == destination.id) return listOf(origin)
         val forwardState = createInitialState(origin)
@@ -18,6 +22,10 @@ class BidirectionalBfsRouter : ShortestPathRouter {
                 intersection = expandOneStep(backwardState, forwardState)
             }
         }
+
+        visitedWarehouseCount =
+            forwardState.visitedWarehouseIds.size +
+                    backwardState.visitedWarehouseIds.size
 
         return intersection?.let { buildUnifiedPath(it, forwardState, backwardState) }
     }
