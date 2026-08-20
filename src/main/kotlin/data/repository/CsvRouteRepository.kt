@@ -1,6 +1,5 @@
 package data.repository
 
-import data.dataholder.RouteRaw
 import data.reader.CsvFileReader
 import data.utils.hasValidFieldCount
 import data.utils.parseCsvFields
@@ -21,22 +20,22 @@ class CsvRouteRepository(
     private val reader: CsvFileReader = CsvFileReader()
 ) : RouteRepository {
 
-    override fun getAllRoutes(): List<RouteRaw> {
+    override fun getAllRoutes(): List<RouteRepository.RouteRecord> {
         val lines = reader.readLines(filePath)
         return extractRoutes(lines)
     }
 
-    private fun extractRoutes(lines: List<String>): List<RouteRaw> {
+    private fun extractRoutes(lines: List<String>): List<RouteRepository.RouteRecord> {
         return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
     }
 
-    private fun parseLine(line: String): RouteRaw? {
+    private fun parseLine(line: String): RouteRepository.RouteRecord? {
         val fields = parseCsvFields(line, CSV_DELIMITER)
         if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS)) return null
         return mapFieldsToRoute(fields)
     }
 
-    private fun mapFieldsToRoute(fields: List<String>): RouteRaw? {
+    private fun mapFieldsToRoute(fields: List<String>): RouteRepository.RouteRecord? {
         val routeId = fields[INDEX_ROUTE_ID]
         val originHubId = fields[INDEX_ORIGIN_HUB]
         val destinationHubId = fields[INDEX_DESTINATION_HUB]
@@ -45,7 +44,13 @@ class CsvRouteRepository(
 
         return when {
             (distanceKm == null || typicalDelayMin == null) -> null
-            else -> RouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
+            else -> RouteRepository.RouteRecord(
+                routeId,
+                originHubId,
+                destinationHubId,
+                distanceKm,
+                typicalDelayMin
+            )
         }
     }
 
