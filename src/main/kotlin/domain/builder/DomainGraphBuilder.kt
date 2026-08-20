@@ -10,22 +10,10 @@ class DomainGraphBuilder(
     private val warehousesId: Map<String, Warehouse> = domainGraph.createWarehouseNodes()
 
     fun buildGraph(): List<Warehouse> {
-        attachVehiclesToWarehouses()
-        attachPackagesToWarehouses()
-        attachRoutesToWarehouses()
+        domainGraph.attachVehiclesToWarehouses(warehousesId)
+        domainGraph.attachPackagesToWarehouses(warehousesId)
+        domainGraph.attachRoutesToWarehouses(warehousesId)
 
         return warehousesId.values.toList()
-    }
-
-    private fun attachVehiclesToWarehouses() {
-        domainGraph.attachVehiclesToWarehouses(warehousesId)
-    }
-
-    private fun attachPackagesToWarehouses() {
-        domainGraph.attachPackagesToWarehouses(warehousesId)
-    }
-
-    private fun attachRoutesToWarehouses() {
-        domainGraph.attachRoutesToWarehouses(warehousesId)
     }
 }
