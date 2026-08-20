@@ -1,7 +1,12 @@
 package domain.repository
 
-import data.dataholder.VehicleRaw
-
 interface VehicleRepository {
-    fun getAllVehicles(): List<VehicleRaw>
+    data class VehicleRecord(
+        val vehicleIds: List<String>,
+        val currentHubId: String,
+        val maxCapacityKg: Double,
+        val costPerKm: Double
+    )
+
+    fun getAllVehicles(): List<VehicleRecord>
 }
