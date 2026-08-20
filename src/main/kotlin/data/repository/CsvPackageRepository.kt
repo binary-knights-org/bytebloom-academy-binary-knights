@@ -1,6 +1,5 @@
 package data.repository
 
-import data.dataholder.PackageRaw
 import data.reader.CsvFileReader
 import data.utils.hasValidFieldCount
 import data.utils.parseCsvFields
@@ -27,29 +26,35 @@ class CsvPackageRepository(
     private val reader: CsvFileReader = CsvFileReader()
 ) : PackageRepository {
 
-    override fun getAllPackages(): List<PackageRaw> {
+    override fun getAllPackages(): List<PackageRepository.PackageRecord> {
         val lines = reader.readLines(filePath)
         return extractPackages(lines)
     }
 
-    private fun extractPackages(lines: List<String>): List<PackageRaw> {
+    private fun extractPackages(lines: List<String>): List<PackageRepository.PackageRecord> {
         return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
     }
 
-    private fun parseLine(line: String): PackageRaw? {
+    private fun parseLine(line: String): PackageRepository.PackageRecord? {
         val fields = parseCsvFields(line, CSV_DELIMITER)
         if (!hasValidFieldCount(fields, EXPECTED_PACKAGE_FIELDS)) return null
         return mapFieldsToPackage(fields)
     }
 
-    private fun mapFieldsToPackage(fields: List<String>): PackageRaw {
+    private fun mapFieldsToPackage(fields: List<String>): PackageRepository.PackageRecord {
         val packageId = fields[INDEX_ID]
         val weight = parseWeight(fields[INDEX_WEIGHT])
         val originHubId = fields[INDEX_ORIGIN_HUB]
         val destinationHubId = fields[INDEX_DESTINATION_HUB]
         val priority = parsePriority(fields[INDEX_PRIORITY])
 
-        return PackageRaw(packageId, weight, originHubId, destinationHubId, priority)
+        return PackageRepository.PackageRecord(
+            packageId,
+            weight,
+            originHubId,
+            destinationHubId,
+            priority
+        )
     }
 
     private fun parseWeight(weight: String): Double {
