@@ -1,6 +1,5 @@
 package data.repository
 
-import data.dataholder.VehicleRaw
 import data.reader.CsvFileReader
 import data.utils.hasValidFieldCount
 import data.utils.parseCsvFields
@@ -19,22 +18,22 @@ class CsvVehicleRepository(
     private val reader: CsvFileReader = CsvFileReader()
 ) : VehicleRepository {
 
-    override fun getAllVehicles(): List<VehicleRaw> {
+    override fun getAllVehicles(): List<VehicleRepository.VehicleRecord> {
         val lines = reader.readLines(filePath)
         return extractVehicles(lines)
     }
 
-    private fun extractVehicles(lines: List<String>): List<VehicleRaw> {
+    private fun extractVehicles(lines: List<String>): List<VehicleRepository.VehicleRecord> {
         return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
     }
 
-    private fun parseLine(line: String): VehicleRaw? {
+    private fun parseLine(line: String): VehicleRepository.VehicleRecord? {
         val fields = parseCsvFields(line, CSV_DELIMITER)
         if (!hasValidFieldCount(fields, EXPECTED_VEHICLE_FIELDS)) return null
         return mapFieldsToVehicle(fields)
     }
 
-    private fun mapFieldsToVehicle(fields: List<String>): VehicleRaw? {
+    private fun mapFieldsToVehicle(fields: List<String>): VehicleRepository.VehicleRecord? {
         val vehicleIds = fields[INDEX_VEHICLE_ID]
         val currentHubId = fields[INDEX_CURRENT_HUB_ID]
         val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
@@ -42,7 +41,12 @@ class CsvVehicleRepository(
 
         return when {
             (maxCapacity == null || costPerKm == null) -> null
-            else -> VehicleRaw(listOf(vehicleIds), currentHubId, maxCapacity, costPerKm)
+            else -> VehicleRepository.VehicleRecord(
+                listOf(vehicleIds),
+                currentHubId,
+                maxCapacity,
+                costPerKm
+            )
         }
     }
 }
