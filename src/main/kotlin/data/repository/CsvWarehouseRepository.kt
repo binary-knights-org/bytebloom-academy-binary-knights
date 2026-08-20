@@ -1,6 +1,5 @@
 package data.repository
 
-import data.dataholder.WarehouseRaw
 import data.reader.CsvFileReader
 import data.utils.hasValidFieldCount
 import data.utils.parseCsvFields
@@ -20,23 +19,23 @@ class CsvWarehouseRepository(
     private val reader: CsvFileReader = CsvFileReader()
 ) : WarehouseRepository {
 
-    override fun getAllWarehouses(): List<WarehouseRaw> {
+    override fun getAllWarehouses(): List<WarehouseRepository.WarehouseRecord> {
         val lines = reader.readLines(filePath)
         return extractWarehouses(lines)
     }
 
-    private fun extractWarehouses(lines: List<String>): List<WarehouseRaw> {
+    private fun extractWarehouses(lines: List<String>): List<WarehouseRepository.WarehouseRecord> {
         return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
     }
 
-    private fun parseLine(line: String): WarehouseRaw? {
+    private fun parseLine(line: String): WarehouseRepository.WarehouseRecord? {
         val fields = parseCsvFields(line, CSV_DELIMITER)
         if (!hasValidFieldCount(fields, EXPECTED_WAREHOUSE_FIELDS)) return null
 
         return mapFieldsToWarehouse(fields)
     }
 
-    private fun mapFieldsToWarehouse(fields: List<String>): WarehouseRaw? {
+    private fun mapFieldsToWarehouse(fields: List<String>): WarehouseRepository.WarehouseRecord? {
         val hubId = fields[INDEX_ID]
         val hubName = fields[INDEX_NAME]
         val regionalZone = fields[INDEX_REGIONAL_ZONE]
@@ -45,7 +44,13 @@ class CsvWarehouseRepository(
 
         return when {
             (latitude == null || longitude == null) -> null
-            else -> WarehouseRaw(hubId, hubName, regionalZone, latitude, longitude)
+            else -> WarehouseRepository.WarehouseRecord(
+                hubId,
+                hubName,
+                regionalZone,
+                latitude,
+                longitude
+            )
         }
     }
 }
