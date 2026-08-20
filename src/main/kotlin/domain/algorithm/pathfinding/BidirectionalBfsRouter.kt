@@ -4,19 +4,28 @@ import domain.model.Warehouse
 
 private const val SKIP_DUPLICATE_INTERSECTION_NODE_COUNT = 1
 
-class BidirectionalBfsRouter : ShortestPathRouter {
+class BidirectionalBfsRouter(
+    warehouseGraph: List<Warehouse>
+) : ShortestPathRouter {
+
+    private val warehousesById = warehouseGraph.associateBy { it.id }
 
     var visitedWarehouseCount = 0
         private set
 
     override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
-        if (origin.id == destination.id) {
+        visitedWarehouseCount = 0
+
+        val graphOrigin = warehousesById[origin.id] ?: return null
+        val graphDestination = warehousesById[destination.id] ?: return null
+
+        if (graphOrigin.id == graphDestination.id) {
             visitedWarehouseCount = 1
-            return listOf(origin)
+            return listOf(graphOrigin)
         }
 
-        val forwardState = createInitialState(origin)
-        val backwardState = createInitialState(destination)
+        val forwardState = createInitialState(graphOrigin)
+        val backwardState = createInitialState(graphDestination)
         var intersection: Warehouse? = null
 
         while (forwardState.queue.isNotEmpty() && backwardState.queue.isNotEmpty() && intersection == null) {
