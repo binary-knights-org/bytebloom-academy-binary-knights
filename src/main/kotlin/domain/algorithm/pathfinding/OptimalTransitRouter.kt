@@ -2,6 +2,7 @@ package domain.algorithm.pathfinding
 
 import domain.model.Route
 import domain.model.Warehouse
+import domain.repository.WarehouseRepository
 
 /**
  * ==============================================================================
@@ -37,36 +38,80 @@ import domain.model.Warehouse
  */
 
 
-class OptimalTransitRouter : ShortestPathRouter {
+class OptimalTransitRouter(
+    private val warehouseRepository: WarehouseRepository
+) : ShortestPathRouter {
 
-    override fun findShortestPath(origin: Warehouse, destination: Warehouse): List<Warehouse>? {
+    override fun findShortestPath(
+        origin: Warehouse,
+        destination: Warehouse
+    ): List<Warehouse>? {
+        val allWarehouses = warehouseRepository.getAllWarehouses()
+        val warehousesById = allWarehouses.associateBy { it.id }
+
+        val actualOrigin = warehousesById[origin.id]
+        val actualDestination = warehousesById[destination.id]
+
+        val path = when {
+            actualOrigin == null || actualDestination == null -> null
+
+            actualOrigin.id == actualDestination.id -> {
+                listOf(actualOrigin)
+            }
+
+            else -> executeSearch(
+                actualOrigin,
+                actualDestination
+            )
+        }
+
+        return path
+    }
+
+    private fun executeSearch(
+        origin: Warehouse,
+        destination: Warehouse
+    ): List<Warehouse>? {
         val state = DijkstraState(origin)
+
         while (state.unvisitedWarehouses.isNotEmpty()) {
             val current = extractLowestDistanceNode(state) ?: break
-            if (hasReachedDestination(current, destination))
+
+            if (hasReachedDestination(current, destination)) {
                 return reconstructPath(destination, state.previousWarehouseOf)
+            }
             markAsVisited(current, state)
             updateNeighborDistances(current, state)
         }
         return null
     }
 
-    private fun hasReachedDestination(current: Warehouse, destination: Warehouse): Boolean =
-        current.id == destination.id
+    private fun hasReachedDestination(
+        current: Warehouse,
+        destination: Warehouse
+    ): Boolean {
+        return current.id == destination.id
+    }
 
-    private fun markAsVisited(current: Warehouse, state: DijkstraState) {
+    private fun markAsVisited(
+        current: Warehouse,
+        state: DijkstraState
+    ) {
         state.unvisitedWarehouses.remove(current)
         state.visitedWarehouseIds.add(current.id)
     }
 
-    private fun updateNeighborDistances(current: Warehouse, state: DijkstraState) {
+    private fun updateNeighborDistances(
+        current: Warehouse,
+        state: DijkstraState
+    ) {
         val currentDist = state.distances[current.id] ?: Double.MAX_VALUE
         current.outgoingRoutes.forEach { route ->
             updateRouteDistance(route, current, currentDist, state)
         }
     }
 
-    private fun updateRouteDistance(route: Route, current: Warehouse, currentDist: Double, state: DijkstraState ) {
+    private fun updateRouteDistance(route: Route, current: Warehouse, currentDist: Double, state: DijkstraState) {
         val neighbor = route.destinationHub
         if (isVisited(neighbor, state)) return
         val newDist = currentDist + route.distanceKm
@@ -91,15 +136,13 @@ class OptimalTransitRouter : ShortestPathRouter {
         var lowestWarehouse: Warehouse? = null
         var lowestDistance = Double.MAX_VALUE
         state.unvisitedWarehouses.forEach { warehouse ->
-            val dist = state.distances[warehouse.id] ?: Double.MAX_VALUE
-            if (isSmallerDistance(dist, lowestDistance)) {
-                lowestDistance = dist
+            val distance = state.distances[warehouse.id] ?: Double.MAX_VALUE
+
+            if (distance < lowestDistance) {
+                lowestDistance = distance
                 lowestWarehouse = warehouse
             }
         }
         return lowestWarehouse
     }
-
-    private fun isSmallerDistance(dist: Double, lowestDistance: Double): Boolean =
-        dist < lowestDistance
 }
