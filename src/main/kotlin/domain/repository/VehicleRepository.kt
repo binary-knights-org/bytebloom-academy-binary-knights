@@ -1,7 +1,7 @@
 package domain.repository
 
-import data.dataholder.VehicleRaw
+import domain.model.Vehicle
 
 interface VehicleRepository {
-    fun getAllVehicles(): List<VehicleRaw>
+    fun getAllVehicles(): List<Vehicle>
 }
