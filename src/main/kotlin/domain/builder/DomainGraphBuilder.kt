@@ -1,19 +1,13 @@
 package domain.builder
 
-import data.dataholder.PackageRaw
-import data.dataholder.RouteRaw
-import data.dataholder.VehicleRaw
-import data.dataholder.WarehouseRaw
-import domain.model.Package
-import domain.model.Route
-import domain.model.Vehicle
 import domain.model.Warehouse
 
 class DomainGraphBuilder(
-    private val repositories: RepositoryProvider
+    private val repositories: RepositoryProvider,
+    private val domainGraph: DomainGraph = DomainGraph(repositories)
 ) {
 
-    private val warehousesId: Map<String, Warehouse> = createWarehouseNodes()
+    private val warehousesId: Map<String, Warehouse> = domainGraph.createWarehouseNodes()
 
     fun buildGraph(): List<Warehouse> {
         attachVehiclesToWarehouses()
@@ -23,122 +17,15 @@ class DomainGraphBuilder(
         return warehousesId.values.toList()
     }
 
-    private fun groupVehiclesByHubId(): Map<String, List<VehicleRaw>> {
-        return repositories.vehicleRepository.getAllVehicles().groupBy { it.currentHubId }
-    }
-
-    private fun groupPackagesByOriginId(): Map<String, List<PackageRaw>> {
-        return repositories.packageRepository.getAllPackages().groupBy { it.originHubId }
-    }
-
-    private fun groupRoutesByOriginId(): Map<String, List<RouteRaw>> {
-        return repositories.routeRepository.getAllRoutes().groupBy { it.originHubId }
-    }
-
-    private fun createWarehouseNodes(): Map<String, Warehouse> {
-        return repositories.warehouseRepository.getAllWarehouses().associateBy(
-            keySelector = { it.hubId },
-            valueTransform = { createWarehouse(it) }
-        )
-    }
-
-    private fun createWarehouse(rawWarehouse: WarehouseRaw): Warehouse {
-        return Warehouse(
-            id = rawWarehouse.hubId,
-            name = rawWarehouse.hubName,
-            regionalZone = rawWarehouse.regionalZone,
-            latitude = rawWarehouse.latitude,
-            longitude = rawWarehouse.longitude
-        )
-    }
-
     private fun attachVehiclesToWarehouses() {
-        val vehiclesGroupByHubId = groupVehiclesByHubId()
-        for ((hubId, warehouse) in warehousesId) {
-            val rawFleet = vehiclesGroupByHubId[hubId] ?: continue
-            populateWarehouseVehicles(warehouse, rawFleet)
-        }
-    }
-
-    private fun populateWarehouseVehicles(warehouse: Warehouse, rawVehicles: List<VehicleRaw>) {
-        for (rawVehicle in rawVehicles) {
-            val vehicle = createVehicle(rawVehicle, warehouse)
-            warehouse.addVehicle(vehicle)
-        }
-    }
-
-    private fun createVehicle(rawVehicle: VehicleRaw, currentHub: Warehouse): Vehicle {
-        return Vehicle(
-            id = rawVehicle.vehicleIds.first(),
-            maxCapacityKg = rawVehicle.maxCapacityKg,
-            costPerKm = rawVehicle.costPerKm,
-            currentHub = currentHub
-        )
+        domainGraph.attachVehiclesToWarehouses(warehousesId)
     }
 
     private fun attachPackagesToWarehouses() {
-        val packagesGroupByOriginId = groupPackagesByOriginId()
-        for ((hubId, originWarehouse) in warehousesId) {
-            val rawPackages = packagesGroupByOriginId[hubId] ?: continue
-            populateWarehousePackages(originWarehouse, rawPackages)
-        }
-    }
-
-    private fun populateWarehousePackages(
-        originWarehouse: Warehouse,
-        rawPackages: List<PackageRaw>,
-    ) {
-        for (rawPackage in rawPackages) {
-            val destinationWarehouse = warehousesId[rawPackage.destinationHubId] ?: continue
-            val pkg = createPackage(rawPackage, originWarehouse, destinationWarehouse)
-            originWarehouse.addPackage(pkg)
-        }
-    }
-
-    private fun createPackage(
-        rawPackage: PackageRaw,
-        origin: Warehouse,
-        destination: Warehouse
-    ): Package {
-        return Package(
-            id = rawPackage.packageId,
-            weight = rawPackage.weight,
-            priority = rawPackage.priority,
-            originHub = origin,
-            destinationHub = destination
-        )
+        domainGraph.attachPackagesToWarehouses(warehousesId)
     }
 
     private fun attachRoutesToWarehouses() {
-        val routesGroupByOriginId = groupRoutesByOriginId()
-        for ((hubId, originWarehouse) in warehousesId) {
-            val rawRoutes = routesGroupByOriginId[hubId] ?: continue
-            populateWarehouseRoutes(originWarehouse, rawRoutes)
-        }
-    }
-
-    private fun populateWarehouseRoutes(
-        originWarehouse: Warehouse,
-        rawRoutes: List<RouteRaw>,
-    ) {
-        for (rawRoute in rawRoutes) {
-            val destinationWarehouse = warehousesId[rawRoute.destinationHubId] ?: continue
-            val route = createRoute(rawRoute, originWarehouse, destinationWarehouse)
-            originWarehouse.addRoute(route)
-        }
-    }
-
-    private fun createRoute(
-        rawRoute: RouteRaw,
-        origin: Warehouse,
-        destination: Warehouse
-    ): Route {
-        return Route(
-            id = rawRoute.routeId,
-            distanceKm = rawRoute.distanceKm,
-            typicalDelayMin = rawRoute.typicalDelayMin,
-            originHub = origin,
-            destinationHub = destination
-        )
+        domainGraph.attachRoutesToWarehouses(warehousesId)
     }
 }
