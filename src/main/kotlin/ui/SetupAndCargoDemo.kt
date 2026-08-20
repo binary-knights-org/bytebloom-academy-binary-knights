@@ -1,6 +1,5 @@
 package ui
 
-import data.dataholder.PackageRaw
 import data.repository.CsvPackageRepository
 import data.repository.CsvRouteRepository
 import data.repository.CsvVehicleRepository
@@ -8,6 +7,7 @@ import data.repository.CsvWarehouseRepository
 import domain.algorithm.sorting.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
+import domain.model.Package
 import domain.model.Warehouse
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
@@ -78,19 +78,20 @@ private fun printGraphSummary(warehouses: List<Warehouse>) {
     println("------------------------------------------------------------")
 }
 
-internal fun runCargoDemos(repositories: RepositoryProvider, graph: List<Warehouse>) {
-    val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
+internal fun runCargoDemos(graph: List<Warehouse>) {
+    val packages = graph.flatMap { it.cargoQueue }
+    val sortedPackages = sortPackagesByImportance(packages)
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(graph)
 }
 
-private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
+private fun printTopShipments(packages: List<Package>, limit: Int) {
     println("\n[TOP $limit PRIORITY SHIPMENTS]")
     println("------------------------------------------------------------")
     packages.take(limit).forEachIndexed { index, pkg ->
         val weightFormatted = "${pkg.weight} kg".padEnd(PAD_LARGE)
         println(
-            " ${index + 1}. [${pkg.packageId}] To: ${pkg.destinationHubId.padEnd(PAD_MEDIUM)}" +
+            " ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id.padEnd(PAD_MEDIUM)}" +
                     " | $weightFormatted | ${pkg.priority}"
         )
     }
@@ -107,7 +108,6 @@ private fun printSortedCargoQueueForFirstWarehouse(warehouses: List<Warehouse>) 
         println("   [${pkg.id}] -> ${pkg.weight} kg")
     }
     if (warehouse.cargoQueue.size > PAD_MEDIUM)
-
         println("   ... and ${warehouse.cargoQueue.size - QUEUE_DISPLAY_LIMIT} more.")
     println("------------------------------------------------------------")
 }
