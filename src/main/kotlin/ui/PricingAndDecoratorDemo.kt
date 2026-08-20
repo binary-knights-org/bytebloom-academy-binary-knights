@@ -56,16 +56,10 @@ private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricing
         println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
         println("------------------------------------------------------------")
         println(" 1. Base Express Cost            : \$${baseCost}")
-        println(" 2. + Express Insurance          : \$${insuredPackage.calculateTransitRate(baseCost)}")
+        println(" 2. Express Insurance          : \$${insuredPackage.calculateTransitRate(baseCost)}")
+        println(" 3. Cold Chain (Refrigeration) : \$${coldChainPackage.calculateTransitRate(baseTransitRate)}")
         println(
-            " 3. + Cold Chain (Refrigeration) : \$${
-                coldChainPackage.calculateTransitRate(
-                    baseTransitRate
-                )
-            }"
-        )
-        println(
-            " 4. + Fragile Handling           : \$${
+            " 4. Fragile Handling           : \$${
                 fragilePackage.calculateTransitRate(
                     coldChainPackage.calculateTransitRate(baseTransitRate)
                 )
