@@ -1,13 +1,13 @@
 package domain.builder
 
-import data.dataholder.PackageRaw
-import data.dataholder.RouteRaw
-import data.dataholder.VehicleRaw
-import data.dataholder.WarehouseRaw
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
 import domain.model.Warehouse
+import domain.repository.PackageRepository
+import domain.repository.RouteRepository
+import domain.repository.VehicleRepository
+import domain.repository.WarehouseRepository
 
 class DomainGraph(
     private val repositories: RepositoryProvider
@@ -50,53 +50,59 @@ class DomainGraph(
         }
     }
 
-    private fun createWarehouse(rawWarehouse: WarehouseRaw): Warehouse {
+    private fun createWarehouse(record: WarehouseRepository.WarehouseRecord): Warehouse {
         return Warehouse(
-            id = rawWarehouse.hubId,
-            name = rawWarehouse.hubName,
-            regionalZone = rawWarehouse.regionalZone,
-            latitude = rawWarehouse.latitude,
-            longitude = rawWarehouse.longitude
+            id = record.hubId,
+            name = record.hubName,
+            regionalZone = record.regionalZone,
+            latitude = record.latitude,
+            longitude = record.longitude
         )
     }
 
-    private fun populateWarehouseVehicles(warehouse: Warehouse, rawVehicles: List<VehicleRaw>) {
-        for (rawVehicle in rawVehicles) {
-            val vehicle = createVehicle(rawVehicle, warehouse)
+    private fun populateWarehouseVehicles(
+        warehouse: Warehouse,
+        records: List<VehicleRepository.VehicleRecord>
+    ) {
+        for (record in records) {
+            val vehicle = createVehicle(record, warehouse)
             warehouse.addVehicle(vehicle)
         }
     }
 
-    private fun createVehicle(rawVehicle: VehicleRaw, currentHub: Warehouse): Vehicle {
+    private fun createVehicle(
+        record: VehicleRepository.VehicleRecord,
+        currentHub: Warehouse
+    ): Vehicle {
         return Vehicle(
-            id = rawVehicle.vehicleIds.first(),
-            maxCapacityKg = rawVehicle.maxCapacityKg,
-            costPerKm = rawVehicle.costPerKm,
+            id = record.vehicleIds.first(),
+            maxCapacityKg = record.maxCapacityKg,
+            costPerKm = record.costPerKm,
             currentHub = currentHub
         )
     }
 
     private fun populateWarehousePackages(
         originWarehouse: Warehouse,
-        rawPackages: List<PackageRaw>,
+        records: List<PackageRepository.PackageRecord>,
         warehousesId: Map<String, Warehouse>
     ) {
-        for (rawPackage in rawPackages) {
-            val destinationWarehouse = warehousesId[rawPackage.destinationHubId] ?: continue
-            val pkg = createPackage(rawPackage, originWarehouse, destinationWarehouse)
+        for (record in records) {
+            val destinationWarehouse = warehousesId[record.destinationHubId] ?: continue
+            val pkg = createPackage(record, originWarehouse, destinationWarehouse)
             originWarehouse.addPackage(pkg)
         }
     }
 
     private fun createPackage(
-        rawPackage: PackageRaw,
+        record: PackageRepository.PackageRecord,
         origin: Warehouse,
         destination: Warehouse
     ): Package {
         return Package(
-            id = rawPackage.packageId,
-            weight = rawPackage.weight,
-            priority = rawPackage.priority,
+            id = record.packageId,
+            weight = record.weight,
+            priority = record.priority,
             originHub = origin,
             destinationHub = destination
         )
@@ -104,25 +110,25 @@ class DomainGraph(
 
     private fun populateWarehouseRoutes(
         originWarehouse: Warehouse,
-        rawRoutes: List<RouteRaw>,
+        records: List<RouteRepository.RouteRecord>,
         warehousesId: Map<String, Warehouse>
     ) {
-        for (rawRoute in rawRoutes) {
-            val destinationWarehouse = warehousesId[rawRoute.destinationHubId] ?: continue
-            val route = createRoute(rawRoute, originWarehouse, destinationWarehouse)
+        for (record in records) {
+            val destinationWarehouse = warehousesId[record.destinationHubId] ?: continue
+            val route = createRoute(record, originWarehouse, destinationWarehouse)
             originWarehouse.addRoute(route)
         }
     }
 
     private fun createRoute(
-        rawRoute: RouteRaw,
+        record: RouteRepository.RouteRecord,
         origin: Warehouse,
         destination: Warehouse
     ): Route {
         return Route(
-            id = rawRoute.routeId,
-            distanceKm = rawRoute.distanceKm,
-            typicalDelayMin = rawRoute.typicalDelayMin,
+            id = record.routeId,
+            distanceKm = record.distanceKm,
+            typicalDelayMin = record.typicalDelayMin,
             originHub = origin,
             destinationHub = destination
         )
