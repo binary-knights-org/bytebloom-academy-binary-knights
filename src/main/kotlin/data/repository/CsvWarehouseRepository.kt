@@ -1,9 +1,11 @@
 package data.repository
 
 import data.dataholder.WarehouseRaw
+import data.mapper.toDomain
 import data.reader.CsvFileReader
 import data.utils.hasValidFieldCount
 import data.utils.parseCsvFields
+import domain.model.Warehouse
 import domain.repository.WarehouseRepository
 
 private const val EXPECTED_WAREHOUSE_FIELDS = 5
@@ -20,20 +22,26 @@ class CsvWarehouseRepository(
     private val reader: CsvFileReader = CsvFileReader()
 ) : WarehouseRepository {
 
-    override fun getAllWarehouses(): List<WarehouseRaw> {
+    private val warehouses: List<Warehouse> by lazy {
         val lines = reader.readLines(filePath)
-        return extractWarehouses(lines)
+        extractWarehouses(lines)
     }
 
-    private fun extractWarehouses(lines: List<String>): List<WarehouseRaw> {
+    override fun getAllWarehouses(): List<Warehouse> {
+        return warehouses
+    }
+
+    private fun extractWarehouses(lines: List<String>): List<Warehouse> {
         return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it) }
     }
 
-    private fun parseLine(line: String): WarehouseRaw? {
+    private fun parseLine(line: String): Warehouse? {
         val fields = parseCsvFields(line, CSV_DELIMITER)
-        if (!hasValidFieldCount(fields, EXPECTED_WAREHOUSE_FIELDS)) return null
+        if (!hasValidFieldCount(fields, EXPECTED_WAREHOUSE_FIELDS)) {
+            return null
+        }
 
-        return mapFieldsToWarehouse(fields)
+        return mapFieldsToWarehouse(fields)?.toDomain()
     }
 
     private fun mapFieldsToWarehouse(fields: List<String>): WarehouseRaw? {
@@ -44,8 +52,14 @@ class CsvWarehouseRepository(
         val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull()
 
         return when {
-            (latitude == null || longitude == null) -> null
-            else -> WarehouseRaw(hubId, hubName, regionalZone, latitude, longitude)
+            latitude == null || longitude == null -> null
+            else -> WarehouseRaw(
+                hubId = hubId,
+                hubName = hubName,
+                regionalZone = regionalZone,
+                latitude = latitude,
+                longitude = longitude
+            )
         }
     }
 }
