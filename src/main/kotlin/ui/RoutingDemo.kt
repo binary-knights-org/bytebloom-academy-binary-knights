@@ -23,7 +23,7 @@ internal fun runRoutingAndComparisonDemos(graph: List<Warehouse>) {
     println("============================================================")
 
     printRouteDemo(graph, LeastHopRouter(), "Least-Hop Router (Standard BFS)")
-    printRouteDemo(graph, BidirectionalBfsRouter(), "Bidirectional BFS Router")
+    printRouteDemo(graph, BidirectionalBfsRouter(graph), "Bidirectional BFS Router")
     printRouteDemo(graph, OptimalTransitRouter(), "Optimal Transit Router (Dijkstra)")
 
     compareRoutingAlgorithms(graph)
@@ -68,8 +68,12 @@ private fun runStandardBfs(origin: Warehouse, destination: Warehouse): RoutingRe
     )
 }
 
-private fun runBidirectionalBfs(origin: Warehouse, destination: Warehouse): RoutingResult {
-    val router = BidirectionalBfsRouter()
+private fun runBidirectionalBfs(
+    graph: List<Warehouse>,
+    origin: Warehouse,
+    destination: Warehouse
+): RoutingResult {
+    val router = BidirectionalBfsRouter(graph)
     val startTime = System.nanoTime()
     val path = router.findShortestPath(origin, destination)
     return RoutingResult(
@@ -85,7 +89,7 @@ private fun compareRoutingAlgorithms(graph: List<Warehouse>) {
     val destination = graph.lastOrNull() ?: return
 
     val bfsResult = runStandardBfs(origin, destination)
-    val bidirectionalResult = runBidirectionalBfs(origin, destination)
+    val bidirectionalResult = runBidirectionalBfs(graph, origin, destination)
 
     printComparisonReport(origin, destination, bfsResult, bidirectionalResult)
 }
