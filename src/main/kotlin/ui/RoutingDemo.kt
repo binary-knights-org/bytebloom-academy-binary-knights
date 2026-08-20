@@ -4,6 +4,7 @@ import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
 import domain.algorithm.pathfinding.ShortestPathRouter
+import domain.builder.RepositoryProvider
 import domain.model.Warehouse
 import java.util.*
 
@@ -18,15 +19,19 @@ internal data class RoutingResult(
     val totalDistanceKm: Double
 )
 
-internal fun runRoutingAndComparisonDemos(graph: List<Warehouse>) {
+internal fun runRoutingAndComparisonDemos(
+    repositories: RepositoryProvider,
+    graph: List<Warehouse>
+) {
     println("\n[PATHFINDING ALGORITHMS]")
     println("============================================================")
 
-    printRouteDemo(graph, LeastHopRouter(), "Least-Hop Router (Standard BFS)")
-    printRouteDemo(graph, BidirectionalBfsRouter(), "Bidirectional BFS Router")
-    printRouteDemo(graph, OptimalTransitRouter(), "Optimal Transit Router (Dijkstra)")
+    val warehouseRepository = repositories.warehouseRepository
 
-    compareRoutingAlgorithms(graph)
+    printRouteDemo(graph, LeastHopRouter(warehouseRepository), "Least-Hop Router (Standard BFS)")
+    printRouteDemo(graph, BidirectionalBfsRouter(warehouseRepository), "Bidirectional BFS Router")
+    printRouteDemo(graph, OptimalTransitRouter(warehouseRepository), "Optimal Transit Router (Dijkstra)")
+    compareRoutingAlgorithms(repositories, graph)
 }
 
 private fun calculateTotalDistance(path: List<Warehouse>?): Double {
@@ -41,7 +46,11 @@ private fun calculateTotalDistance(path: List<Warehouse>?): Double {
     return distance
 }
 
-private fun printRouteDemo(graph: List<Warehouse>, router: ShortestPathRouter, label: String) {
+private fun printRouteDemo(
+    graph: List<Warehouse>,
+    router: ShortestPathRouter,
+    label: String
+) {
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
 
@@ -56,8 +65,12 @@ private fun printRouteDemo(graph: List<Warehouse>, router: ShortestPathRouter, l
     }
 }
 
-private fun runStandardBfs(origin: Warehouse, destination: Warehouse): RoutingResult {
-    val router = LeastHopRouter()
+private fun runStandardBfs(
+    repositories: RepositoryProvider,
+    origin: Warehouse,
+    destination: Warehouse
+): RoutingResult {
+    val router = LeastHopRouter(repositories.warehouseRepository)
     val startTime = System.nanoTime()
     val path = router.findShortestPath(origin, destination)
     return RoutingResult(
@@ -68,8 +81,12 @@ private fun runStandardBfs(origin: Warehouse, destination: Warehouse): RoutingRe
     )
 }
 
-private fun runBidirectionalBfs(origin: Warehouse, destination: Warehouse): RoutingResult {
-    val router = BidirectionalBfsRouter()
+private fun runBidirectionalBfs(
+    repositories: RepositoryProvider,
+    origin: Warehouse,
+    destination: Warehouse
+): RoutingResult {
+    val router = BidirectionalBfsRouter(repositories.warehouseRepository)
     val startTime = System.nanoTime()
     val path = router.findShortestPath(origin, destination)
     return RoutingResult(
@@ -80,18 +97,23 @@ private fun runBidirectionalBfs(origin: Warehouse, destination: Warehouse): Rout
     )
 }
 
-private fun compareRoutingAlgorithms(graph: List<Warehouse>) {
+private fun compareRoutingAlgorithms(
+    repositories: RepositoryProvider,
+    graph: List<Warehouse>
+) {
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
 
-    val bfsResult = runStandardBfs(origin, destination)
-    val bidirectionalResult = runBidirectionalBfs(origin, destination)
-
+    val bfsResult = runStandardBfs(repositories, origin, destination)
+    val bidirectionalResult = runBidirectionalBfs(repositories, origin, destination)
     printComparisonReport(origin, destination, bfsResult, bidirectionalResult)
 }
 
 private fun printComparisonReport(
-    origin: Warehouse, destination: Warehouse, bfsResult: RoutingResult, bidirectionalResult: RoutingResult
+    origin: Warehouse,
+    destination: Warehouse,
+    bfsResult: RoutingResult,
+    bidirectionalResult: RoutingResult
 ) {
     println("\n[ALGORITHM EFFICIENCY BENCHMARK]")
     println("------------------------------------------------------------")
@@ -107,15 +129,24 @@ private fun printComparisonReport(
     println("============================================================")
 }
 
-private fun printRouterReport(name: String, result: RoutingResult) {
-    val hops = if (result.path != null) (result.path.size - 1).toString() else "N/A"
+private fun printRouterReport(
+    name: String,
+    result: RoutingResult
+) {
+
+    val hops =
+        if (result.path != null) (result.path.size - 1).toString()
+        else "N/A"
     val evaluated = result.evaluatedWarehouses.toString()
     val time = "%.4f".format(Locale.US, result.executionTime)
 
     println("%-20s | %-6s | %-12s | %-10s".format(name, hops, evaluated, time))
 }
 
-private fun printEfficiencyComparison(bfsEvaluated: Int, bidirectionalEvaluated: Int) {
+private fun printEfficiencyComparison(
+    bfsEvaluated: Int,
+    bidirectionalEvaluated: Int
+) {
     if (bfsEvaluated == 0) return
     val improvement = (bfsEvaluated - bidirectionalEvaluated) * PERCENTAGE_MULTIPLIER / bfsEvaluated
     println(" RESULT: Bidirectional BFS evaluated %.2f%% fewer nodes!".format(Locale.US, improvement))
