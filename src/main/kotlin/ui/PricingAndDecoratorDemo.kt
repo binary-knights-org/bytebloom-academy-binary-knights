@@ -51,6 +51,8 @@ private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricing
         val coldChainPackage = ColdChainDecorator(insuredPackage)
         val fragilePackage = FragileHandlingDecorator(coldChainPackage)
 
+        val baseTransitRate = insuredPackage.calculateTransitRate(baseCost)
+
         println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
         println("------------------------------------------------------------")
         println(" 1. Base Express Cost            : \$${baseCost}")
@@ -58,20 +60,17 @@ private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricing
         println(
             " 3. + Cold Chain (Refrigeration) : \$${
                 coldChainPackage.calculateTransitRate(
-                    insuredPackage.calculateTransitRate(baseCost)
+                    baseTransitRate
                 )
             }"
         )
         println(
             " 4. + Fragile Handling           : \$${
                 fragilePackage.calculateTransitRate(
-                    coldChainPackage.calculateTransitRate(
-                        insuredPackage.calculateTransitRate(baseCost)
-                    )
+                    coldChainPackage.calculateTransitRate(baseTransitRate)
                 )
             }"
         )
         println("------------------------------------------------------------")
     }
-
 }
