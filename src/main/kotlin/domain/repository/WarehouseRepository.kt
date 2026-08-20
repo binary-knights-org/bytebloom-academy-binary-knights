@@ -1,7 +1,13 @@
 package domain.repository
 
-import data.dataholder.WarehouseRaw
-
 interface WarehouseRepository {
-   fun getAllWarehouses(): List<WarehouseRaw>
+    data class WarehouseRecord(
+        val hubId: String,
+        val hubName: String,
+        val regionalZone: String,
+        val latitude: Double,
+        val longitude: Double
+    )
+
+    fun getAllWarehouses(): List<WarehouseRecord>
 }
