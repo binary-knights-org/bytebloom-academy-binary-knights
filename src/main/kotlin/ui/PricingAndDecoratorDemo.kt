@@ -33,8 +33,8 @@ private fun printStrategyResult(label: String, engine: RoutePricingEngine) {
     val priority = engine.getPriority()
     val paddedLabel = label.padEnd(LABEL_PADDING)
     println(
-        $$" $$paddedLabel | Cost: $$${cost.toString().padEnd(LABEL_PADDING_HALF)}" +
-                " | Priority Multiplier: $${priority}x"
+        " $paddedLabel | Cost: \$${cost.toString().padEnd(LABEL_PADDING_HALF)}" +
+                " | Priority Multiplier: ${priority}x"
     )
 }
 
@@ -53,17 +53,17 @@ private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricing
 
         println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
         println("------------------------------------------------------------")
-        println($$" 1. Base Express Cost            : $$${baseCost}")
-        println($$" 2. + Express Insurance          : $$${insuredPackage.calculateTransitRate(baseCost)}")
+        println(" 1. Base Express Cost            : \$${baseCost}")
+        println(" 2. + Express Insurance          : \$${insuredPackage.calculateTransitRate(baseCost)}")
         println(
-            $$" 3. + Cold Chain (Refrigeration) : $$${
+            " 3. + Cold Chain (Refrigeration) : \$${
                 coldChainPackage.calculateTransitRate(
                     insuredPackage.calculateTransitRate(baseCost)
                 )
             }"
         )
         println(
-            $$" 4. + Fragile Handling           : $$${
+            " 4. + Fragile Handling           : \$${
                 fragilePackage.calculateTransitRate(
                     coldChainPackage.calculateTransitRate(
                         insuredPackage.calculateTransitRate(baseCost)
