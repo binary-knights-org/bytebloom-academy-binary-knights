@@ -1,4 +1,4 @@
-package domain.algorithm
+package domain.algorithm.sorting
 import domain.model.Package
 
 data class CargoSortState(

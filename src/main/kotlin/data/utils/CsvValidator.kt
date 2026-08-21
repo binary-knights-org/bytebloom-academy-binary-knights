@@ -1,4 +1,4 @@
-package data.parser
+package data.utils
 
 
 fun parseCsvFields(line: String, delimiter: String = ","): List<String> {

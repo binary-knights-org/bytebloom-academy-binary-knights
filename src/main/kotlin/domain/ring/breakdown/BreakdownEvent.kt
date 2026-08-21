@@ -1,4 +1,4 @@
-package domain.ring
+package domain.ring.breakdown
 
 import domain.model.Vehicle
 

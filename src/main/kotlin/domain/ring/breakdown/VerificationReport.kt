@@ -1,4 +1,4 @@
-package domain.ring
+package domain.ring.breakdown
 
 data class VerificationReport(
     val migratedPackageIds: List<String>,

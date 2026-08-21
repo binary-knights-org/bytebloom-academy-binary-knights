@@ -1,8 +1,11 @@
-package domain.ring
+package domain.ring.breakdown
 
 import domain.model.Package
 import domain.model.Vehicle
 import domain.model.Warehouse
+import domain.ring.ClockwiseRouter
+import domain.ring.DeterministicHashingEngine
+import domain.ring.PackageAssignmentRing
 
 private const val PACKAGE_COUNT = 30
 private const val TARGET_BROKEN_SLOT = 40
