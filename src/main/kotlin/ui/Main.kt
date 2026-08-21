@@ -9,7 +9,7 @@ fun main() {
     runCargoDemos(repositories, graph)
     runPricingAndDecoratorDemos(graph)
     runBreakdownSimulationDemo()
-    runRoutingAndComparisonDemos(graph)
+    runRoutingAndComparisonDemos(repositories, graph)
 
     printSystemFooter()
 }

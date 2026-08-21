@@ -1,6 +1,5 @@
 package ui
 
-import data.dataholder.PackageRaw
 import data.repository.CsvPackageRepository
 import data.repository.CsvRouteRepository
 import data.repository.CsvVehicleRepository
@@ -8,6 +7,7 @@ import data.repository.CsvWarehouseRepository
 import domain.algorithm.sorting.sortPackagesByImportance
 import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
+import domain.model.Package
 import domain.model.Warehouse
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
@@ -22,17 +22,31 @@ private const val PAD_LARGE = 8
 private const val QUEUE_DISPLAY_LIMIT = 5
 
 internal fun initializeRepositories(): RepositoryProvider {
+    val warehouseRepository =
+        CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+
     val repositories = RepositoryProvider(
-        vehicleRepository = CsvVehicleRepository(VEHICLES_FILE_PATH),
-        packageRepository = CsvPackageRepository(PACKAGE_FILE_PATH),
-        routeRepository = CsvRouteRepository(ROUTES_FILE_PATH),
-        warehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+        warehouseRepository = warehouseRepository,
+        vehicleRepository = CsvVehicleRepository(
+            filePath = VEHICLES_FILE_PATH,
+            warehouseRepository = warehouseRepository
+        ),
+        packageRepository = CsvPackageRepository(
+            filePath = PACKAGE_FILE_PATH,
+            warehouseRepository = warehouseRepository
+        ),
+        routeRepository = CsvRouteRepository(
+            filePath = ROUTES_FILE_PATH,
+            warehouseRepository = warehouseRepository
+        )
     )
     printParsingReport(repositories)
     return repositories
 }
 
-private fun printParsingReport(repositories: RepositoryProvider) {
+private fun printParsingReport(
+    repositories: RepositoryProvider
+) {
     println("\n[DATA PARSING REPORT]")
     println("------------------------------------------------------------")
     println(
@@ -58,13 +72,17 @@ private fun printParsingReport(repositories: RepositoryProvider) {
     println("------------------------------------------------------------")
 }
 
-internal fun buildDomainGraph(repositories: RepositoryProvider): List<Warehouse> {
+internal fun buildDomainGraph(
+    repositories: RepositoryProvider
+): List<Warehouse> {
     val graph = DomainGraphBuilder(repositories).buildGraph()
     printGraphSummary(graph)
     return graph
 }
 
-private fun printGraphSummary(warehouses: List<Warehouse>) {
+private fun printGraphSummary(
+    warehouses: List<Warehouse>
+) {
     println("\n[DOMAIN GRAPH SUMMARY]")
     println("------------------------------------------------------------")
     println("Total Connected Hubs: ${warehouses.size}")
@@ -78,25 +96,33 @@ private fun printGraphSummary(warehouses: List<Warehouse>) {
     println("------------------------------------------------------------")
 }
 
-internal fun runCargoDemos(repositories: RepositoryProvider, graph: List<Warehouse>) {
+internal fun runCargoDemos(
+    repositories: RepositoryProvider,
+    graph: List<Warehouse>
+) {
     val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(graph)
 }
 
-private fun printTopShipments(packages: List<PackageRaw>, limit: Int) {
+private fun printTopShipments(
+    packages: List<Package>,
+    limit: Int
+) {
     println("\n[TOP $limit PRIORITY SHIPMENTS]")
     println("------------------------------------------------------------")
     packages.take(limit).forEachIndexed { index, pkg ->
         val weightFormatted = "${pkg.weight} kg".padEnd(PAD_LARGE)
         println(
-            " ${index + 1}. [${pkg.packageId}] To: ${pkg.destinationHubId.padEnd(PAD_MEDIUM)}" +
+            " ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id.padEnd(PAD_MEDIUM)}" +
                     " | $weightFormatted | ${pkg.priority}"
         )
     }
 }
 
-private fun printSortedCargoQueueForFirstWarehouse(warehouses: List<Warehouse>) {
+private fun printSortedCargoQueueForFirstWarehouse(
+    warehouses: List<Warehouse>
+) {
     val warehouse = warehouses.firstOrNull() ?: return
     warehouse.sortCargoQueueByWeightDescending()
 
