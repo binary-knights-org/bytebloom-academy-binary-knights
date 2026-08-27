@@ -2,10 +2,10 @@ package ui
 
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
-import domain.algorithm.pathfinding.OptimalTransitRouter
-import domain.algorithm.pathfinding.ShortestPathRouter
 import domain.builder.RepositoryProvider
 import domain.model.Warehouse
+import domain.usecase.FindFewestHopsRouteUseCase
+import domain.usecase.FindOptimalPathUseCase
 import java.util.*
 
 internal const val NANOS_TO_MILLIS = 1_000_000.0
@@ -21,16 +21,18 @@ internal data class RoutingResult(
 
 internal fun runRoutingAndComparisonDemos(
     repositories: RepositoryProvider,
-    graph: List<Warehouse>
+    graph: List<Warehouse>,
+    findOptimalPathUseCase: FindOptimalPathUseCase,
+    findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase
 ) {
     println("\n[PATHFINDING ALGORITHMS]")
     println("============================================================")
-
-    val warehouseRepository = repositories.warehouseRepository
-
-    printRouteDemo(graph, LeastHopRouter(warehouseRepository), "Least-Hop Router (Standard BFS)")
-    printRouteDemo(graph, BidirectionalBfsRouter(warehouseRepository), "Bidirectional BFS Router")
-    printRouteDemo(graph, OptimalTransitRouter(warehouseRepository), "Optimal Transit Router (Dijkstra)")
+    printRouteDemo(graph, findFewestHopsRouteUseCase::invoke, "Least-Hop Router (Standard BFS)")
+    printRouteDemo(
+        graph, BidirectionalBfsRouter(repositories.warehouseRepository)::findShortestPath,
+        "Bidirectional BFS Router"
+    )
+    printRouteDemo(graph, findOptimalPathUseCase::invoke, "Optimal Transit Router (Dijkstra)")
     compareRoutingAlgorithms(repositories, graph)
 }
 
@@ -48,18 +50,16 @@ private fun calculateTotalDistance(path: List<Warehouse>?): Double {
 
 private fun printRouteDemo(
     graph: List<Warehouse>,
-    router: ShortestPathRouter,
+    findPath: (Warehouse, Warehouse) -> List<Warehouse>?,
     label: String
 ) {
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
 
-    val path = router.findShortestPath(origin, destination)
+    val path = findPath(origin, destination)
     print(" ${label.padEnd(ROUTER_LABEL_PADDING)} -> ")
 
-    if (path == null) {
-        println("No Path")
-    } else {
+    if (path == null) println("No Path") else {
         val distance = calculateTotalDistance(path)
         println("${path.size - 1} Hops | %.2f km".format(Locale.US, distance))
     }

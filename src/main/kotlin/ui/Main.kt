@@ -1,15 +1,27 @@
 package ui
 
+import domain.algorithm.pathfinding.LeastHopRouter
+import domain.algorithm.pathfinding.OptimalTransitRouter
+import domain.usecase.FindFewestHopsRouteUseCase
+import domain.usecase.FindOptimalPathUseCase
+import domain.usecase.GetAllPackagesUseCase
+
 fun main() {
     printSystemHeader()
 
     val repositories = initializeRepositories()
     val graph = buildDomainGraph(repositories)
 
-    runCargoDemos(repositories, graph)
+    val findOptimalPathUseCase =
+        FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
+    val findFewestHopsRouteUseCase =
+        FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
+    val getAllPackagesUseCase = GetAllPackagesUseCase(repositories.packageRepository)
+
+    runCargoDemos(getAllPackagesUseCase, graph)
     runPricingAndDecoratorDemos(graph)
     runBreakdownSimulationDemo()
-    runRoutingAndComparisonDemos(repositories, graph)
+    runRoutingAndComparisonDemos(repositories, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase)
 
     printSystemFooter()
 }
