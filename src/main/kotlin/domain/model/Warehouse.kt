@@ -22,8 +22,8 @@ data class Warehouse(
         _cargoQueue.add(pkg)
     }
 
-    fun removePackage(packageItem: Package): Boolean {
-        return _cargoQueue.remove(packageItem)
+    fun removePackage(pkg: Package) {
+        _cargoQueue.remove(pkg)
     }
 
     fun addRoute(route: Route) {
@@ -41,6 +41,4 @@ data class Warehouse(
     fun sortCargoQueueByWeightDescending() {
         sortPackagesDescendingByWeight(_cargoQueue)
     }
-
-
 }
