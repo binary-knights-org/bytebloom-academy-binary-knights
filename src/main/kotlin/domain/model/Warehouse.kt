@@ -22,6 +22,10 @@ data class Warehouse(
         _cargoQueue.add(pkg)
     }
 
+    fun removePackage(pkg: Package) {
+        _cargoQueue.remove(pkg)
+    }
+
     fun addRoute(route: Route) {
         _outgoingRoutes.add(route)
     }

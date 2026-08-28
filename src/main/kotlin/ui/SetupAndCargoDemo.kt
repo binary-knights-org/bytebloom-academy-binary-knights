@@ -55,8 +55,11 @@ private fun printParsingReport(
             repositories.vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
-    val getAllPackagesUseCase = GetAllPackagesUseCase(repositories.packageRepository)
-    println(" Packages    : ${getAllPackagesUseCase().size.toString().padEnd(PAD_SMALL)} records parsed.")
+    println(
+        " Packages    : ${
+            repositories.packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
+        } records parsed."
+    )
     println(
         " Routes      : ${
             repositories.routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
