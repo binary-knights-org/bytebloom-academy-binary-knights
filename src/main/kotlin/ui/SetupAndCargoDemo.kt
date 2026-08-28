@@ -9,6 +9,7 @@ import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
 import domain.model.Package
 import domain.model.Warehouse
+import domain.usecase.GetAllPackagesUseCase
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -97,10 +98,10 @@ private fun printGraphSummary(
 }
 
 internal fun runCargoDemos(
-    repositories: RepositoryProvider,
+    getAllPackagesUseCase: GetAllPackagesUseCase,
     graph: List<Warehouse>
 ) {
-    val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
+    val sortedPackages = sortPackagesByImportance(getAllPackagesUseCase())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(graph)
 }
