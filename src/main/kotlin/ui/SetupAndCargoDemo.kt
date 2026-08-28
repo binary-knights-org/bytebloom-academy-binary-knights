@@ -9,9 +9,6 @@ import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
 import domain.model.Package
 import domain.model.Warehouse
-import domain.usecase.FindPackagesByPriorityUseCase
-import domain.usecase.FindPackagesByOriginUseCase
-import domain.usecase.ReroutePackageUseCase
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -106,64 +103,6 @@ internal fun runCargoDemos(
     val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(graph)
-
-    runPackagePriorityDemo(repositories)
-    runPackageOriginDemo(repositories, graph)
-    runReroutePackageDemo(repositories, graph)
-}
-
-private fun runPackagePriorityDemo(
-    repositories: RepositoryProvider
-) {
-    val findPackagesByPriorityUseCase = FindPackagesByPriorityUseCase(repositories.packageRepository)
-    val priority = "URGENT"
-    val packages = findPackagesByPriorityUseCase(priority)
-
-    println("\nFIND PACKAGES BY PRIORITY")
-    println(" Priority: $priority")
-    println(" Matching Packages: ${packages.size}")
-
-    packages.take(TOP_SHIPMENTS_LIMIT).forEach { pkg ->
-        println("   [${pkg.id}] -> ${pkg.weight} kg")    }
-}
-
-private fun runPackageOriginDemo(
-    repositories: RepositoryProvider,
-    graph: List<Warehouse>
-) {
-    val findPackagesByOriginUseCase = FindPackagesByOriginUseCase(repositories.packageRepository)
-    val originWarehouse = requireNotNull(graph.firstOrNull()) { "Cannot find an origin warehouse." }
-    val packages = findPackagesByOriginUseCase(originWarehouse)
-
-    println("\nFIND PACKAGES BY ORIGIN")
-    println(" Origin Hub: ${originWarehouse.id}")
-    println(" Matching Packages: ${packages.size}")
-
-    packages.take(TOP_SHIPMENTS_LIMIT).forEach { pkg ->
-        println("   [${pkg.id}] -> Destination: ${pkg.destinationHub.id}")    }
-}
-
-private fun runReroutePackageDemo(
-    repositories: RepositoryProvider,
-    graph: List<Warehouse>
-) {
-    val reroutePackageUseCase = ReroutePackageUseCase(
-    repositories.packageRepository, repositories.warehouseRepository)
-
-    val packageToReroute = requireNotNull(repositories.packageRepository.
-    getAllPackages().firstOrNull()) { "Cannot find a package to reroute." }
-
-    val oldDestination = packageToReroute.destinationHub
-    val newDestination = requireNotNull(graph.firstOrNull { it.id != oldDestination.id })
-    { "Cannot find a new destination warehouse." }
-
-    reroutePackageUseCase(packageToReroute.id, newDestination.id)
-
-    println("\nREROUTE PACKAGE")
-    println(" Package: ${packageToReroute.id}")
-    println(" Old Destination: ${oldDestination.id}")
-    println(" New Destination: ${newDestination.id}")
-    println(" Package successfully rerouted.")
 }
 
 private fun printTopShipments(
