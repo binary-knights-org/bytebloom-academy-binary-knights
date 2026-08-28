@@ -11,3 +11,4 @@ class FindPackagesByOriginUseCase(
         return packageRepository.getAllPackages().filter { it.originHub == originHub }
     }
 }
+
