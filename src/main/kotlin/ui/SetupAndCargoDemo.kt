@@ -9,6 +9,7 @@ import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
 import domain.model.Package
 import domain.model.Warehouse
+import domain.usecase.GetAllVehiclesUseCase
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -49,11 +50,10 @@ private fun printParsingReport(
 ) {
     println("\n[DATA PARSING REPORT]")
     println("------------------------------------------------------------")
-    println(
-        " Fleet       : ${
-            repositories.vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
+
+    val getAllVehiclesUseCase = GetAllVehiclesUseCase(repositories.vehicleRepository)
+    println(" Fleet    : ${getAllVehiclesUseCase().size.toString().padEnd(PAD_SMALL)} records parsed.")
+
     println(
         " Packages    : ${
             repositories.packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
