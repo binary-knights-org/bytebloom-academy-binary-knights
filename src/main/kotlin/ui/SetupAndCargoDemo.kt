@@ -11,6 +11,8 @@ import domain.model.Package
 import domain.model.Warehouse
 import domain.usecase.GetAllPackagesUseCase
 import domain.usecase.GetAllWarehousesUseCase
+import domain.usecase.GetAllRoutesUseCase
+import domain.usecase.GetAllVehiclesUseCase
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -51,23 +53,28 @@ private fun printParsingReport(
 ) {
     println("\n[DATA PARSING REPORT]")
     println("------------------------------------------------------------")
+    val   getAllVehiclesUseCase = GetAllVehiclesUseCase(repositories.vehicleRepository)
     println(
         " Fleet       : ${
-            repositories.vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
+            getAllVehiclesUseCase().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
+    val  getAllPackagesUseCase = GetAllPackagesUseCase(repositories.packageRepository)
     println(
         " Packages    : ${
-            repositories.packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
+            getAllPackagesUseCase().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
+    val  getAllRoutesUseCase = GetAllRoutesUseCase(repositories.routeRepository)
     println(
         " Routes      : ${
-            repositories.routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
+            getAllRoutesUseCase().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
+
     val getAllWarehousesUseCase = GetAllWarehousesUseCase(repositories.warehouseRepository)
-    println(" Warehouses  : ${getAllWarehousesUseCase().size.toString().padEnd(PAD_SMALL)} records parsed.")
+    println(" Warehouses  : ${
+        getAllWarehousesUseCase().size.toString().padEnd(PAD_SMALL)} records parsed.")
     println("------------------------------------------------------------")
 }
 
