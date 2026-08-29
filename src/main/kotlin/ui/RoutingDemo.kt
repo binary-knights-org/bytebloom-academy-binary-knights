@@ -4,6 +4,7 @@ import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.builder.RepositoryProvider
 import domain.model.Warehouse
+import domain.usecase.FindBidirectionalRouteUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
 import domain.usecase.FindOptimalPathUseCase
 import java.util.*
@@ -23,15 +24,13 @@ internal fun runRoutingAndComparisonDemos(
     repositories: RepositoryProvider,
     graph: List<Warehouse>,
     findOptimalPathUseCase: FindOptimalPathUseCase,
-    findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase
+    findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
+    findBidirectionalRouteUseCase: FindBidirectionalRouteUseCase
 ) {
     println("\n[PATHFINDING ALGORITHMS]")
     println("============================================================")
     printRouteDemo(graph, findFewestHopsRouteUseCase::invoke, "Least-Hop Router (Standard BFS)")
-    printRouteDemo(
-        graph, BidirectionalBfsRouter(repositories.warehouseRepository)::findShortestPath,
-        "Bidirectional BFS Router"
-    )
+    printRouteDemo(graph, findBidirectionalRouteUseCase::invoke, "Bidirectional BFS Router")
     printRouteDemo(graph, findOptimalPathUseCase::invoke, "Optimal Transit Router (Dijkstra)")
     compareRoutingAlgorithms(repositories, graph)
 }

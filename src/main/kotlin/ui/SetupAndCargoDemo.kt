@@ -10,6 +10,7 @@ import domain.builder.RepositoryProvider
 import domain.model.Package
 import domain.model.Warehouse
 import domain.usecase.GetAllPackagesUseCase
+import domain.usecase.GetAllWarehousesUseCase
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -65,11 +66,8 @@ private fun printParsingReport(
             repositories.routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
-    println(
-        " Warehouses  : ${
-            repositories.warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
+    val getAllWarehousesUseCase = GetAllWarehousesUseCase(repositories.warehouseRepository)
+    println(" Warehouses  : ${getAllWarehousesUseCase().size.toString().padEnd(PAD_SMALL)} records parsed.")
     println("------------------------------------------------------------")
 }
 

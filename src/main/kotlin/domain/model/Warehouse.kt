@@ -34,10 +34,6 @@ data class Warehouse(
         _stationedVehicles.add(vehicle)
     }
 
-    fun getALLVehicles(): List<Vehicle> {
-        return _stationedVehicles
-    }
-
     fun sortCargoQueueByWeightDescending() {
         sortPackagesDescendingByWeight(_cargoQueue)
     }
