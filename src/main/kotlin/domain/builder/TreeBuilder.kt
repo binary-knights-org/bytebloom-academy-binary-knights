@@ -12,25 +12,23 @@ class TreeBuilder {
         val remainingWarehouses = warehouses.filter { it.id != globalHubWarehouse.id }
         val regionalGroups = remainingWarehouses.groupBy { it.regionalZone }
 
-        regionalGroups.values.forEach { warehousesInZone ->
-            attachZoneToGlobalHub(warehousesInZone, globalHub)
+        globalHub.children = regionalGroups.values.map { warehousesInZone ->
+            buildRegionalCenter(warehousesInZone, globalHub)
         }
 
         return globalHub
     }
 
-    private fun attachZoneToGlobalHub(
+    private fun buildRegionalCenter(
         warehousesInZone: List<Warehouse>,
-        globalHub: HubNode.GlobalHub
-    ) {
-        if (warehousesInZone.isEmpty()) return
+        parent: HubNode.GlobalHub
+    ): HubNode.RegionalCenter {
+        val regionalCenter = HubNode.RegionalCenter(warehousesInZone.first(), parent)
 
-        val regionalCenter = HubNode.RegionalCenter(warehousesInZone.first(), parent = globalHub)
-        globalHub.children.add(regionalCenter)
-
-        warehousesInZone.drop(1).forEach { depotWarehouse ->
-            val depot = HubNode.LocalDepot(depotWarehouse, parent = regionalCenter)
-            regionalCenter.children.add(depot)
+        regionalCenter.children = warehousesInZone.drop(1).map { depotWarehouse ->
+            HubNode.LocalDepot(depotWarehouse, parent = regionalCenter)
         }
+
+        return regionalCenter
     }
 }

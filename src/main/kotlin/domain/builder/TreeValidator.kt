@@ -11,7 +11,12 @@ class TreeValidator {
 
     private fun visitNode(node: HubNode, visitedIds: MutableSet<String>): Boolean {
         if (!visitedIds.add(node.warehouse.id)) return false
-        return childrenOf(node).all { visitNode(it, visitedIds) }
+
+        return when (node) {
+            is HubNode.GlobalHub -> node.children.all { visitNode(it, visitedIds) }
+            is HubNode.RegionalCenter -> node.children.all { visitNode(it, visitedIds) }
+            is HubNode.LocalDepot -> true
+        }
     }
 
     fun coversAllWarehouses(root: HubNode.GlobalHub, expectedCount: Int): Boolean {
@@ -19,29 +24,19 @@ class TreeValidator {
     }
 
     private fun countNodes(node: HubNode): Int {
-        return 1 + childrenOf(node).sumOf { countNodes(it) }
+        return 1 + when (node) {
+            is HubNode.GlobalHub -> node.children.sumOf { countNodes(it) }
+            is HubNode.RegionalCenter -> node.children.sumOf { countNodes(it) }
+            is HubNode.LocalDepot -> 0
+        }
     }
 
     fun verifyAllLocalDepotsReachRoot(root: HubNode.GlobalHub): Boolean {
         val allDepots = collectLocalDepots(root)
-        return allDepots.all { depot -> climbToRoot(depot) === root }
+        return allDepots.all { depot -> depot.parent.parent === root }
     }
 
-    private fun collectLocalDepots(node: HubNode): List<HubNode.LocalDepot> = when (node) {
-        is HubNode.GlobalHub -> node.children.flatMap { collectLocalDepots(it) }
-        is HubNode.RegionalCenter -> node.children.flatMap { collectLocalDepots(it) }
-        is HubNode.LocalDepot -> listOf(node)
-    }
-
-    private tailrec fun climbToRoot(node: HubNode): HubNode.GlobalHub = when (node) {
-        is HubNode.GlobalHub -> node
-        is HubNode.RegionalCenter -> climbToRoot(node.parent)
-        is HubNode.LocalDepot -> climbToRoot(node.parent)
-    }
-
-    private fun childrenOf(node: HubNode): List<HubNode> = when (node) {
-        is HubNode.GlobalHub -> node.children
-        is HubNode.RegionalCenter -> node.children
-        is HubNode.LocalDepot -> emptyList()
+    private fun collectLocalDepots(node: HubNode.GlobalHub): List<HubNode.LocalDepot> {
+        return node.children.flatMap { regionalCenter -> regionalCenter.children }
     }
 }

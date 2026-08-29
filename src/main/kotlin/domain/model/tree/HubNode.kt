@@ -6,18 +6,22 @@ sealed interface HubNode {
     val warehouse: Warehouse
 
     class GlobalHub(
-        override val warehouse: Warehouse,
-        val children: MutableList<HubNode> = mutableListOf()
-    ) : HubNode
+        override val warehouse: Warehouse
+    ) : HubNode {
+        lateinit var children: List<RegionalCenter>
+            internal set
+    }
 
     class RegionalCenter(
         override val warehouse: Warehouse,
-        val parent: HubNode,
-        val children: MutableList<HubNode> = mutableListOf()
-    ) : HubNode
+        val parent: GlobalHub
+    ) : HubNode {
+        lateinit var children: List<LocalDepot>
+            internal set
+    }
 
     class LocalDepot(
         override val warehouse: Warehouse,
-        val parent: HubNode
+        val parent: RegionalCenter
     ) : HubNode
 }
