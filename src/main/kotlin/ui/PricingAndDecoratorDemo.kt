@@ -3,68 +3,64 @@ package ui
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
+import domain.model.PackageComponent
+import domain.model.Route
 import domain.model.Warehouse
+import domain.pricing.DispatchStrategy
 import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
-import domain.pricing.RoutePricingEngine
+import domain.usecase.CalculatePricingUseCase
 
-internal const val DEMO_WEIGHT_KG = 10.0
-internal const val DEMO_DISTANCE_KM = 50.0
 private const val LABEL_PADDING = 12
-private const val LABEL_PADDING_HALF = 6
 
-internal fun runPricingAndDecoratorDemos(graph: List<Warehouse>) {
-    val pricingEngine = RoutePricingEngine(EcoStrategy())
-
-    println("\n[DYNAMIC PRICING ENGINE]")
-    println("------------------------------------------------------------")
-    printStrategyResult("Eco", pricingEngine)
-    pricingEngine.setStrategy(ExpressStrategy())
-    printStrategyResult("Express", pricingEngine)
-    pricingEngine.setStrategy(FragileStrategy())
-    printStrategyResult("Fragile", pricingEngine)
-
-    runDecoratorDemo(graph, pricingEngine)
-}
-
-private fun printStrategyResult(label: String, engine: RoutePricingEngine) {
-    val cost = engine.calculateCost(weight = DEMO_WEIGHT_KG, distance = DEMO_DISTANCE_KM)
-    val priority = engine.getPriority()
-    val paddedLabel = label.padEnd(LABEL_PADDING)
-    println(
-        " $paddedLabel | Cost: \$${cost.toString().padEnd(LABEL_PADDING_HALF)}" +
-                " | Priority Multiplier: ${priority}x"
-    )
-}
-
-private fun runDecoratorDemo(graph: List<Warehouse>, pricingEngine: RoutePricingEngine) {
+internal fun runPricingAndDecoratorDemos(
+    graph: List<Warehouse>,
+    calculatePricingUseCase: CalculatePricingUseCase
+) {
     val firstWarehouse = graph.firstOrNull()
     val firstRoute = firstWarehouse?.outgoingRoutes?.firstOrNull()
     val firstPackage = firstWarehouse?.cargoQueue?.firstOrNull()
 
-    if (firstRoute != null && firstPackage != null) {
-        pricingEngine.setStrategy(ExpressStrategy())
-        val baseCost = pricingEngine.calculateCost(firstPackage.weight, firstRoute.distanceKm)
+    if (firstRoute == null || firstPackage == null) return
 
-        val insuredPackage = ExpressInsuranceDecorator(firstPackage)
-        val coldChainPackage = ColdChainDecorator(insuredPackage)
-        val fragilePackage = FragileHandlingDecorator(coldChainPackage)
+    println("\n[DYNAMIC PRICING ENGINE]")
+    println("------------------------------------------------------------")
+    printStrategyResult("Eco", firstPackage, firstRoute, EcoStrategy(), calculatePricingUseCase)
+    printStrategyResult("Express", firstPackage, firstRoute, ExpressStrategy(), calculatePricingUseCase)
+    printStrategyResult("Fragile", firstPackage, firstRoute, FragileStrategy(), calculatePricingUseCase)
 
-        val baseTransitRate = insuredPackage.calculateTransitRate(baseCost)
+    runDecoratorDemo(firstPackage, firstRoute, calculatePricingUseCase)
+}
 
-        println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
-        println("------------------------------------------------------------")
-        println(" 1. Base Express Cost            : \$${baseCost}")
-        println(" 2. Express Insurance          : \$${insuredPackage.calculateTransitRate(baseCost)}")
-        println(" 3. Cold Chain (Refrigeration) : \$${coldChainPackage.calculateTransitRate(baseTransitRate)}")
-        println(
-            " 4. Fragile Handling           : \$${
-                fragilePackage.calculateTransitRate(
-                    coldChainPackage.calculateTransitRate(baseTransitRate)
-                )
-            }"
-        )
-        println("------------------------------------------------------------")
-    }
+private fun printStrategyResult(
+    label: String,
+    pkg: PackageComponent,
+    route: Route,
+    strategy: DispatchStrategy,
+    useCase: CalculatePricingUseCase
+) {
+    val cost = useCase(pkg, route, strategy)
+    val paddedLabel = label.padEnd(LABEL_PADDING)
+    println(" $paddedLabel | Final Cost: \$${cost}")
+}
+
+private fun runDecoratorDemo(
+    pkg: PackageComponent,
+    route: Route,
+    calculatePricingUseCase: CalculatePricingUseCase
+) {
+    val baseCost = calculatePricingUseCase(pkg, route, ExpressStrategy())
+
+    val insured = ExpressInsuranceDecorator(pkg)
+    val coldChain = ColdChainDecorator(insured)
+    val fragile = FragileHandlingDecorator(coldChain)
+
+    println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
+    println("------------------------------------------------------------")
+    println(" 1. Base Express Cost      : \$${baseCost}")
+    println(" 2. + Insurance            : \$${insured.calculateTransitRate(baseCost)}")
+    println(" 3. + Cold Chain           : \$${coldChain.calculateTransitRate(baseCost)}")
+    println(" 4. + Fragile Handling     : \$${fragile.calculateTransitRate(baseCost)}")
+    println("------------------------------------------------------------")
 }
