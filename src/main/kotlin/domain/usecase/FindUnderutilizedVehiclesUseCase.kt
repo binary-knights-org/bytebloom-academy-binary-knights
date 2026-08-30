@@ -8,21 +8,15 @@ class FindUnderutilizedVehiclesUseCase(
 ) {
     operator fun invoke(utilizationThreshold: Double): List<Vehicle> {
         val allVehicles = vehicleRepository.getAllVehicles()
-        val averageCapacity = allVehicles.map { it.maxCapacityKg }.average()
 
         return allVehicles.filter { vehicle ->
-            isUnderutilized(vehicle, averageCapacity, utilizationThreshold)
+            isUnderutilized(vehicle, utilizationThreshold)
         }
     }
 
-    private fun isUnderutilized(
-        vehicle: Vehicle,
-        averageCapacity: Double,
-        utilizationThreshold: Double
-    ): Boolean {
+    private fun isUnderutilized(vehicle: Vehicle, utilizationThreshold: Double): Boolean {
         val hubQueueWeight = vehicle.currentHub.cargoQueue.sumOf { it.weight }
-
-        return vehicle.maxCapacityKg > averageCapacity &&
-                hubQueueWeight < vehicle.maxCapacityKg * utilizationThreshold
+        return hubQueueWeight < vehicle.maxCapacityKg * utilizationThreshold
     }
 }
+
