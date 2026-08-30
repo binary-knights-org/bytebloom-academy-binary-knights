@@ -7,10 +7,16 @@ import domain.repository.VehicleRepository
 class SuggestBestVehicleForPackageUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    operator fun invoke(pkg: PackageComponent): Vehicle {
-        val eligibleVehicles = vehicleRepository.getAllVehicles().filter { it.maxCapacityKg >= pkg.weight }
+    operator fun invoke(pkg: PackageComponent): Vehicle? {
+        return vehicleRepository.getAllVehicles()
+            .filter { vehicle -> hasSufficientRemainingCapacity(vehicle, pkg) }
+            .minByOrNull { it.costPerKm }
+    }
 
-        return eligibleVehicles.minByOrNull { it.costPerKm }
-            ?: error("No vehicle with sufficient capacity found for package ${pkg.id}")
+    private fun hasSufficientRemainingCapacity(vehicle: Vehicle, pkg: PackageComponent): Boolean {
+        val currentLoad = vehicle.currentHub.cargoQueue.sumOf { it.weight }
+        val remainingCapacity = vehicle.maxCapacityKg - currentLoad
+        return remainingCapacity >= pkg.weight
     }
 }
+
