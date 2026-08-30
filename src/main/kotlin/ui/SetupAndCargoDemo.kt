@@ -9,10 +9,6 @@ import domain.builder.DomainGraphBuilder
 import domain.builder.RepositoryProvider
 import domain.model.Package
 import domain.model.Warehouse
-import domain.usecase.GetAllPackagesUseCase
-import domain.usecase.GetAllWarehousesUseCase
-import domain.usecase.GetAllRoutesUseCase
-import domain.usecase.GetAllVehiclesUseCase
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -53,28 +49,23 @@ private fun printParsingReport(
 ) {
     println("\n[DATA PARSING REPORT]")
     println("------------------------------------------------------------")
-    val   getAllVehiclesUseCase = GetAllVehiclesUseCase(repositories.vehicleRepository)
     println(
         " Fleet       : ${
-            getAllVehiclesUseCase().size.toString().padEnd(PAD_SMALL)
+            repositories.vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
-    val  getAllPackagesUseCase = GetAllPackagesUseCase(repositories.packageRepository)
     println(
         " Packages    : ${
-            getAllPackagesUseCase().size.toString().padEnd(PAD_SMALL)
+            repositories.packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
-    val  getAllRoutesUseCase = GetAllRoutesUseCase(repositories.routeRepository)
     println(
         " Routes      : ${
-            getAllRoutesUseCase().size.toString().padEnd(PAD_SMALL)
+            repositories.routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
-
-    val getAllWarehousesUseCase = GetAllWarehousesUseCase(repositories.warehouseRepository)
     println(" Warehouses  : ${
-        getAllWarehousesUseCase().size.toString().padEnd(PAD_SMALL)} records parsed.")
+        repositories.warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)} records parsed.")
     println("------------------------------------------------------------")
 }
 
@@ -103,10 +94,10 @@ private fun printGraphSummary(
 }
 
 internal fun runCargoDemos(
-    getAllPackagesUseCase: GetAllPackagesUseCase,
+    repositories: RepositoryProvider,
     graph: List<Warehouse>
 ) {
-    val sortedPackages = sortPackagesByImportance(getAllPackagesUseCase())
+    val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(graph)
 }

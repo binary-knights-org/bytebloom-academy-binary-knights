@@ -9,7 +9,6 @@ import domain.pricing.RoutePricingEngine
 import domain.usecase.CalculatePricingUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
 import domain.usecase.FindOptimalPathUseCase
-import domain.usecase.GetAllPackagesUseCase
 
 fun main() {
     printSystemHeader()
@@ -21,10 +20,9 @@ fun main() {
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
     val findBidirectionalRouteUseCase =
         FindBidirectionalRouteUseCase(BidirectionalBfsRouter(repositories.warehouseRepository))
-    val getAllPackagesUseCase = GetAllPackagesUseCase(repositories.packageRepository)
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
 
-    runCargoDemos(getAllPackagesUseCase, graph)
+    runCargoDemos(repositories, graph)
     runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
     runBreakdownSimulationDemo()
     runRoutingAndComparisonDemos(
