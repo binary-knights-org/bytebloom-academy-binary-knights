@@ -2,40 +2,30 @@ package domain.usecase
 
 import domain.decorator.ColdChainDecorator
 import domain.decorator.FragileHandlingDecorator
+import domain.decorator.PackageDecorator
 import domain.model.Package
-import domain.model.Route
-import domain.model.Warehouse
-import domain.pricing.FragileStrategy
+import domain.model.PackageComponent
 import domain.repository.WarehouseRepository
 
-private const val HIGH_RISK_COST_THRESHOLD = 200.0
 
 class FindFragileShipmentsNeedingColdChainUseCase(
     private val warehouseRepository: WarehouseRepository,
-    private val calculatePricingUseCase: CalculatePricingUseCase
 ) {
 
     operator fun invoke(): List<Package> {
         val warehouses = warehouseRepository.getAllWarehouses()
-
         return warehouses
             .flatMap { it.cargoQueue }
-            .filter { pkg -> exceedsCostThreshold(pkg, warehouses) }
+            .filter { it.isFragile() && it.needsColdChain() }
     }
 
-    private fun exceedsCostThreshold(pkg: Package, warehouses: List<Warehouse>): Boolean {
-        val route = findRoute(pkg, warehouses) ?: return false
-
-        val decoratedPackage = ColdChainDecorator(FragileHandlingDecorator(pkg))
-        val finalCost = calculatePricingUseCase(decoratedPackage, route, FragileStrategy())
-
-        return finalCost > HIGH_RISK_COST_THRESHOLD
+    private fun PackageComponent.isFragile(): Boolean {
+        val layers = generateSequence(this) { (it as? PackageDecorator)?.wrappedPackage }
+        return layers.any { it is FragileHandlingDecorator }
     }
 
-    private fun findRoute(pkg: Package, warehouses: List<Warehouse>): Route? {
-        return warehouses
-            .flatMap { it.outgoingRoutes }
-            .find { it.originHub.id == pkg.originHub.id && it.destinationHub.id == pkg.destinationHub.id }
+    private fun PackageComponent.needsColdChain(): Boolean {
+        return generateSequence(this) { (it as? PackageDecorator)?.wrappedPackage }
+            .any { it is ColdChainDecorator }
     }
 }
-
