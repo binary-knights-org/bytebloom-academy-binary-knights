@@ -2,6 +2,9 @@ package domain.builder
 
 import domain.model.tree.HubNode
 
+private const val COUNT_SELF_NODE = 1
+private const val COUNT_LEAF_CHILDREN = 0
+
 class TreeValidator {
 
     fun hasNoCycles(root: HubNode.GlobalHub): Boolean {
@@ -24,10 +27,10 @@ class TreeValidator {
     }
 
     private fun countNodes(node: HubNode): Int {
-        return 1 + when (node) {
+        return COUNT_SELF_NODE + when (node) {
             is HubNode.GlobalHub -> node.children.sumOf { countNodes(it) }
             is HubNode.RegionalCenter -> node.children.sumOf { countNodes(it) }
-            is HubNode.LocalDepot -> 0
+            is HubNode.LocalDepot -> COUNT_LEAF_CHILDREN
         }
     }
 

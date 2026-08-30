@@ -3,6 +3,8 @@ package domain.builder
 import domain.model.Warehouse
 import domain.model.tree.HubNode
 
+private const val REGIONAL_CENTER_COUNT_PER_ZONE = 1
+
 class TreeBuilder {
 
     fun buildTree(warehouses: List<Warehouse>): HubNode.GlobalHub {
@@ -25,7 +27,7 @@ class TreeBuilder {
     ): HubNode.RegionalCenter {
         val regionalCenter = HubNode.RegionalCenter(warehousesInZone.first(), parent)
 
-        regionalCenter.children = warehousesInZone.drop(1).map { depotWarehouse ->
+        regionalCenter.children = warehousesInZone.drop(REGIONAL_CENTER_COUNT_PER_ZONE).map { depotWarehouse ->
             HubNode.LocalDepot(depotWarehouse, parent = regionalCenter)
         }
 
