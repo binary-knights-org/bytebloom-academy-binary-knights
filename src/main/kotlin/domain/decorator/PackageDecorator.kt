@@ -4,7 +4,7 @@ import domain.model.PackageComponent
 import domain.model.Warehouse
 
 abstract class PackageDecorator(
-    private val wrappedPackage: PackageComponent
+    val wrappedPackage: PackageComponent
 ) : PackageComponent {
     override val id: String
         get() = wrappedPackage.id
