@@ -5,7 +5,7 @@ class BalancedTree private constructor(
 ) : TreeSearchTarget {
     constructor() : this(TreeNode.Empty)
 
-    override fun insert(id: String): TreeSearchTarget {
+    override fun insert(id: String): BalancedTree {
         val ids = collectIds(root) + id
         val sortedIds = ids.sorted()
         return BalancedTree(buildBalancedTree(sortedIds))
