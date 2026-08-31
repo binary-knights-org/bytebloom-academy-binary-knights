@@ -3,6 +3,8 @@ package domain.usecase
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 
+private const val ZERO_WEIGHT = 0.0
+
 class FindUnderutilizedVehiclesUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
@@ -15,8 +17,8 @@ class FindUnderutilizedVehiclesUseCase(
     }
 
     private fun isUnderutilized(vehicle: Vehicle, utilizationThreshold: Double): Boolean {
+        if (vehicle.maxCapacityKg <= ZERO_WEIGHT) return false
         val hubQueueWeight = vehicle.currentHub.cargoQueue.sumOf { it.weight }
-        return hubQueueWeight < vehicle.maxCapacityKg * utilizationThreshold
+        return hubQueueWeight > ZERO_WEIGHT && hubQueueWeight < vehicle.maxCapacityKg * utilizationThreshold
     }
 }
-
