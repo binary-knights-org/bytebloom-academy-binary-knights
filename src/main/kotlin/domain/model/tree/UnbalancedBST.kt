@@ -5,7 +5,7 @@ class UnbalancedBST private constructor(
 ) : TreeSearchTarget {
     constructor() : this(TreeNode.Empty)
 
-    override fun insert(id: String): TreeSearchTarget {
+    override fun insert(id: String): UnbalancedBST {
         return UnbalancedBST(insertNode(root, id))
     }
 
