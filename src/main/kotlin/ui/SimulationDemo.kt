@@ -64,10 +64,8 @@ fun printTreePerformanceAnalysis(
     analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase,
     count: Int = 1000
 ) {
-    println("[The Balanced Index Simulator]".uppercase())
+    println("\n[The Balanced Index Simulator]".uppercase())
     println("============================================================")
-
-    println("-___________________________________________________________")
 
     val perfAnalysis = analyzeTreePerformanceUseCase(count)
 
