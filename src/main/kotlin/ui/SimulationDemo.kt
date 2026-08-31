@@ -1,10 +1,12 @@
 package ui
 
+import java.util.Locale
 import domain.model.Package
 import domain.model.Vehicle
 import domain.ring.DeterministicHashingEngine
 import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
+import domain.usecase.AnalyzeTreePerformanceUseCase
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
@@ -55,5 +57,27 @@ private fun printVerificationReport(report: VerificationReport) {
             }${if (report.migratedPackageIds.size > MIGRATED_DISPLAY_LIMIT) "..." else ""}"
         )
     }
+    println("============================================================")
+}
+
+fun printTreePerformanceAnalysis(
+    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase,
+    count: Int = 1000
+) {
+    println("\n[The Balanced Index Simulator]".uppercase())
+    println("============================================================")
+
+    val perfAnalysis = analyzeTreePerformanceUseCase(count)
+
+    println("Generated ${perfAnalysis.totalCount} sequential tracking IDs")
+    println("Unbalanced BST Search Steps:")
+    println("  - Max steps (Worst Case):  ${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)")
+    println("  - Total steps ($count keys): ${perfAnalysis.unbalancedTotalSteps}")
+    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}")
+
+    println("Balanced AVL Tree Search Steps:")
+    println("  - Max steps (Worst Case):  ${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)")
+    println("  - Total steps ($count keys): ${perfAnalysis.balancedTotalSteps}")
+    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}")
     println("============================================================")
 }

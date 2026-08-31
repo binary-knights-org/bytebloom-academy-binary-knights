@@ -6,9 +6,12 @@ import domain.algorithm.pathfinding.OptimalTransitRouter
 import domain.usecase.FindBidirectionalRouteUseCase
 import domain.pricing.EcoStrategy
 import domain.pricing.RoutePricingEngine
+import domain.usecase.AnalyzeTreePerformanceUseCase
 import domain.usecase.CalculatePricingUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
 import domain.usecase.FindOptimalPathUseCase
+
+private const val DEFAULT_PACKAGE_COUNT = 1000
 
 fun main() {
     printSystemHeader()
@@ -27,6 +30,12 @@ fun main() {
     runBreakdownSimulationDemo()
     runRoutingAndComparisonDemos(
         repositories, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase
+    )
+
+    val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
+    printTreePerformanceAnalysis(
+        analyzeTreePerformanceUseCase,
+        DEFAULT_PACKAGE_COUNT
     )
 
     printSystemFooter()
