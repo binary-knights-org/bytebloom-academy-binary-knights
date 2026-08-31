@@ -17,7 +17,7 @@ data class TreePerformanceAnalysis(
 
 class AnalyzeTreePerformanceUseCase {
     operator fun invoke(count: Int = 1000): TreePerformanceAnalysis {
-        val packageIds = PackageDataGenerator().generateSequentialIds()
+        val packageIds = PackageDataGenerator().generateSequentialIds(count)
 
         val unbalancedBst = packageIds.fold(UnbalancedBST()) { tree, id ->
             tree.insert(id)
