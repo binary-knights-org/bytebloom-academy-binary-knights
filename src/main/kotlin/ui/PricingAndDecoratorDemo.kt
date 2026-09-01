@@ -3,6 +3,7 @@ package ui
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
+import domain.model.BasePackageComponent
 import domain.model.PackageComponent
 import domain.model.Route
 import domain.model.Warehouse
@@ -24,13 +25,14 @@ internal fun runPricingAndDecoratorDemos(
 
     if (firstRoute == null || firstPackage == null) return
 
+    val baseComponent = BasePackageComponent(firstPackage)
     println("\n[DYNAMIC PRICING ENGINE]")
     println("------------------------------------------------------------")
-    printStrategyResult("Eco", firstPackage, firstRoute, EcoStrategy(), calculatePricingUseCase)
-    printStrategyResult("Express", firstPackage, firstRoute, ExpressStrategy(), calculatePricingUseCase)
-    printStrategyResult("Fragile", firstPackage, firstRoute, FragileStrategy(), calculatePricingUseCase)
+    printStrategyResult("Eco", baseComponent, firstRoute, EcoStrategy(), calculatePricingUseCase)
+    printStrategyResult("Express", baseComponent, firstRoute, ExpressStrategy(), calculatePricingUseCase)
+    printStrategyResult("Fragile", baseComponent, firstRoute, FragileStrategy(), calculatePricingUseCase)
 
-    runDecoratorDemo(firstPackage, firstRoute, calculatePricingUseCase)
+    runDecoratorDemo(baseComponent, firstRoute, calculatePricingUseCase)
 }
 
 private fun printStrategyResult(

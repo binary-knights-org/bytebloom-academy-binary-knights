@@ -8,9 +8,9 @@ import domain.pricing.RoutePricingEngine
 class CalculatePricingUseCase(
     private val pricingEngine : RoutePricingEngine
 ) {
-    operator fun invoke(pkg : PackageComponent ,route: Route , strategy: DispatchStrategy ): Double {
+    operator fun invoke(pkg: PackageComponent ,route: Route , strategy: DispatchStrategy ): Double {
     pricingEngine.setStrategy(strategy)
-    val baseCost =  pricingEngine.calculateCost(pkg.weight,route.distanceKm)
+    val baseCost =  pricingEngine.calculateCost(pkg.packages.weight,route.distanceKm)
     return  pkg.calculateTransitRate(baseCost)
     }
 

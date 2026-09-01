@@ -16,7 +16,7 @@ class SuggestBestVehicleForPackageUseCase(
     private fun hasSufficientRemainingCapacity(vehicle: Vehicle, pkg: PackageComponent): Boolean {
         val currentLoad = vehicle.currentHub.cargoQueue.sumOf { it.weight }
         val remainingCapacity = vehicle.maxCapacityKg - currentLoad
-        return remainingCapacity >= pkg.weight
+        return remainingCapacity >= pkg.packages.weight
     }
 }
 

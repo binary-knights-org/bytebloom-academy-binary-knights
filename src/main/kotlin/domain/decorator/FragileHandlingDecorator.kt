@@ -5,10 +5,10 @@ import domain.model.PackageComponent
 private const val DEFAULT_PROTECTIVE_FEE = 35.0
 
 class FragileHandlingDecorator(
-    wrappedPackage: PackageComponent,
+    component: PackageComponent,
     private val protectiveFee: Double = DEFAULT_PROTECTIVE_FEE
-) : PackageDecorator(wrappedPackage) {
+) : PackageDecorator(component) {
     override fun calculateTransitRate(baseTransitRate: Double): Double {
-        return decoratedBaseRate(baseTransitRate) + protectiveFee
+        return super.calculateTransitRate(baseTransitRate) + protectiveFee
     }
 }
