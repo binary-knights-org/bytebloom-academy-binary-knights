@@ -1,7 +1,7 @@
 package domain.builder
 
 import domain.model.Warehouse
-import domain.model.tree.HubNode
+import domain.tree.HubNode
 
 private const val REGIONAL_CENTER_COUNT_PER_ZONE = 1
 

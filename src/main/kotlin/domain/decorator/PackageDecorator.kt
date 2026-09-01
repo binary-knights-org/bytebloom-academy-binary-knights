@@ -4,7 +4,7 @@ import domain.model.PackageComponent
 
 abstract class PackageDecorator(
     val component: PackageComponent
-) : PackageComponent by component {
+) : PackageComponent {
     override fun calculateTransitRate(baseTransitRate: Double): Double {
         return component.calculateTransitRate(baseTransitRate)
     }

@@ -1,4 +1,4 @@
-package domain.model.tree
+package domain.tree
 
 import domain.model.Warehouse
 
