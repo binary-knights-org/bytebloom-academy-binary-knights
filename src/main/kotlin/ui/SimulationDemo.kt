@@ -1,12 +1,16 @@
 package ui
 
+import domain.command.CommandInvoker
+import domain.command.DispatchVehicleCommand
 import java.util.Locale
 import domain.model.Package
 import domain.model.Vehicle
+import domain.model.Warehouse
 import domain.ring.DeterministicHashingEngine
 import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
 import domain.usecase.AnalyzeTreePerformanceUseCase
+import domain.usecase.DispatchVehicleUseCase
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
@@ -20,8 +24,7 @@ internal fun runBreakdownSimulationDemo() {
     printAssignments(result.before, "INITIAL ASSIGNMENT (SYSTEM HEALTHY)")
 
     println(
-        "\n ALERT: Vehicle ${result.breakdownEvent.brokenVehicle.id} " +
-                "(Slot ${result.breakdownEvent.slot}) went offline!"
+        "\n ALERT: Vehicle ${result.breakdownEvent.brokenVehicle.id} " + "(Slot ${result.breakdownEvent.slot}) went offline!"
     )
     println("INITIATING FAILOVER PROTOCOL...\n")
 
@@ -38,8 +41,7 @@ private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) 
         val slot = DeterministicHashingEngine.calculateSlot(pkg)
         println("   [${pkg.id}] -> Slot %02d -> Assigned to: ${vehicle.id}".format(slot))
     }
-    if (assignments.size > DISPLAY_LIMIT)
-        println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
+    if (assignments.size > DISPLAY_LIMIT) println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
 }
 
 private fun printVerificationReport(report: VerificationReport) {
@@ -48,8 +50,7 @@ private fun printVerificationReport(report: VerificationReport) {
     println(" Packages Migrated: ${report.migratedPackageIds.size}")
     if (report.migratedPackageIds.isNotEmpty()) {
         println(
-            " SUCCESS: Packages safely moved from " +
-                    "${report.brokenVehicleId} to fallback ${report.fallbackVehicleId}."
+            " SUCCESS: Packages safely moved from " + "${report.brokenVehicleId} to fallback ${report.fallbackVehicleId}."
         )
         println(
             "    Moved IDs: ${
@@ -61,8 +62,7 @@ private fun printVerificationReport(report: VerificationReport) {
 }
 
 fun printTreePerformanceAnalysis(
-    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase,
-    count: Int = 1000
+    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase, count: Int = 1000
 ) {
     println("\n[The Balanced Index Simulator]".uppercase())
     println("============================================================")
@@ -80,4 +80,38 @@ fun printTreePerformanceAnalysis(
     println("  - Total steps ($count keys): ${perfAnalysis.balancedTotalSteps}")
     println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}")
     println("============================================================")
+}
+
+fun printCommandPatternTest(
+    dispatchVehicleUseCase: DispatchVehicleUseCase, firstWarehouse: Warehouse, firstVehicle: Vehicle
+) {
+    println("\n[Command Pattern Dispatch Panel]".uppercase())
+    println("============================================================")
+    val commandInvoker = CommandInvoker()
+    val queueCountBefore = firstWarehouse.cargoQueue.size
+    val loadedCargoCountBefore = firstVehicle.loadedCargo.size
+
+    val dispatchCommand = DispatchVehicleCommand(
+        dispatchVehicleUseCase, firstVehicle, firstWarehouse
+    )
+
+    val executed = commandInvoker.executeCommand(dispatchCommand)
+
+    println("== DispatchVehicleCommand ==")
+    println("Execution:")
+    println("  - Success: $executed")
+    println("  - Queue size after dispatch: ${firstWarehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
+    println("  - Command history size: ${commandInvoker.historySize}")
+
+    val undone = commandInvoker.undo()
+
+    println("Undo Operation:")
+    println("  - Success: $undone")
+    println("  - Queue size after undo: ${firstWarehouse.cargoQueue.size}")
+    println("    Restored: ${firstWarehouse.cargoQueue.size == queueCountBefore}")
+    println("  - Vehicle loaded cargo size after undo: ${firstVehicle.loadedCargo.size}")
+    println("    Restored: ${firstVehicle.loadedCargo.size == loadedCargoCountBefore}")
+    println("  - Command history size after undo: ${commandInvoker.historySize}")
+
 }

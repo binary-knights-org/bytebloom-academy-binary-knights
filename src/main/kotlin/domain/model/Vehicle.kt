@@ -8,6 +8,7 @@ data class Vehicle(
 ) {
 
     private val mutableLoadedCargo = mutableListOf<Package>()
+    val loadedCargo: List<Package> = mutableLoadedCargo
 
     val currentLoadKg: Double
         get() = mutableLoadedCargo.sumOf { it.weight }
@@ -20,5 +21,7 @@ data class Vehicle(
         return false
     }
 
-
+    fun clearCargo() {
+        mutableLoadedCargo.clear()
+    }
 }
