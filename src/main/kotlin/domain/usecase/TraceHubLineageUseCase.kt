@@ -1,6 +1,6 @@
 package domain.usecase
 
-import domain.model.tree.HubNode
+import domain.tree.HubNode
 
 class TraceHubLineageUseCase {
 

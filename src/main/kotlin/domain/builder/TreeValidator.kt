@@ -1,6 +1,6 @@
 package domain.builder
 
-import domain.model.tree.HubNode
+import domain.tree.HubNode
 
 private const val COUNT_SELF_NODE = 1
 private const val COUNT_LEAF_CHILDREN = 0
