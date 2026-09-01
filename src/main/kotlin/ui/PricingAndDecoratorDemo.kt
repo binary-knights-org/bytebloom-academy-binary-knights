@@ -11,7 +11,6 @@ import domain.pricing.DispatchStrategy
 import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
-import domain.pricing.RoutePricingEngine
 import domain.usecase.CalculatePricingUseCase
 import domain.usecase.PricingRequest
 
@@ -49,7 +48,6 @@ internal fun runPricingAndDecoratorDemos(
 private fun printStrategyResult(
     label: String, pkg: Package, route: Route, strategy: DispatchStrategy, useCase: CalculatePricingUseCase
 ) {
-    val pricingEngine = RoutePricingEngine(strategy)
     val component = BasePackageComponent()
 
     val request = PricingRequest(
