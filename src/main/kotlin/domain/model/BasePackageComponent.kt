@@ -1,7 +1,6 @@
 package domain.model
 
-class BasePackageComponent(
-): PackageComponent {
+class BasePackageComponent: PackageComponent {
     override fun calculateTransitRate(baseTransitRate: Double): Double {
         return baseTransitRate
     }
