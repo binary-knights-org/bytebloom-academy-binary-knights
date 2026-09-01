@@ -8,6 +8,7 @@ import domain.pricing.EcoStrategy
 import domain.pricing.RoutePricingEngine
 import domain.usecase.AnalyzeTreePerformanceUseCase
 import domain.usecase.CalculatePricingUseCase
+import domain.usecase.DispatchVehicleUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
 import domain.usecase.FindOptimalPathUseCase
 
@@ -37,6 +38,12 @@ fun main() {
         analyzeTreePerformanceUseCase,
         DEFAULT_PACKAGE_COUNT
     )
+
+    printCommandPatternTest(
+        dispatchVehicleUseCase = DispatchVehicleUseCase(),
+        firstWarehouse = graph.first() ,
+        firstVehicle = graph.first().stationedVehicles.first()
+        )
 
     printSystemFooter()
 }
