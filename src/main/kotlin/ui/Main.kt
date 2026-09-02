@@ -21,35 +21,26 @@ fun main() {
 
     val repositories = initializeRepositories()
     val graph = buildDomainGraph(repositories)
-    val recommendPackageConsolidationUseCase =
-        createPackageConsolidationUseCase(repositories)
-
+    val recommendPackageConsolidationUseCase = createPackageConsolidationUseCase(repositories)
     val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
-    val findBidirectionalRouteUseCase =
-        FindBidirectionalRouteUseCase(BidirectionalBfsRouter(repositories.warehouseRepository))
+    val findBidirectionalRouteUseCase = FindBidirectionalRouteUseCase(BidirectionalBfsRouter(repositories.warehouseRepository))
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
+    val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
 
     runCargoDemos(repositories, graph)
     runPackageConsolidationDemo(recommendPackageConsolidationUseCase)
     runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
     runBreakdownSimulationDemo()
     runRoutingAndComparisonDemos(
-        repositories, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase
-    )
-
-    val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
+        repositories, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
     printTreePerformanceAnalysis(
         analyzeTreePerformanceUseCase,
-        DEFAULT_PACKAGE_COUNT
-    )
-
+        DEFAULT_PACKAGE_COUNT)
     printCommandPatternTest(
         dispatchVehicleUseCase = DispatchVehicleUseCase(),
         firstWarehouse = graph.first() ,
-        firstVehicle = graph.first().stationedVehicles.first()
-        )
-
+        firstVehicle = graph.first().stationedVehicles.first())
     printSystemFooter()
 }
 
