@@ -5,6 +5,7 @@ import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
 import domain.model.BasePackageComponent
 import domain.model.Package
+import domain.model.PackageComponent
 import domain.model.Route
 import domain.model.Warehouse
 import domain.pricing.DispatchStrategy
@@ -46,7 +47,8 @@ internal fun runPricingAndDecoratorDemos(
 }
 
 private fun printStrategyResult(
-    label: String, pkg: Package, route: Route, strategy: DispatchStrategy, useCase: CalculatePricingUseCase
+    label: String, pkg: Package, route: Route,
+    strategy: DispatchStrategy, useCase: CalculatePricingUseCase
 ) {
     val component = BasePackageComponent()
 
@@ -66,20 +68,49 @@ private fun runDecoratorDemo(
 ) {
     val strategy = ExpressStrategy()
     val baseComponent = BasePackageComponent()
-    val baseRequest = PricingRequest(
-        pkg = pkg, component = baseComponent, route = route, strategy = strategy
-    )
 
-    val baseCost = calculatePricingUseCase(baseRequest)
     val insured = ExpressInsuranceDecorator(baseComponent)
     val coldChain = ColdChainDecorator(insured)
     val fragile = FragileHandlingDecorator(coldChain)
 
+    val baseCost = calculateCost(
+        pkg, route, baseComponent, strategy, calculatePricingUseCase
+    )
+
+    val insuredCost = calculateCost(
+        pkg, route, insured, strategy, calculatePricingUseCase
+    )
+
+    val coldChainCost = calculateCost(
+        pkg, route, coldChain, strategy, calculatePricingUseCase
+    )
+
+    val fragileCost = calculateCost(
+        pkg, route, fragile, strategy, calculatePricingUseCase
+    )
+
     println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
     println("------------------------------------------------------------")
     println(" 1. Base Express Cost      : $$baseCost")
-    println(" 2. + Insurance            : $${insured.calculateTransitRate(baseCost)}")
-    println(" 3. + Cold Chain           : $${coldChain.calculateTransitRate(baseCost)}")
-    println(" 4. + Fragile Handling     : $${fragile.calculateTransitRate(baseCost)}")
+    println(" 2. + Insurance            : $$insuredCost")
+    println(" 3. + Cold Chain           : $$coldChainCost")
+    println(" 4. + Fragile Handling     : $$fragileCost")
     println("------------------------------------------------------------")
+}
+
+private fun calculateCost(
+    pkg: Package,
+    route: Route,
+    component: PackageComponent,
+    strategy: DispatchStrategy,
+    useCase: CalculatePricingUseCase
+): Double {
+    return useCase(
+        PricingRequest(
+            pkg = pkg,
+            component = component,
+            route = route,
+            strategy = strategy
+        )
+    )
 }
