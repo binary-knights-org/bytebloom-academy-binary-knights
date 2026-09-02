@@ -10,6 +10,7 @@ import domain.ring.DeterministicHashingEngine
 import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
 import domain.usecase.AnalyzeTreePerformanceUseCase
+import domain.usecase.CalculateNetworkResilienceScoreUseCase
 import domain.usecase.DispatchVehicleUseCase
 
 private const val DISPLAY_LIMIT = 3
@@ -72,10 +73,12 @@ fun printTreePerformanceAnalysis(
     val perfAnalysis = analyzeTreePerformanceUseCase(count)
 
     println("Generated ${perfAnalysis.totalCount} sequential tracking IDs")
-    println("Unbalanced BST Search Steps:")
+    println("\nUnbalanced BST Search Steps:")
     println("  - Max steps (Worst Case):  ${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)")
     println("  - Total steps ($count keys): ${perfAnalysis.unbalancedTotalSteps}")
     println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}")
+
+    println("\n==================================================")
 
     println("Balanced AVL Tree Search Steps:")
     println("  - Max steps (Worst Case):  ${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)")
@@ -99,13 +102,13 @@ fun printCommandPatternTest(
 
     val executed = commandInvoker.executeCommand(dispatchCommand)
 
-    println("== DispatchVehicleCommand ==")
     println("Execution:")
     println("  - Success: $executed")
     println("  - Queue size after dispatch: ${firstWarehouse.cargoQueue.size}")
     println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
     println("  - Command history size: ${commandInvoker.historySize}")
 
+    println("\n==================================================")
     val undone = commandInvoker.undo()
 
     println("Undo Operation:")
@@ -116,4 +119,26 @@ fun printCommandPatternTest(
     println("    Restored: ${firstVehicle.loadedCargo.size == loadedCargoCountBefore}")
     println("  - Command history size after undo: ${commandInvoker.historySize}")
 
+}
+
+fun printNetworkResilienceAnalysis(
+    calculateNetworkResilienceScoreUseCase: CalculateNetworkResilienceScoreUseCase,
+    graph: List<Warehouse>
+) {
+    println("\n[Network Resilience Analysis]".uppercase())
+    println("============================================================")
+
+    val resilienceScore = calculateNetworkResilienceScoreUseCase(graph)
+
+    println("Simulating Single-Point-of-Failure (SPOF) Outages...")
+    println("  - Network Resilience Score : ${"%.2f".format(resilienceScore)}%")
+
+    val statusMessage = when {
+        resilienceScore >= 80.0 -> "HIGH RESILIENCE (Network survives most single-node failures)"
+        resilienceScore >= 50.0 -> "MODERATE RESILIENCE (Critical bottlenecks detected)"
+        else -> "CRITICAL VULNERABILITY (High risk of network disconnection)"
+    }
+
+    println("  - System Status            : $statusMessage")
+    println("============================================================")
 }

@@ -8,6 +8,7 @@ import domain.usecase.FindBidirectionalRouteUseCase
 import domain.pricing.EcoStrategy
 import domain.pricing.RoutePricingEngine
 import domain.usecase.AnalyzeTreePerformanceUseCase
+import domain.usecase.CalculateNetworkResilienceScoreUseCase
 import domain.usecase.CalculatePricingUseCase
 import domain.usecase.DispatchVehicleUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
@@ -42,6 +43,10 @@ fun main() {
         dispatchVehicleUseCase = DispatchVehicleUseCase(),
         firstWarehouse = graph.first() ,
         firstVehicle = graph.first().stationedVehicles.first())
+
+    val calculateNetworkResilienceScoreUseCase = CalculateNetworkResilienceScoreUseCase()
+    printNetworkResilienceAnalysis(calculateNetworkResilienceScoreUseCase, graph)
+
     printSystemFooter()
 }
 
