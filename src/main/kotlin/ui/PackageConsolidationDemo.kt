@@ -17,12 +17,13 @@ internal fun runPackageConsolidationDemo(
     }
     println(" Found ${recommendations.size} consolidation opportunities.")
     recommendations.take(DISPLAY_LIMIT).forEachIndexed { index, recommendation ->
+        val remainingCapacity = recommendation.vehicle.maxCapacityKg -
+                recommendation.vehicle.currentLoadKg - recommendation.totalWeight
         println(" ${index + 1}. ${recommendation.origin.id} -> ${recommendation.destination.id}")
         println("    Packages    : ${recommendation.packages.size}")
         println("    Total Weight: ${recommendation.totalWeight} kg")
         println("    Vehicle     : ${recommendation.vehicle.id}")
-        println("    Remaining Capacity: ${recommendation.vehicle.maxCapacityKg - 
-                recommendation.vehicle.currentLoadKg} kg")
+        println("    Remaining Capacity: $remainingCapacity kg")
         println()
     }
     if (recommendations.size > DISPLAY_LIMIT) {
