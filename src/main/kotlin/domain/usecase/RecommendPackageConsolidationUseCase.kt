@@ -41,15 +41,17 @@ class RecommendPackageConsolidationUseCase(
             val suitableVehicle = vehicles
                 .filter { it.currentHub == origin }
                 .firstOrNull { vehicle ->
-                    vehicle.maxCapacityKg - vehicle.currentLoadKg >= totalWeight } ?: return null
+                    vehicle.maxCapacityKg - vehicle.currentLoadKg >= totalWeight }
 
-            return ConsolidationRecommendation(
-                packages = packages,
-                origin = origin,
-                destination = destination,
-                totalWeight = totalWeight,
-                vehicle = suitableVehicle
-            )
+            return if (suitableVehicle != null) {
+                ConsolidationRecommendation(
+                    packages = packages,
+                    origin = origin,
+                    destination = destination,
+                    totalWeight = totalWeight,
+                    vehicle = suitableVehicle
+                )
+            } else  null
         }
 
         private companion object {

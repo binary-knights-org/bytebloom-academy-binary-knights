@@ -3,6 +3,7 @@ package ui
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
+import domain.builder.RepositoryProvider
 import domain.usecase.FindBidirectionalRouteUseCase
 import domain.pricing.EcoStrategy
 import domain.pricing.RoutePricingEngine
@@ -21,10 +22,7 @@ fun main() {
     val repositories = initializeRepositories()
     val graph = buildDomainGraph(repositories)
     val recommendPackageConsolidationUseCase =
-        RecommendPackageConsolidationUseCase(
-            packageRepository = repositories.packageRepository,
-            vehicleRepository = repositories.vehicleRepository
-        )
+        createPackageConsolidationUseCase(repositories)
 
     val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
@@ -77,5 +75,14 @@ private fun printSystemFooter() {
     ========================================================================
     
     """.trimIndent()
+    )
+}
+
+private fun createPackageConsolidationUseCase(
+    repositories: RepositoryProvider
+): RecommendPackageConsolidationUseCase {
+    return RecommendPackageConsolidationUseCase(
+        packageRepository = repositories.packageRepository,
+        vehicleRepository = repositories.vehicleRepository
     )
 }
