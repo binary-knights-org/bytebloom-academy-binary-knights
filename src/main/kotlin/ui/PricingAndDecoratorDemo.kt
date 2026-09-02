@@ -5,6 +5,7 @@ import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
 import domain.model.BasePackageComponent
 import domain.model.Package
+import domain.model.PackageComponent
 import domain.model.Route
 import domain.model.Warehouse
 import domain.pricing.DispatchStrategy
@@ -72,28 +73,20 @@ private fun runDecoratorDemo(
     val coldChain = ColdChainDecorator(insured)
     val fragile = FragileHandlingDecorator(coldChain)
 
-    val baseCost = calculatePricingUseCase(
-        PricingRequest(
-            pkg = pkg, component = baseComponent, route = route, strategy = strategy
-        )
+    val baseCost = calculateCost(
+        pkg, route, baseComponent, strategy, calculatePricingUseCase
     )
 
-    val insuredCost = calculatePricingUseCase(
-        PricingRequest(
-            pkg = pkg, component = insured, route = route, strategy = strategy
-        )
+    val insuredCost = calculateCost(
+        pkg, route, insured, strategy, calculatePricingUseCase
     )
 
-    val coldChainCost = calculatePricingUseCase(
-        PricingRequest(
-            pkg = pkg, component = coldChain, route = route, strategy = strategy
-        )
+    val coldChainCost = calculateCost(
+        pkg, route, coldChain, strategy, calculatePricingUseCase
     )
 
-    val fragileCost = calculatePricingUseCase(
-        PricingRequest(
-            pkg = pkg, component = fragile, route = route, strategy = strategy
-        )
+    val fragileCost = calculateCost(
+        pkg, route, fragile, strategy, calculatePricingUseCase
     )
 
     println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
@@ -103,4 +96,21 @@ private fun runDecoratorDemo(
     println(" 3. + Cold Chain           : $$coldChainCost")
     println(" 4. + Fragile Handling     : $$fragileCost")
     println("------------------------------------------------------------")
+}
+
+private fun calculateCost(
+    pkg: Package,
+    route: Route,
+    component: PackageComponent,
+    strategy: DispatchStrategy,
+    useCase: CalculatePricingUseCase
+): Double {
+    return useCase(
+        PricingRequest(
+            pkg = pkg,
+            component = component,
+            route = route,
+            strategy = strategy
+        )
+    )
 }
