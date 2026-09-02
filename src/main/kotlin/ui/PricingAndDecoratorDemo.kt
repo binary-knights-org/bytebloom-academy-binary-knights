@@ -46,7 +46,8 @@ internal fun runPricingAndDecoratorDemos(
 }
 
 private fun printStrategyResult(
-    label: String, pkg: Package, route: Route, strategy: DispatchStrategy, useCase: CalculatePricingUseCase
+    label: String, pkg: Package, route: Route,
+    strategy: DispatchStrategy, useCase: CalculatePricingUseCase
 ) {
     val component = BasePackageComponent()
 
@@ -66,20 +67,40 @@ private fun runDecoratorDemo(
 ) {
     val strategy = ExpressStrategy()
     val baseComponent = BasePackageComponent()
-    val baseRequest = PricingRequest(
-        pkg = pkg, component = baseComponent, route = route, strategy = strategy
-    )
 
-    val baseCost = calculatePricingUseCase(baseRequest)
     val insured = ExpressInsuranceDecorator(baseComponent)
     val coldChain = ColdChainDecorator(insured)
     val fragile = FragileHandlingDecorator(coldChain)
 
+    val baseCost = calculatePricingUseCase(
+        PricingRequest(
+            pkg = pkg, component = baseComponent, route = route, strategy = strategy
+        )
+    )
+
+    val insuredCost = calculatePricingUseCase(
+        PricingRequest(
+            pkg = pkg, component = insured, route = route, strategy = strategy
+        )
+    )
+
+    val coldChainCost = calculatePricingUseCase(
+        PricingRequest(
+            pkg = pkg, component = coldChain, route = route, strategy = strategy
+        )
+    )
+
+    val fragileCost = calculatePricingUseCase(
+        PricingRequest(
+            pkg = pkg, component = fragile, route = route, strategy = strategy
+        )
+    )
+
     println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
     println("------------------------------------------------------------")
     println(" 1. Base Express Cost      : $$baseCost")
-    println(" 2. + Insurance            : $${insured.calculateTransitRate(baseCost)}")
-    println(" 3. + Cold Chain           : $${coldChain.calculateTransitRate(baseCost)}")
-    println(" 4. + Fragile Handling     : $${fragile.calculateTransitRate(baseCost)}")
+    println(" 2. + Insurance            : $$insuredCost")
+    println(" 3. + Cold Chain           : $$coldChainCost")
+    println(" 4. + Fragile Handling     : $$fragileCost")
     println("------------------------------------------------------------")
 }
