@@ -24,7 +24,8 @@ fun main() {
     val recommendPackageConsolidationUseCase = createPackageConsolidationUseCase(repositories)
     val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
-    val findBidirectionalRouteUseCase = FindBidirectionalRouteUseCase(BidirectionalBfsRouter(repositories.warehouseRepository))
+    val findBidirectionalRouteUseCase =
+        FindBidirectionalRouteUseCase(BidirectionalBfsRouter(repositories.warehouseRepository))
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
     val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
 
