@@ -11,6 +11,7 @@ import domain.usecase.CalculatePricingUseCase
 import domain.usecase.DispatchVehicleUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
 import domain.usecase.FindOptimalPathUseCase
+import domain.usecase.RecommendPackageConsolidationUseCase
 
 private const val DEFAULT_PACKAGE_COUNT = 1000
 
@@ -19,6 +20,11 @@ fun main() {
 
     val repositories = initializeRepositories()
     val graph = buildDomainGraph(repositories)
+    val recommendPackageConsolidationUseCase =
+        RecommendPackageConsolidationUseCase(
+            packageRepository = repositories.packageRepository,
+            vehicleRepository = repositories.vehicleRepository
+        )
 
     val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
@@ -27,6 +33,7 @@ fun main() {
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
 
     runCargoDemos(repositories, graph)
+    runPackageConsolidationDemo(recommendPackageConsolidationUseCase)
     runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
     runBreakdownSimulationDemo()
     runRoutingAndComparisonDemos(
