@@ -3,7 +3,11 @@ package ui
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
-import domain.model.*
+import domain.model.BasePackageComponent
+import domain.model.Package
+import domain.model.PackageComponent
+import domain.model.Route
+import domain.model.Warehouse
 import domain.pricing.DispatchStrategy
 import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
