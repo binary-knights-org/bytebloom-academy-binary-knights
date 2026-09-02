@@ -15,6 +15,8 @@ import domain.usecase.DispatchVehicleUseCase
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
+private const val HIGH_RESILIENCE = 80.0
+private const val MODERATE_RESILIENCE = 50.0
 
 internal fun runBreakdownSimulationDemo() {
     val simulationLogic = BreakdownSimulationLogic()
@@ -134,8 +136,8 @@ fun printNetworkResilienceAnalysis(
     println("  - Network Resilience Score : ${"%.2f".format(resilienceScore)}%")
 
     val statusMessage = when {
-        resilienceScore >= 80.0 -> "HIGH RESILIENCE (Network survives most single-node failures)"
-        resilienceScore >= 50.0 -> "MODERATE RESILIENCE (Critical bottlenecks detected)"
+        resilienceScore >= HIGH_RESILIENCE -> "HIGH RESILIENCE (Network survives most single-node failures)"
+        resilienceScore >= MODERATE_RESILIENCE -> "MODERATE RESILIENCE (Critical bottlenecks detected)"
         else -> "CRITICAL VULNERABILITY (High risk of network disconnection)"
     }
 
