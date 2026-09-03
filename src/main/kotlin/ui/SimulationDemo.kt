@@ -42,9 +42,7 @@ private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) 
         val slot = DeterministicHashingEngine.calculateSlot(pkg)
         println("   [${pkg.id}] -> Slot %02d -> Assigned to: ${vehicle.id}".format(slot))
     }
-    if (assignments.size > DISPLAY_LIMIT) {
-        println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
-    }
+    if (assignments.size > DISPLAY_LIMIT) println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
 }
 
 private fun printVerificationReport(report: VerificationReport) {
@@ -66,8 +64,7 @@ private fun printVerificationReport(report: VerificationReport) {
 }
 
 fun printTreePerformanceAnalysis(
-    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase,
-    count: Int = 1000
+    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase, count: Int = 1000
 ) {
     println("\n[The Balanced Index Simulator]".uppercase())
     println("============================================================")
@@ -76,26 +73,14 @@ fun printTreePerformanceAnalysis(
 
     println("Generated ${perfAnalysis.totalCount} sequential tracking IDs")
     println("Unbalanced BST Search Steps:")
-    println(
-        "  - Max steps (Worst Case):  " +
-                "${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)"
-    )
+    println("  - Max steps (Worst Case):  ${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)")
     println("  - Total steps ($count keys): ${perfAnalysis.unbalancedTotalSteps}")
-    println(
-        "  - Average steps per search: " +
-                "${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}"
-    )
+    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}")
 
     println("Balanced AVL Tree Search Steps:")
-    println(
-        "  - Max steps (Worst Case):  " +
-                "${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)"
-    )
+    println("  - Max steps (Worst Case):  ${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)")
     println("  - Total steps ($count keys): ${perfAnalysis.balancedTotalSteps}")
-    println(
-        "  - Average steps per search: " +
-                "${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}"
-    )
+    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}")
     println("============================================================")
 }
 
@@ -117,17 +102,17 @@ fun printCommandPatternTest(
         return
     }
 
-    val (cmd1, cmd2, cmd3) = createDispatchCommands(
+    val (dispatch1, dispatch2, dispatch3) = createDispatchCommands(
         dispatchVehicleUseCase, firstWarehouse, firstVehicle, secondVehicle, thirdVehicle
     )
 
-    printCommandExecution(commandInvoker, cmd1, firstWarehouse, firstVehicle, "Command 1")
-    printCommandExecution(commandInvoker, cmd2, firstWarehouse, secondVehicle, "Command 2")
+    printCommandExecution(commandInvoker, dispatch1, firstWarehouse, firstVehicle, "Command 1")
+    printCommandExecution(commandInvoker, dispatch2, firstWarehouse, secondVehicle, "Command 2")
     printUndo(commandInvoker, firstWarehouse, secondVehicle, "Undo Command 2")
     printUndo(commandInvoker, firstWarehouse, firstVehicle, "Undo Command 1")
     printRedo(commandInvoker, firstWarehouse, firstVehicle, "Redo Command 1")
     printRedo(commandInvoker, firstWarehouse, secondVehicle, "Redo Command 2")
-    printHistoryClearance(commandInvoker, cmd3, firstWarehouse, thirdVehicle)
+    printHistoryClearance(commandInvoker, dispatch3, firstWarehouse, thirdVehicle)
 
     println("============================================================")
 }
