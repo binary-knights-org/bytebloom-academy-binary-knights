@@ -10,10 +10,13 @@ import domain.ring.DeterministicHashingEngine
 import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
 import domain.usecase.AnalyzeTreePerformanceUseCase
+import domain.usecase.CalculateNetworkResilienceScoreUseCase
 import domain.usecase.DispatchVehicleUseCase
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
+private const val HIGH_RESILIENCE = 80.0
+private const val MODERATE_RESILIENCE = 50.0
 
 internal fun runBreakdownSimulationDemo() {
     val simulationLogic = BreakdownSimulationLogic()
@@ -72,10 +75,12 @@ fun printTreePerformanceAnalysis(
     val perfAnalysis = analyzeTreePerformanceUseCase(count)
 
     println("Generated ${perfAnalysis.totalCount} sequential tracking IDs")
-    println("Unbalanced BST Search Steps:")
+    println("\nUnbalanced BST Search Steps:")
     println("  - Max steps (Worst Case):  ${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)")
     println("  - Total steps ($count keys): ${perfAnalysis.unbalancedTotalSteps}")
     println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}")
+
+    println("\n==================================================")
 
     println("Balanced AVL Tree Search Steps:")
     println("  - Max steps (Worst Case):  ${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)")
