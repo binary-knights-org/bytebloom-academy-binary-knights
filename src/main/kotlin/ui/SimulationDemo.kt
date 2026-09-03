@@ -2,7 +2,6 @@ package ui
 
 import domain.command.CommandInvoker
 import domain.command.DispatchVehicleCommand
-import java.util.Locale
 import domain.model.Package
 import domain.model.Vehicle
 import domain.model.Warehouse
@@ -11,6 +10,7 @@ import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
 import domain.usecase.AnalyzeTreePerformanceUseCase
 import domain.usecase.DispatchVehicleUseCase
+import java.util.Locale
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
@@ -24,8 +24,8 @@ internal fun runBreakdownSimulationDemo() {
     printAssignments(result.before, "INITIAL ASSIGNMENT (SYSTEM HEALTHY)")
 
     println(
-        "\n ALERT: Vehicle ${result.breakdownEvent.brokenVehicle.id} "
-                + "(Slot ${result.breakdownEvent.slot}) went offline!"
+        "\n ALERT: Vehicle ${result.breakdownEvent.brokenVehicle.id} " +
+                "(Slot ${result.breakdownEvent.slot}) went offline!"
     )
     println("INITIATING FAILOVER PROTOCOL...\n")
 
@@ -42,7 +42,9 @@ private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) 
         val slot = DeterministicHashingEngine.calculateSlot(pkg)
         println("   [${pkg.id}] -> Slot %02d -> Assigned to: ${vehicle.id}".format(slot))
     }
-    if (assignments.size > DISPLAY_LIMIT) println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
+    if (assignments.size > DISPLAY_LIMIT) {
+        println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
+    }
 }
 
 private fun printVerificationReport(report: VerificationReport) {
@@ -64,7 +66,8 @@ private fun printVerificationReport(report: VerificationReport) {
 }
 
 fun printTreePerformanceAnalysis(
-    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase, count: Int = 1000
+    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase,
+    count: Int = 1000
 ) {
     println("\n[The Balanced Index Simulator]".uppercase())
     println("============================================================")
@@ -73,16 +76,29 @@ fun printTreePerformanceAnalysis(
 
     println("Generated ${perfAnalysis.totalCount} sequential tracking IDs")
     println("Unbalanced BST Search Steps:")
-    println("  - Max steps (Worst Case):  ${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)")
+    println(
+        "  - Max steps (Worst Case):  " +
+                "${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)"
+    )
     println("  - Total steps ($count keys): ${perfAnalysis.unbalancedTotalSteps}")
-    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}")
+    println(
+        "  - Average steps per search: " +
+                "${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}"
+    )
 
     println("Balanced AVL Tree Search Steps:")
-    println("  - Max steps (Worst Case):  ${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)")
+    println(
+        "  - Max steps (Worst Case):  " +
+                "${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)"
+    )
     println("  - Total steps ($count keys): ${perfAnalysis.balancedTotalSteps}")
-    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}")
+    println(
+        "  - Average steps per search: " +
+                "${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}"
+    )
     println("============================================================")
 }
+
 fun printCommandPatternTest(
     dispatchVehicleUseCase: DispatchVehicleUseCase,
     firstWarehouse: Warehouse,
@@ -111,17 +127,18 @@ fun printCommandPatternTest(
         dispatchVehicleUseCase, thirdVehicle, firstWarehouse
     )
 
-    printCommandExecution(commandInvoker, dispatchCommand1, firstWarehouse, firstVehicle, "Command 1")
-    printCommandExecution(commandInvoker, dispatchCommand2, firstWarehouse, secondVehicle, "Command 2")
+    printCommandExecution(
+        commandInvoker, dispatchCommand1, firstWarehouse, firstVehicle, "Command 1"
+    )
+    printCommandExecution(
+        commandInvoker, dispatchCommand2, firstWarehouse, secondVehicle, "Command 2"
+    )
     printUndo(commandInvoker, firstWarehouse, secondVehicle, "Undo Command 2")
     printUndo(commandInvoker, firstWarehouse, firstVehicle, "Undo Command 1")
     printRedo(commandInvoker, firstWarehouse, firstVehicle, "Redo Command 1")
     printRedo(commandInvoker, firstWarehouse, secondVehicle, "Redo Command 2")
     printHistoryClearance(
-        commandInvoker,
-        dispatchCommand3,
-        firstWarehouse,
-        thirdVehicle
+        commandInvoker, dispatchCommand3, firstWarehouse, thirdVehicle
     )
 
     println("============================================================")
