@@ -22,11 +22,7 @@ fun main() {
     val repositories = initializeRepositories()
     val graph = buildDomainGraph(repositories)
     val assignPackagesToAvailableVehicleUseCase =
-        AssignPackagesToAvailableVehicleUseCase(findPackagesForConsolidationUseCase =
-                FindPackagesForConsolidationUseCase(
-                    repositories.packageRepository ),
-            vehicleRepository = repositories.vehicleRepository
-        )
+        createPackageConsolidationUseCase(repositories)
     val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
     val findBidirectionalRouteUseCase =
@@ -48,6 +44,18 @@ fun main() {
         firstWarehouse = graph.first() ,
         firstVehicle = graph.first().stationedVehicles.first())
     printSystemFooter()
+}
+
+private fun createPackageConsolidationUseCase(
+    repositories: RepositoryProvider
+): AssignPackagesToAvailableVehicleUseCase {
+    return AssignPackagesToAvailableVehicleUseCase(
+        findPackagesForConsolidationUseCase =
+            FindPackagesForConsolidationUseCase(
+                repositories.packageRepository
+            ),
+        vehicleRepository = repositories.vehicleRepository
+    )
 }
 
 private fun printSystemHeader() {
