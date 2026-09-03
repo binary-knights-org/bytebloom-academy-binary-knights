@@ -117,31 +117,33 @@ fun printCommandPatternTest(
         return
     }
 
-    val dispatchCommand1 = DispatchVehicleCommand(
-        dispatchVehicleUseCase, firstVehicle, firstWarehouse
-    )
-    val dispatchCommand2 = DispatchVehicleCommand(
-        dispatchVehicleUseCase, secondVehicle, firstWarehouse
-    )
-    val dispatchCommand3 = DispatchVehicleCommand(
-        dispatchVehicleUseCase, thirdVehicle, firstWarehouse
+    val (cmd1, cmd2, cmd3) = createDispatchCommands(
+        dispatchVehicleUseCase, firstWarehouse, firstVehicle, secondVehicle, thirdVehicle
     )
 
-    printCommandExecution(
-        commandInvoker, dispatchCommand1, firstWarehouse, firstVehicle, "Command 1"
-    )
-    printCommandExecution(
-        commandInvoker, dispatchCommand2, firstWarehouse, secondVehicle, "Command 2"
-    )
+    printCommandExecution(commandInvoker, cmd1, firstWarehouse, firstVehicle, "Command 1")
+    printCommandExecution(commandInvoker, cmd2, firstWarehouse, secondVehicle, "Command 2")
     printUndo(commandInvoker, firstWarehouse, secondVehicle, "Undo Command 2")
     printUndo(commandInvoker, firstWarehouse, firstVehicle, "Undo Command 1")
     printRedo(commandInvoker, firstWarehouse, firstVehicle, "Redo Command 1")
     printRedo(commandInvoker, firstWarehouse, secondVehicle, "Redo Command 2")
-    printHistoryClearance(
-        commandInvoker, dispatchCommand3, firstWarehouse, thirdVehicle
-    )
+    printHistoryClearance(commandInvoker, cmd3, firstWarehouse, thirdVehicle)
 
     println("============================================================")
+}
+
+private fun createDispatchCommands(
+    useCase: DispatchVehicleUseCase,
+    warehouse: Warehouse,
+    v1: Vehicle,
+    v2: Vehicle,
+    v3: Vehicle
+): Triple<DispatchVehicleCommand, DispatchVehicleCommand, DispatchVehicleCommand> {
+    return Triple(
+        DispatchVehicleCommand(useCase, v1, warehouse),
+        DispatchVehicleCommand(useCase, v2, warehouse),
+        DispatchVehicleCommand(useCase, v3, warehouse)
+    )
 }
 
 private fun printCommandExecution(
