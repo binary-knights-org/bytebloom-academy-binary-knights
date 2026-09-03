@@ -83,7 +83,6 @@ fun printTreePerformanceAnalysis(
     println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}")
     println("============================================================")
 }
-
 fun printCommandPatternTest(
     dispatchVehicleUseCase: DispatchVehicleUseCase,
     firstWarehouse: Warehouse,
@@ -93,7 +92,6 @@ fun printCommandPatternTest(
     println("============================================================")
 
     val commandInvoker = CommandInvoker()
-
     val secondVehicle = firstWarehouse.stationedVehicles.getOrNull(1)
     val thirdVehicle = firstWarehouse.stationedVehicles.getOrNull(2)
 
@@ -104,108 +102,108 @@ fun printCommandPatternTest(
     }
 
     val dispatchCommand1 = DispatchVehicleCommand(
-        dispatchVehicleUseCase,
-        firstVehicle,
-        firstWarehouse
+        dispatchVehicleUseCase, firstVehicle, firstWarehouse
     )
-
     val dispatchCommand2 = DispatchVehicleCommand(
-        dispatchVehicleUseCase,
-        secondVehicle,
-        firstWarehouse
+        dispatchVehicleUseCase, secondVehicle, firstWarehouse
     )
-
     val dispatchCommand3 = DispatchVehicleCommand(
-        dispatchVehicleUseCase,
-        thirdVehicle,
-        firstWarehouse
+        dispatchVehicleUseCase, thirdVehicle, firstWarehouse
     )
 
-    println("== Command 1 ==")
+    printCommandExecution(commandInvoker, dispatchCommand1, firstWarehouse, firstVehicle, "Command 1")
+    printCommandExecution(commandInvoker, dispatchCommand2, firstWarehouse, secondVehicle, "Command 2")
+    printUndo(commandInvoker, firstWarehouse, secondVehicle, "Undo Command 2")
+    printUndo(commandInvoker, firstWarehouse, firstVehicle, "Undo Command 1")
+    printRedo(commandInvoker, firstWarehouse, firstVehicle, "Redo Command 1")
+    printRedo(commandInvoker, firstWarehouse, secondVehicle, "Redo Command 2")
+    printHistoryClearance(
+        commandInvoker,
+        dispatchCommand3,
+        firstWarehouse,
+        thirdVehicle
+    )
 
-    val executedFirst = commandInvoker.executeCommand(dispatchCommand1)
+    println("============================================================")
+}
+
+private fun printCommandExecution(
+    commandInvoker: CommandInvoker,
+    command: DispatchVehicleCommand,
+    warehouse: Warehouse,
+    vehicle: Vehicle,
+    title: String
+) {
+    println("\n== $title ==")
+
+    val executed = commandInvoker.executeCommand(command)
 
     println("Execution:")
-    println("  - Success: $executedFirst")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
-    println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
+    println("  - Success: $executed")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
     println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+}
 
-    println("\n== Command 2 ==")
+private fun printUndo(
+    commandInvoker: CommandInvoker,
+    warehouse: Warehouse,
+    vehicle: Vehicle,
+    title: String
+) {
+    println("\n== $title ==")
 
-    val executedSecond = commandInvoker.executeCommand(dispatchCommand2)
-
-    println("Execution:")
-    println("  - Success: $executedSecond")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
-    println("  - Vehicle loaded cargo size: ${secondVehicle.loadedCargo.size}")
-    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
-    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
-
-    println("\n== Undo Command 2 ==")
-
-    val undoneSecond = commandInvoker.undo()
+    val undone = commandInvoker.undo()
 
     println("Undo Operation:")
-    println("  - Success: $undoneSecond")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
-    println("  - Vehicle loaded cargo size: ${secondVehicle.loadedCargo.size}")
+    println("  - Success: $undone")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
     println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+}
 
-    println("\n== Undo Command 1 ==")
+private fun printRedo(
+    commandInvoker: CommandInvoker,
+    warehouse: Warehouse,
+    vehicle: Vehicle,
+    title: String
+) {
+    println("\n== $title ==")
 
-    val undoneFirst = commandInvoker.undo()
-
-    println("Undo Operation:")
-    println("  - Success: $undoneFirst")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
-    println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
-    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
-    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
-
-    println("\n== Redo Command 1 ==")
-
-    val redoneFirst = commandInvoker.redo()
+    val redone = commandInvoker.redo()
 
     println("Redo Operation:")
-    println("  - Success: $redoneFirst")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
-    println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
+    println("  - Success: $redone")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
     println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+}
 
-    println("\n== Redo Command 2 ==")
-
-    val redoneSecond = commandInvoker.redo()
-
-    println("Redo Operation:")
-    println("  - Success: $redoneSecond")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
-    println("  - Vehicle loaded cargo size: ${secondVehicle.loadedCargo.size}")
-    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
-    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
-
+private fun printHistoryClearance(
+    commandInvoker: CommandInvoker,
+    command: DispatchVehicleCommand,
+    warehouse: Warehouse,
+    vehicle: Vehicle
+) {
     println("\n== History Clearance ==")
 
-    val undoneAgain = commandInvoker.undo()
+    commandInvoker.undo()
 
     println("Undo Operation:")
-    println("  - Success: $undoneAgain")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
     println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
 
-    val executedThird = commandInvoker.executeCommand(dispatchCommand3)
+    val executed = commandInvoker.executeCommand(command)
 
     println("New Command Execution:")
-    println("  - Success: $executedThird")
-    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
-    println("  - Vehicle loaded cargo size: ${thirdVehicle.loadedCargo.size}")
+    println("  - Success: $executed")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
     println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
     println("    Redo cleared: ${commandInvoker.redoHistorySize == 0}")
-
-    println("============================================================")
 }
