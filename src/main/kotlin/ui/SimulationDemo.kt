@@ -85,35 +85,127 @@ fun printTreePerformanceAnalysis(
 }
 
 fun printCommandPatternTest(
-    dispatchVehicleUseCase: DispatchVehicleUseCase, firstWarehouse: Warehouse, firstVehicle: Vehicle
+    dispatchVehicleUseCase: DispatchVehicleUseCase,
+    firstWarehouse: Warehouse,
+    firstVehicle: Vehicle
 ) {
-    println("\n[Command Pattern Dispatch Panel]".uppercase())
+    println("\n[Time-Machine Dispatch Panel]".uppercase())
     println("============================================================")
-    val commandInvoker = CommandInvoker()
-    val queueCountBefore = firstWarehouse.cargoQueue.size
-    val loadedCargoCountBefore = firstVehicle.loadedCargo.size
 
-    val dispatchCommand = DispatchVehicleCommand(
-        dispatchVehicleUseCase, firstVehicle, firstWarehouse
+    val commandInvoker = CommandInvoker()
+
+    val secondVehicle = firstWarehouse.stationedVehicles.getOrNull(1)
+    val thirdVehicle = firstWarehouse.stationedVehicles.getOrNull(2)
+
+    if (secondVehicle == null || thirdVehicle == null) {
+        println("  - Multi-level test requires at least 3 vehicles.")
+        println("============================================================")
+        return
+    }
+
+    val dispatchCommand1 = DispatchVehicleCommand(
+        dispatchVehicleUseCase,
+        firstVehicle,
+        firstWarehouse
     )
 
-    val executed = commandInvoker.executeCommand(dispatchCommand)
+    val dispatchCommand2 = DispatchVehicleCommand(
+        dispatchVehicleUseCase,
+        secondVehicle,
+        firstWarehouse
+    )
 
-    println("== DispatchVehicleCommand ==")
+    val dispatchCommand3 = DispatchVehicleCommand(
+        dispatchVehicleUseCase,
+        thirdVehicle,
+        firstWarehouse
+    )
+
+    println("== Command 1 ==")
+
+    val executedFirst = commandInvoker.executeCommand(dispatchCommand1)
+
     println("Execution:")
-    println("  - Success: $executed")
-    println("  - Queue size after dispatch: ${firstWarehouse.cargoQueue.size}")
+    println("  - Success: $executedFirst")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
     println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
-    println("  - Command history size: ${commandInvoker.historySize}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
 
-    val undone = commandInvoker.undo()
+    println("\n== Command 2 ==")
+
+    val executedSecond = commandInvoker.executeCommand(dispatchCommand2)
+
+    println("Execution:")
+    println("  - Success: $executedSecond")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${secondVehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+
+    println("\n== Undo Command 2 ==")
+
+    val undoneSecond = commandInvoker.undo()
 
     println("Undo Operation:")
-    println("  - Success: $undone")
-    println("  - Queue size after undo: ${firstWarehouse.cargoQueue.size}")
-    println("    Restored: ${firstWarehouse.cargoQueue.size == queueCountBefore}")
-    println("  - Vehicle loaded cargo size after undo: ${firstVehicle.loadedCargo.size}")
-    println("    Restored: ${firstVehicle.loadedCargo.size == loadedCargoCountBefore}")
-    println("  - Command history size after undo: ${commandInvoker.historySize}")
+    println("  - Success: $undoneSecond")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${secondVehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
 
+    println("\n== Undo Command 1 ==")
+
+    val undoneFirst = commandInvoker.undo()
+
+    println("Undo Operation:")
+    println("  - Success: $undoneFirst")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+
+    println("\n== Redo Command 1 ==")
+
+    val redoneFirst = commandInvoker.redo()
+
+    println("Redo Operation:")
+    println("  - Success: $redoneFirst")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${firstVehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+
+    println("\n== Redo Command 2 ==")
+
+    val redoneSecond = commandInvoker.redo()
+
+    println("Redo Operation:")
+    println("  - Success: $redoneSecond")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${secondVehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+
+    println("\n== History Clearance ==")
+
+    val undoneAgain = commandInvoker.undo()
+
+    println("Undo Operation:")
+    println("  - Success: $undoneAgain")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+
+    val executedThird = commandInvoker.executeCommand(dispatchCommand3)
+
+    println("New Command Execution:")
+    println("  - Success: $executedThird")
+    println("  - Queue size: ${firstWarehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${thirdVehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+    println("    Redo cleared: ${commandInvoker.redoHistorySize == 0}")
+
+    println("============================================================")
 }

@@ -37,4 +37,9 @@ data class Warehouse(
     fun sortCargoQueueByWeightDescending() {
         sortPackagesDescendingByWeight(_cargoQueue)
     }
+    fun restoreCargoQueue(packages: List<Package>) {
+        _cargoQueue.clear()
+        _cargoQueue.addAll(packages)
+    }
+
 }
