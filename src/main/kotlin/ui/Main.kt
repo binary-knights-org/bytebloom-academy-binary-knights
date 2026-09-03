@@ -13,8 +13,8 @@ import domain.usecase.CalculatePricingUseCase
 import domain.usecase.DispatchVehicleUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
 import domain.usecase.FindOptimalPathUseCase
-import domain.usecase.RecommendPackageConsolidationUseCase
-
+import domain.usecase.AssignPackagesToAvailableVehicleUseCase
+import domain.usecase.FindPackagesForConsolidationUseCase
 private const val DEFAULT_PACKAGE_COUNT = 1000
 
 fun main() {
@@ -22,7 +22,8 @@ fun main() {
 
     val repositories = initializeRepositories()
     val graph = buildDomainGraph(repositories)
-    val recommendPackageConsolidationUseCase = createPackageConsolidationUseCase(repositories)
+    val assignPackagesToAvailableVehicleUseCase =
+        createPackageConsolidationUseCase(repositories)
     val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
     val findBidirectionalRouteUseCase =
@@ -31,7 +32,7 @@ fun main() {
     val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
 
     runCargoDemos(repositories, graph)
-    runPackageConsolidationDemo(recommendPackageConsolidationUseCase)
+    runPackageConsolidationDemo(assignPackagesToAvailableVehicleUseCase)
     runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
     runBreakdownSimulationDemo()
     runRoutingAndComparisonDemos(
@@ -48,6 +49,18 @@ fun main() {
     printNetworkResilienceAnalysis(calculateNetworkResilienceScoreUseCase, graph)
 
     printSystemFooter()
+}
+
+private fun createPackageConsolidationUseCase(
+    repositories: RepositoryProvider
+): AssignPackagesToAvailableVehicleUseCase {
+    return AssignPackagesToAvailableVehicleUseCase(
+        findPackagesForConsolidationUseCase =
+            FindPackagesForConsolidationUseCase(
+                repositories.packageRepository
+            ),
+        vehicleRepository = repositories.vehicleRepository
+    )
 }
 
 private fun printSystemHeader() {
@@ -75,11 +88,3 @@ private fun printSystemFooter() {
     )
 }
 
-private fun createPackageConsolidationUseCase(
-    repositories: RepositoryProvider
-): RecommendPackageConsolidationUseCase {
-    return RecommendPackageConsolidationUseCase(
-        packageRepository = repositories.packageRepository,
-        vehicleRepository = repositories.vehicleRepository
-    )
-}
