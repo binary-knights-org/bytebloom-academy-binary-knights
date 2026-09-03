@@ -24,36 +24,33 @@ fun main() {
 
     val repositories = initializeRepositories()
     val graph = buildDomainGraph(repositories)
-    val assignPackagesToAvailableVehicleUseCase =
-        createPackageConsolidationUseCase(repositories)
+    val assignPackagesUseCase = createPackageConsolidationUseCase(repositories)
     val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(repositories.warehouseRepository))
     val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(repositories.warehouseRepository))
     val findBidirectionalRouteUseCase =
         FindBidirectionalRouteUseCase(BidirectionalBfsRouter(repositories.warehouseRepository))
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
-    val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
 
     runCargoDemos(repositories, graph)
-    runPackageConsolidationDemo(assignPackagesToAvailableVehicleUseCase)
+    runPackageConsolidationDemo(assignPackagesUseCase)
     runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
     runBreakdownSimulationDemo()
     runRoutingAndComparisonDemos(
         repositories, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase
     )
-    printTreePerformanceAnalysis(
-        analyzeTreePerformanceUseCase,
-        DEFAULT_PACKAGE_COUNT
-    )
+
+    runSimulationDemos(graph)
+    printSystemFooter()
+}
+
+private fun runSimulationDemos(graph: List<Warehouse>) {
+    printTreePerformanceAnalysis(AnalyzeTreePerformanceUseCase(), DEFAULT_PACKAGE_COUNT)
     printCommandPatternTest(
         dispatchVehicleUseCase = DispatchVehicleUseCase(),
         firstWarehouse = graph.first(),
         firstVehicle = graph.first().stationedVehicles.first()
     )
-
-    val calculateNetworkResilienceScoreUseCase = CalculateNetworkResilienceScoreUseCase()
-    printNetworkResilienceAnalysis(calculateNetworkResilienceScoreUseCase, graph)
-
-    printSystemFooter()
+    printNetworkResilienceAnalysis(CalculateNetworkResilienceScoreUseCase(), graph)
 }
 
 private fun createPackageConsolidationUseCase(
