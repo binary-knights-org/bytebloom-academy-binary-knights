@@ -1,33 +1,31 @@
 package ui
 
-import domain.usecase.RecommendPackageConsolidationUseCase
+import domain.usecase.AssignPackagesToAvailableVehicleUseCase
 
-private const val DISPLAY_LIMIT = 15
+private const val DISPLAY_LIMIT = 10
 
 internal fun runPackageConsolidationDemo(
-    useCase: RecommendPackageConsolidationUseCase
+    useCase: AssignPackagesToAvailableVehicleUseCase
 ) {
-    val recommendations = useCase()
-    println("\n[PACKAGE CONSOLIDATION RECOMMENDATIONS]")
+    val assignments = useCase()
+
+    println("\n[PACKAGE CONSOLIDATION]")
     println("------------------------------------------------------------")
-    if (recommendations.isEmpty()) {
-        println(" No consolidation opportunities found.")
+
+    if (assignments.isEmpty()) {
+        println(" No available vehicles found.")
         println("------------------------------------------------------------")
         return
     }
-    println(" Found ${recommendations.size} consolidation opportunities.")
-    recommendations.take(DISPLAY_LIMIT).forEachIndexed { index, recommendation ->
-        val remainingCapacity = recommendation.vehicle.maxCapacityKg -
-                recommendation.vehicle.currentLoadKg - recommendation.totalWeight
-        println(" ${index + 1}. ${recommendation.origin.id} -> ${recommendation.destination.id}")
-        println("    Packages    : ${recommendation.packages.size}")
-        println("    Total Weight: ${recommendation.totalWeight} kg")
-        println("    Vehicle     : ${recommendation.vehicle.id}")
-        println("    Remaining Capacity: $remainingCapacity kg")
-        println()
+    println(" Packages assigned to ${assignments.size} vehicles.")
+
+    assignments.take(DISPLAY_LIMIT).forEachIndexed { index, assignment ->
+        println(" ${index + 1}. Vehicle: ${assignment.vehicle.id}")
+        println("    Packages: ${assignment.packages.joinToString { it.id }}")
     }
-    if (recommendations.size > DISPLAY_LIMIT) {
-        println(" ... and ${recommendations.size - DISPLAY_LIMIT} more.")
+
+    if (assignments.size > DISPLAY_LIMIT) {
+        println(" ... and ${assignments.size - DISPLAY_LIMIT} more.")
     }
     println("------------------------------------------------------------")
 }
