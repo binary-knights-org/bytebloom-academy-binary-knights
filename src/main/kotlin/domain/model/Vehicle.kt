@@ -20,8 +20,9 @@ data class Vehicle(
         }
         return false
     }
-
-    fun clearCargo() {
+    fun restoreCargo(packages: List<Package>) {
         mutableLoadedCargo.clear()
+        mutableLoadedCargo.addAll(packages)
     }
+
 }

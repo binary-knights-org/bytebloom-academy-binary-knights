@@ -1,6 +1,6 @@
 package domain.model
 
-class Package(
+data class Package(
      val id: String,
      val weight: Double,
      val priority: String,
