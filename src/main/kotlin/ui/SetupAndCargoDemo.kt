@@ -25,20 +25,20 @@ private const val PAD_LARGE = 8
 private const val QUEUE_DISPLAY_LIMIT = 5
 
 internal fun initializeRepositories(): List<Any> {
-    val (warehouseRepo, vehicleRepo, packageRepo, routeRepo) = createAllRepositories()
+    val holder = createAllRepositories()
 
     printParsingReport(
-        warehouseRepo,
-        vehicleRepo,
-        packageRepo,
-        routeRepo
+        holder.warehouseRepo,
+        holder.vehicleRepo,
+        holder.packageRepo,
+        holder.routeRepo
     )
 
     return listOf(
-        warehouseRepo,
-        vehicleRepo,
-        packageRepo,
-        routeRepo
+        holder.warehouseRepo,
+        holder.vehicleRepo,
+        holder.packageRepo,
+        holder.routeRepo
     )
 }
 
