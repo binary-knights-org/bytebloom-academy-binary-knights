@@ -29,10 +29,23 @@ private const val DEFAULT_PACKAGE_COUNT = 1000
 fun main() {
     printSystemHeader()
 
-    val warehouseRepository = createWarehouseRepository()
-    val vehicleRepository = createVehicleRepository(warehouseRepository)
-    val packageRepository = createPackageRepository(warehouseRepository)
-    val routeRepository = createRouteRepository(warehouseRepository)
+    val warehouseRepository =
+        createWarehouseRepository()
+
+    val vehicleRepository =
+        createVehicleRepository(
+            warehouseRepository
+        )
+
+    val packageRepository =
+        createPackageRepository(
+            warehouseRepository
+        )
+
+    val routeRepository =
+        createRouteRepository(
+            warehouseRepository
+        )
 
     printParsingReport(
         warehouseRepository,
@@ -41,37 +54,102 @@ fun main() {
         routeRepository
     )
 
-    val graph = buildDomainGraph(
+    val graph =
+        buildDomainGraph(
+            warehouseRepository,
+            vehicleRepository,
+            packageRepository,
+            routeRepository
+        )
+
+    runDemos(
         warehouseRepository,
         vehicleRepository,
         packageRepository,
-        routeRepository
+        graph
     )
 
-    runCargoDemos(packageRepository, graph)
-    runPackageConsolidationDemo(
-        createPackageConsolidationUseCase(packageRepository, vehicleRepository)
-    )
-    runPricingAndDecoratorDemos(
-        graph,
-        CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
-    )
-    runBreakdownSimulationDemo()
-
-    runRoutingAndComparisonDemos(
-        warehouseRepository,
-        graph,
-        FindOptimalPathUseCase(OptimalTransitRouter(warehouseRepository)),
-        FindFewestHopsRouteUseCase(LeastHopRouter(warehouseRepository)),
-        FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
-    )
-
-    runSimulationDemos(graph)
     printSystemFooter()
 }
 
+private fun runDemos(
+    warehouseRepository: WarehouseRepository,
+    vehicleRepository: VehicleRepository,
+    packageRepository: PackageRepository,
+    graph: List<Warehouse>
+) {
+    runCargoAndPricingDemos(
+        packageRepository,
+        vehicleRepository,
+        graph
+    )
+
+    runRoutingDemos(
+        warehouseRepository,
+        graph
+    )
+
+    runSimulationDemos(graph)
+}
+
+private fun runCargoAndPricingDemos(
+    packageRepository: PackageRepository,
+    vehicleRepository: VehicleRepository,
+    graph: List<Warehouse>
+) {
+    runCargoDemos(
+        packageRepository,
+        graph
+    )
+
+    runPackageConsolidationDemo(
+        createPackageConsolidationUseCase(
+            packageRepository,
+            vehicleRepository
+        )
+    )
+
+    runPricingAndDecoratorDemos(
+        graph,
+        CalculatePricingUseCase(
+            RoutePricingEngine(
+                EcoStrategy()
+            )
+        )
+    )
+
+    runBreakdownSimulationDemo()
+}
+
+private fun runRoutingDemos(
+    warehouseRepository: WarehouseRepository,
+    graph: List<Warehouse>
+) {
+    runRoutingAndComparisonDemos(
+        warehouseRepository,
+        graph,
+        FindOptimalPathUseCase(
+            OptimalTransitRouter(
+                warehouseRepository
+            )
+        ),
+        FindFewestHopsRouteUseCase(
+            LeastHopRouter(
+                warehouseRepository
+            )
+        ),
+        FindBidirectionalRouteUseCase(
+            BidirectionalBfsRouter(
+                warehouseRepository
+            )
+        )
+    )
+}
+
 private fun createWarehouseRepository(): WarehouseRepository {
-    return CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+    return CsvWarehouseRepository(
+        WAREHOUSES_FILE_PATH
+    )
 }
 
 private fun createVehicleRepository(
@@ -101,16 +179,23 @@ private fun createRouteRepository(
     )
 }
 
-private fun runSimulationDemos(graph: List<Warehouse>) {
+private fun runSimulationDemos(
+    graph: List<Warehouse>
+) {
     printTreePerformanceAnalysis(
         AnalyzeTreePerformanceUseCase(),
         DEFAULT_PACKAGE_COUNT
     )
 
     printCommandPatternTest(
-        dispatchVehicleUseCase = DispatchVehicleUseCase(),
-        firstWarehouse = graph.first(),
-        firstVehicle = graph.first().stationedVehicles.first()
+        dispatchVehicleUseCase =
+            DispatchVehicleUseCase(),
+        firstWarehouse =
+            graph.first(),
+        firstVehicle =
+            graph.first()
+                .stationedVehicles
+                .first()
     )
 
     printNetworkResilienceAnalysis(
@@ -125,19 +210,31 @@ private fun createPackageConsolidationUseCase(
 ): AssignPackagesToAvailableVehicleUseCase {
     return AssignPackagesToAvailableVehicleUseCase(
         findPackagesForConsolidationUseCase =
-            FindPackagesForConsolidationUseCase(packageRepository),
-        vehicleRepository = vehicleRepository
+            FindPackagesForConsolidationUseCase(
+                packageRepository
+            ),
+        vehicleRepository =
+            vehicleRepository
     )
 }
 
 private fun printNetworkResilienceAnalysis(
-    calculateNetworkResilienceScoreUseCase: CalculateNetworkResilienceScoreUseCase,
+    calculateNetworkResilienceScoreUseCase:
+    CalculateNetworkResilienceScoreUseCase,
     graph: List<Warehouse>
 ) {
     println("\n[NETWORK RESILIENCE ANALYSIS]")
     println("============================================================")
-    val resilienceScore = calculateNetworkResilienceScoreUseCase(graph)
-    println("Network Resilience Score: $resilienceScore")
+
+    val resilienceScore =
+        calculateNetworkResilienceScoreUseCase(
+            graph
+        )
+
+    println(
+        "Network Resilience Score: $resilienceScore"
+    )
+
     println("============================================================")
 }
 
