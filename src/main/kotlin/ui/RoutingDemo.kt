@@ -2,8 +2,8 @@ package ui
 
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
-import domain.builder.RepositoryProvider
 import domain.model.Warehouse
+import domain.repository.WarehouseRepository
 import domain.usecase.FindBidirectionalRouteUseCase
 import domain.usecase.FindFewestHopsRouteUseCase
 import domain.usecase.FindOptimalPathUseCase
@@ -21,7 +21,7 @@ internal data class RoutingResult(
 )
 
 internal fun runRoutingAndComparisonDemos(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     graph: List<Warehouse>,
     findOptimalPathUseCase: FindOptimalPathUseCase,
     findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
@@ -32,7 +32,7 @@ internal fun runRoutingAndComparisonDemos(
     printRouteDemo(graph, findFewestHopsRouteUseCase::invoke, "Least-Hop Router (Standard BFS)")
     printRouteDemo(graph, findBidirectionalRouteUseCase::invoke, "Bidirectional BFS Router")
     printRouteDemo(graph, findOptimalPathUseCase::invoke, "Optimal Transit Router (Dijkstra)")
-    compareRoutingAlgorithms(repositories, graph)
+    compareRoutingAlgorithms(warehouseRepository, graph)
 }
 
 private fun calculateTotalDistance(path: List<Warehouse>?): Double {
@@ -65,11 +65,11 @@ private fun printRouteDemo(
 }
 
 private fun runStandardBfs(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
 ): RoutingResult {
-    val router = LeastHopRouter(repositories.warehouseRepository)
+    val router = LeastHopRouter(warehouseRepository)
     val startTime = System.nanoTime()
     val path = router.findShortestPath(origin, destination)
     return RoutingResult(
@@ -81,11 +81,11 @@ private fun runStandardBfs(
 }
 
 private fun runBidirectionalBfs(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
 ): RoutingResult {
-    val router = BidirectionalBfsRouter(repositories.warehouseRepository)
+    val router = BidirectionalBfsRouter(warehouseRepository)
     val startTime = System.nanoTime()
     val path = router.findShortestPath(origin, destination)
     return RoutingResult(
@@ -97,14 +97,14 @@ private fun runBidirectionalBfs(
 }
 
 private fun compareRoutingAlgorithms(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     graph: List<Warehouse>
 ) {
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
 
-    val bfsResult = runStandardBfs(repositories, origin, destination)
-    val bidirectionalResult = runBidirectionalBfs(repositories, origin, destination)
+    val bfsResult = runStandardBfs(warehouseRepository, origin, destination)
+    val bidirectionalResult = runBidirectionalBfs(warehouseRepository, origin, destination)
     printComparisonReport(origin, destination, bfsResult, bidirectionalResult)
 }
 
@@ -124,7 +124,10 @@ private fun printComparisonReport(
     printRouterReport("Standard BFS", bfsResult)
     printRouterReport("Bidirectional BFS", bidirectionalResult)
     println("------------------------------------------------------------")
-    printEfficiencyComparison(bfsResult.evaluatedWarehouses, bidirectionalResult.evaluatedWarehouses)
+    printEfficiencyComparison(
+        bfsResult.evaluatedWarehouses,
+        bidirectionalResult.evaluatedWarehouses
+    )
     println("============================================================")
 }
 
@@ -132,10 +135,10 @@ private fun printRouterReport(
     name: String,
     result: RoutingResult
 ) {
-
     val hops =
         if (result.path != null) (result.path.size - 1).toString()
         else "N/A"
+
     val evaluated = result.evaluatedWarehouses.toString()
     val time = "%.4f".format(Locale.US, result.executionTime)
 
@@ -147,6 +150,12 @@ private fun printEfficiencyComparison(
     bidirectionalEvaluated: Int
 ) {
     if (bfsEvaluated == 0) return
-    val improvement = (bfsEvaluated - bidirectionalEvaluated) * PERCENTAGE_MULTIPLIER / bfsEvaluated
-    println(" RESULT: Bidirectional BFS evaluated %.2f%% fewer nodes!".format(Locale.US, improvement))
+
+    val improvement =
+        (bfsEvaluated - bidirectionalEvaluated) * PERCENTAGE_MULTIPLIER / bfsEvaluated
+
+    println(
+        " RESULT: Bidirectional BFS evaluated %.2f%% fewer nodes!"
+            .format(Locale.US, improvement)
+    )
 }
