@@ -26,33 +26,12 @@ private const val QUEUE_DISPLAY_LIMIT = 5
 
 internal fun initializeRepositories(): List<Any> {
     val warehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
-    val vehicleRepository =
-        CsvVehicleRepository(
-            filePath = VEHICLES_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        )
-    val packageRepository =
-        CsvPackageRepository(
-            filePath = PACKAGE_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        )
-    val routeRepository =
-        CsvRouteRepository(
-            filePath = ROUTES_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        )
-    printParsingReport(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        routeRepository
-    )
-    return listOf(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        routeRepository
-    )
+    val vehicleRepository = CsvVehicleRepository(filePath = VEHICLES_FILE_PATH, warehouseRepository = warehouseRepository)
+    val packageRepository = CsvPackageRepository(filePath = PACKAGE_FILE_PATH, warehouseRepository = warehouseRepository)
+    val routeRepository = CsvRouteRepository(filePath = ROUTES_FILE_PATH, warehouseRepository = warehouseRepository)
+
+    printParsingReport(warehouseRepository, vehicleRepository, packageRepository, routeRepository)
+    return listOf(warehouseRepository, vehicleRepository, packageRepository, routeRepository)
 }
 
 fun printParsingReport(
@@ -63,26 +42,10 @@ fun printParsingReport(
 ) {
     println("\n[DATA PARSING REPORT]")
     println("------------------------------------------------------------")
-    println(
-        " Fleet       : ${
-            vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
-    println(
-        " Packages    : ${
-            packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
-    println(
-        " Routes      : ${
-            routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
-    println(
-        " Warehouses  : ${
-            warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
+    println(" Fleet       : ${vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)} records parsed.")
+    println(" Packages    : ${packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)} records parsed.")
+    println(" Routes      : ${routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)} records parsed.")
+    println(" Warehouses  : ${warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)} records parsed.")
     println("------------------------------------------------------------")
 }
 
@@ -123,8 +86,7 @@ internal fun runCargoDemos(
     packageRepository: PackageRepository,
     graph: List<Warehouse>
 ) {
-    val sortedPackages =
-        sortPackagesByImportance(packageRepository.getAllPackages())
+    val sortedPackages = sortPackagesByImportance(packageRepository.getAllPackages())
 
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(graph)

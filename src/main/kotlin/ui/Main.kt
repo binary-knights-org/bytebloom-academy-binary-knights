@@ -29,45 +29,20 @@ private const val DEFAULT_PACKAGE_COUNT = 1000
 fun main() {
     printSystemHeader()
 
-    val warehouseRepository =
-        createWarehouseRepository()
-
-    val vehicleRepository =
-        createVehicleRepository(
-            warehouseRepository
-        )
-
-    val packageRepository =
-        createPackageRepository(
-            warehouseRepository
-        )
-
-    val routeRepository =
-        createRouteRepository(
-            warehouseRepository
-        )
+    val warehouseRepository = createWarehouseRepository()
+    val vehicleRepository = createVehicleRepository(warehouseRepository)
+    val packageRepository = createPackageRepository(warehouseRepository)
+    val routeRepository = createRouteRepository(warehouseRepository)
 
     printParsingReport(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        routeRepository
+        warehouseRepository, vehicleRepository, packageRepository, routeRepository
     )
 
-    val graph =
-        buildDomainGraph(
-            warehouseRepository,
-            vehicleRepository,
-            packageRepository,
-            routeRepository
-        )
-
-    runDemos(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        graph
+    val graph = buildDomainGraph(
+        warehouseRepository, vehicleRepository, packageRepository, routeRepository
     )
+
+    runDemos(warehouseRepository, vehicleRepository, packageRepository, graph)
 
     printSystemFooter()
 }
@@ -78,17 +53,8 @@ private fun runDemos(
     packageRepository: PackageRepository,
     graph: List<Warehouse>
 ) {
-    runCargoAndPricingDemos(
-        packageRepository,
-        vehicleRepository,
-        graph
-    )
-
-    runRoutingDemos(
-        warehouseRepository,
-        graph
-    )
-
+    runCargoAndPricingDemos(packageRepository, vehicleRepository, graph)
+    runRoutingDemos(warehouseRepository, graph)
     runSimulationDemos(graph)
 }
 
@@ -97,25 +63,15 @@ private fun runCargoAndPricingDemos(
     vehicleRepository: VehicleRepository,
     graph: List<Warehouse>
 ) {
-    runCargoDemos(
-        packageRepository,
-        graph
-    )
+    runCargoDemos(packageRepository, graph)
 
     runPackageConsolidationDemo(
-        createPackageConsolidationUseCase(
-            packageRepository,
-            vehicleRepository
-        )
+        createPackageConsolidationUseCase(packageRepository, vehicleRepository)
     )
 
     runPricingAndDecoratorDemos(
         graph,
-        CalculatePricingUseCase(
-            RoutePricingEngine(
-                EcoStrategy()
-            )
-        )
+        CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
     )
 
     runBreakdownSimulationDemo()
@@ -128,28 +84,14 @@ private fun runRoutingDemos(
     runRoutingAndComparisonDemos(
         warehouseRepository,
         graph,
-        FindOptimalPathUseCase(
-            OptimalTransitRouter(
-                warehouseRepository
-            )
-        ),
-        FindFewestHopsRouteUseCase(
-            LeastHopRouter(
-                warehouseRepository
-            )
-        ),
-        FindBidirectionalRouteUseCase(
-            BidirectionalBfsRouter(
-                warehouseRepository
-            )
-        )
+        FindOptimalPathUseCase(OptimalTransitRouter(warehouseRepository)),
+        FindFewestHopsRouteUseCase(LeastHopRouter(warehouseRepository)),
+        FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
     )
 }
 
 private fun createWarehouseRepository(): WarehouseRepository {
-    return CsvWarehouseRepository(
-        WAREHOUSES_FILE_PATH
-    )
+    return CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
 }
 
 private fun createVehicleRepository(
@@ -188,14 +130,9 @@ private fun runSimulationDemos(
     )
 
     printCommandPatternTest(
-        dispatchVehicleUseCase =
-            DispatchVehicleUseCase(),
-        firstWarehouse =
-            graph.first(),
-        firstVehicle =
-            graph.first()
-                .stationedVehicles
-                .first()
+        dispatchVehicleUseCase = DispatchVehicleUseCase(),
+        firstWarehouse = graph.first(),
+        firstVehicle = graph.first().stationedVehicles.first()
     )
 
     printNetworkResilienceAnalysis(
@@ -209,32 +146,21 @@ private fun createPackageConsolidationUseCase(
     vehicleRepository: VehicleRepository
 ): AssignPackagesToAvailableVehicleUseCase {
     return AssignPackagesToAvailableVehicleUseCase(
-        findPackagesForConsolidationUseCase =
-            FindPackagesForConsolidationUseCase(
-                packageRepository
-            ),
-        vehicleRepository =
-            vehicleRepository
+        findPackagesForConsolidationUseCase = FindPackagesForConsolidationUseCase(packageRepository),
+        vehicleRepository = vehicleRepository
     )
 }
 
 private fun printNetworkResilienceAnalysis(
-    calculateNetworkResilienceScoreUseCase:
-    CalculateNetworkResilienceScoreUseCase,
+    calculateNetworkResilienceScoreUseCase: CalculateNetworkResilienceScoreUseCase,
     graph: List<Warehouse>
 ) {
     println("\n[NETWORK RESILIENCE ANALYSIS]")
     println("============================================================")
 
-    val resilienceScore =
-        calculateNetworkResilienceScoreUseCase(
-            graph
-        )
+    val resilienceScore = calculateNetworkResilienceScoreUseCase(graph)
 
-    println(
-        "Network Resilience Score: $resilienceScore"
-    )
-
+    println("Network Resilience Score: $resilienceScore")
     println("============================================================")
 }
 
