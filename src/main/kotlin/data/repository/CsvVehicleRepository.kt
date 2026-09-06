@@ -3,6 +3,7 @@ package data.repository
 import data.dataholder.VehicleRaw
 import data.mapper.toDomain
 import data.reader.CsvFileReader
+import data.reader.CsvFileWriter
 import data.utils.hasValidFieldCount
 import data.utils.parseCsvFields
 import domain.model.Vehicle
@@ -21,13 +22,24 @@ private const val INDEX_COST_PER_KM = 3
 class CsvVehicleRepository(
     private val filePath: String,
     private val warehouseRepository: WarehouseRepository,
-    private val reader: CsvFileReader = CsvFileReader()
+    private val reader: CsvFileReader = CsvFileReader(),
+    private val writer: CsvFileWriter = CsvFileWriter()
 ) : VehicleRepository {
 
     override fun getAllVehicles(): List<Vehicle> {
         val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
         val lines = reader.readLines(filePath)
         return extractVehicles(lines, warehousesById)
+    }
+    override fun addVehicleToHub(vehicle: Vehicle): Boolean {
+        val line = listOf(
+            vehicle.id,
+            vehicle.currentHub.id,
+            vehicle.maxCapacityKg,
+            vehicle.costPerKm
+        ).joinToString(CSV_DELIMITER)
+
+        return writer.appendLine(filePath, line)
     }
 
     private fun extractVehicles(
