@@ -25,8 +25,7 @@ private const val PAD_LARGE = 8
 private const val QUEUE_DISPLAY_LIMIT = 5
 
 internal fun initializeRepositories(): List<Any> {
-    val warehouseRepository =
-        CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+    val warehouseRepository = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
     val vehicleRepository =
         CsvVehicleRepository(
             filePath = VEHICLES_FILE_PATH,
@@ -48,7 +47,6 @@ internal fun initializeRepositories(): List<Any> {
         packageRepository,
         routeRepository
     )
-
     return listOf(
         warehouseRepository,
         vehicleRepository,
