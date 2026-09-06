@@ -31,20 +31,29 @@ class CsvVehicleRepository(
         val lines = reader.readLines(filePath)
         return extractVehicles(lines, warehousesById)
     }
-    override fun addVehicleToHub(vehicle: Vehicle): Boolean {
-        val line = listOf(
-            vehicle.id,
-            vehicle.currentHub.id,
-            vehicle.maxCapacityKg,
-            vehicle.costPerKm
-        ).joinToString(CSV_DELIMITER)
 
-        return writer.appendLine(filePath, line)
+    override fun addVehicleToHub(vehicle: Vehicle): Boolean {
+        val vehicles = reader.readLines(filePath).mapNotNull { parseLine(it) }
+
+        val vehicleExists = vehicles.flatMap { it.vehicleIds }.any { it == vehicle.id }
+
+        if (vehicleExists) {
+            return false
+        }
+
+        val newVehicle = VehicleRaw(
+            vehicleIds = listOf(vehicle.id),
+            currentHubId = vehicle.currentHub.id,
+            maxCapacityKg = vehicle.maxCapacityKg,
+            costPerKm = vehicle.costPerKm
+        )
+
+        writer.writeVehicles(filePath, vehicles + newVehicle)
+        return true
     }
 
     private fun extractVehicles(
-        lines: List<String>,
-        warehousesById: Map<String, Warehouse>
+        lines: List<String>, warehousesById: Map<String, Warehouse>
     ): List<Vehicle> {
         return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it)?.toDomain(warehousesById) }
     }
