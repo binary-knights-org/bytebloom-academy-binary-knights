@@ -11,7 +11,9 @@ import domain.model.Warehouse
 import domain.pricing.EcoStrategy
 import domain.pricing.RoutePricingEngine
 import domain.repository.PackageRepository
+import domain.repository.RouteRepository
 import domain.repository.VehicleRepository
+import domain.repository.WarehouseRepository
 import domain.usecase.AnalyzeTreePerformanceUseCase
 import domain.usecase.AssignPackagesToAvailableVehicleUseCase
 import domain.usecase.CalculateNetworkResilienceScoreUseCase
@@ -27,26 +29,10 @@ private const val DEFAULT_PACKAGE_COUNT = 1000
 fun main() {
     printSystemHeader()
 
-    val warehouseRepository =
-        CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
-
-    val vehicleRepository =
-        CsvVehicleRepository(
-            filePath = VEHICLES_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        )
-
-    val packageRepository =
-        CsvPackageRepository(
-            filePath = PACKAGE_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        )
-
-    val routeRepository =
-        CsvRouteRepository(
-            filePath = ROUTES_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        )
+    val warehouseRepository = createWarehouseRepository()
+    val vehicleRepository = createVehicleRepository(warehouseRepository)
+    val packageRepository = createPackageRepository(warehouseRepository)
+    val routeRepository = createRouteRepository(warehouseRepository)
 
     printParsingReport(
         warehouseRepository,
@@ -62,38 +48,57 @@ fun main() {
         routeRepository
     )
 
-    val assignPackagesUseCase = createPackageConsolidationUseCase(
-        packageRepository,
-        vehicleRepository
-    )
-
-    val findOptimalPathUseCase =
-        FindOptimalPathUseCase(OptimalTransitRouter(warehouseRepository))
-
-    val findFewestHopsRouteUseCase =
-        FindFewestHopsRouteUseCase(LeastHopRouter(warehouseRepository))
-
-    val findBidirectionalRouteUseCase =
-        FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
-
-    val calculatePricingUseCase =
-        CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
-
     runCargoDemos(packageRepository, graph)
-    runPackageConsolidationDemo(assignPackagesUseCase)
-    runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
+    runPackageConsolidationDemo(
+        createPackageConsolidationUseCase(packageRepository, vehicleRepository)
+    )
+    runPricingAndDecoratorDemos(
+        graph,
+        CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
+    )
     runBreakdownSimulationDemo()
 
     runRoutingAndComparisonDemos(
         warehouseRepository,
         graph,
-        findOptimalPathUseCase,
-        findFewestHopsRouteUseCase,
-        findBidirectionalRouteUseCase
+        FindOptimalPathUseCase(OptimalTransitRouter(warehouseRepository)),
+        FindFewestHopsRouteUseCase(LeastHopRouter(warehouseRepository)),
+        FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
     )
 
     runSimulationDemos(graph)
     printSystemFooter()
+}
+
+private fun createWarehouseRepository(): WarehouseRepository {
+    return CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+}
+
+private fun createVehicleRepository(
+    warehouseRepository: WarehouseRepository
+): VehicleRepository {
+    return CsvVehicleRepository(
+        filePath = VEHICLES_FILE_PATH,
+        warehouseRepository = warehouseRepository
+    )
+}
+
+private fun createPackageRepository(
+    warehouseRepository: WarehouseRepository
+): PackageRepository {
+    return CsvPackageRepository(
+        filePath = PACKAGE_FILE_PATH,
+        warehouseRepository = warehouseRepository
+    )
+}
+
+private fun createRouteRepository(
+    warehouseRepository: WarehouseRepository
+): RouteRepository {
+    return CsvRouteRepository(
+        filePath = ROUTES_FILE_PATH,
+        warehouseRepository = warehouseRepository
+    )
 }
 
 private fun runSimulationDemos(graph: List<Warehouse>) {

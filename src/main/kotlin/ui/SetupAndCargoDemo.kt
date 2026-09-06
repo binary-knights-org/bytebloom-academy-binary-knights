@@ -27,25 +27,21 @@ private const val QUEUE_DISPLAY_LIMIT = 5
 internal fun initializeRepositories(): List<Any> {
     val warehouseRepository =
         CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
-
     val vehicleRepository =
         CsvVehicleRepository(
             filePath = VEHICLES_FILE_PATH,
             warehouseRepository = warehouseRepository
         )
-
     val packageRepository =
         CsvPackageRepository(
             filePath = PACKAGE_FILE_PATH,
             warehouseRepository = warehouseRepository
         )
-
     val routeRepository =
         CsvRouteRepository(
             filePath = ROUTES_FILE_PATH,
             warehouseRepository = warehouseRepository
         )
-
     printParsingReport(
         warehouseRepository,
         vehicleRepository,

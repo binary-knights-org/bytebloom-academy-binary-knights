@@ -211,3 +211,4 @@ private fun printHistoryClearance(
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
     println("    Redo cleared: ${commandInvoker.redoHistorySize == 0}")
 }
+
