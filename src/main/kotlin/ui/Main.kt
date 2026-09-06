@@ -29,46 +29,21 @@ private const val DEFAULT_PACKAGE_COUNT = 1000
 fun main() {
     printSystemHeader()
 
-    val warehouseRepository =
-        createWarehouseRepository()
+    val warehouseRepo = createWarehouseRepository()
+    val vehicleRepo = createVehicleRepository(warehouseRepo)
+    val packageRepo = createPackageRepository(warehouseRepo)
+    val routeRepo = createRouteRepository(warehouseRepo)
 
-    val vehicleRepository =
-        createVehicleRepository(
-            warehouseRepository
-        )
+    printParsingReport(warehouseRepo, vehicleRepo, packageRepo, routeRepo)
 
-    val packageRepository =
-        createPackageRepository(
-            warehouseRepository
-        )
-
-    val routeRepository =
-        createRouteRepository(
-            warehouseRepository
-        )
-
-    printParsingReport(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        routeRepository
+    val graph = buildDomainGraph(
+        warehouseRepo,
+        vehicleRepo,
+        packageRepo,
+        routeRepo
     )
 
-    val graph =
-        buildDomainGraph(
-            warehouseRepository,
-            vehicleRepository,
-            packageRepository,
-            routeRepository
-        )
-
-    runDemos(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        graph
-    )
-
+    runDemos(warehouseRepo, vehicleRepo, packageRepo, graph)
     printSystemFooter()
 }
 

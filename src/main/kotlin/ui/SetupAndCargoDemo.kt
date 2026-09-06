@@ -25,39 +25,41 @@ private const val PAD_LARGE = 8
 private const val QUEUE_DISPLAY_LIMIT = 5
 
 internal fun initializeRepositories(): List<Any> {
-    val warehouseRepository =
-        CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
-
-    val vehicleRepository =
-        CsvVehicleRepository(
-            VEHICLES_FILE_PATH,
-            warehouseRepository
-        )
-
-    val packageRepository =
-        CsvPackageRepository(
-            PACKAGE_FILE_PATH,
-            warehouseRepository
-        )
-
-    val routeRepository =
-        CsvRouteRepository(
-            ROUTES_FILE_PATH,
-            warehouseRepository
-        )
+    val (warehouseRepo, vehicleRepo, packageRepo, routeRepo) = createAllRepositories()
 
     printParsingReport(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        routeRepository
+        warehouseRepo,
+        vehicleRepo,
+        packageRepo,
+        routeRepo
     )
 
     return listOf(
-        warehouseRepository,
-        vehicleRepository,
-        packageRepository,
-        routeRepository
+        warehouseRepo,
+        vehicleRepo,
+        packageRepo,
+        routeRepo
+    )
+}
+
+private data class RepositoriesHolder(
+    val warehouseRepo: WarehouseRepository,
+    val vehicleRepo: VehicleRepository,
+    val packageRepo: PackageRepository,
+    val routeRepo: RouteRepository
+)
+
+private fun createAllRepositories(): RepositoriesHolder {
+    val warehouseRepo = CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
+    val vehicleRepo = CsvVehicleRepository(VEHICLES_FILE_PATH, warehouseRepo)
+    val packageRepo = CsvPackageRepository(PACKAGE_FILE_PATH, warehouseRepo)
+    val routeRepo = CsvRouteRepository(ROUTES_FILE_PATH, warehouseRepo)
+
+    return RepositoriesHolder(
+        warehouseRepo,
+        vehicleRepo,
+        packageRepo,
+        routeRepo
     )
 }
 
