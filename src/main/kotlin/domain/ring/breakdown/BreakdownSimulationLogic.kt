@@ -7,22 +7,6 @@ import domain.ring.ClockwiseRouter
 import domain.ring.DeterministicHashingEngine
 import domain.ring.PackageAssignmentRing
 
-private const val PACKAGE_COUNT = 30
-private const val TARGET_BROKEN_SLOT = 40
-
-private const val SLOT_A = 15
-private const val SLOT_B = 40
-private const val SLOT_C = 65
-private const val SLOT_D = 90
-
-private const val DEFAULT_WEIGHT = 10.0
-private const val DEFAULT_PRIORITY = "STANDARD"
-private const val DEFAULT_CAPACITY = 1000.0
-private const val DEFAULT_SPEED = 2.0
-
-private const val HUB_LAT = 32.07
-private const val HUB_LNG = -116.21
-
 class BreakdownSimulationLogic {
 
     private fun setupRing(hub: Warehouse): PackageAssignmentRing {
@@ -126,5 +110,23 @@ class BreakdownSimulationLogic {
         val assignmentsAfter = performAssignment(ring, packages)
 
         return SimulationResult(packages, assignmentsBefore, assignmentsAfter, context)
+    }
+
+    private companion object {
+        const val PACKAGE_COUNT = 30
+        const val TARGET_BROKEN_SLOT = 40
+
+        const val SLOT_A = 15
+        const val SLOT_B = 40
+        const val SLOT_C = 65
+        const val SLOT_D = 90
+
+        const val DEFAULT_WEIGHT = 10.0
+        const val DEFAULT_PRIORITY = "STANDARD"
+        const val DEFAULT_CAPACITY = 1000.0
+        const val DEFAULT_SPEED = 2.0
+
+        const val HUB_LAT = 32.07
+        const val HUB_LNG = -116.21
     }
 }

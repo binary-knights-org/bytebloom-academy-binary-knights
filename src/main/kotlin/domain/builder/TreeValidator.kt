@@ -2,9 +2,6 @@ package domain.builder
 
 import domain.tree.HubNode
 
-private const val COUNT_SELF_NODE = 1
-private const val COUNT_LEAF_CHILDREN = 0
-
 class TreeValidator {
 
     fun hasNoCycles(root: HubNode.GlobalHub): Boolean {
@@ -41,6 +38,11 @@ class TreeValidator {
 
     private fun collectLocalDepots(node: HubNode.GlobalHub): List<HubNode.LocalDepot> {
         return node.children.flatMap { regionalCenter -> regionalCenter.children }
+    }
+
+    private companion object {
+        const val COUNT_SELF_NODE = 1
+        const val COUNT_LEAF_CHILDREN = 0
     }
 }
 
