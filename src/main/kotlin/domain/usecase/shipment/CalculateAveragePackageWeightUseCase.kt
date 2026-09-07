@@ -1,4 +1,4 @@
-package domain.usecase
+package domain.usecase.shipment
 
 import domain.repository.WarehouseRepository
 
