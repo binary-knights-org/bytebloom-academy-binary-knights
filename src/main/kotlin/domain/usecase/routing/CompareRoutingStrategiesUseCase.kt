@@ -1,4 +1,4 @@
-package domain.usecase
+package domain.usecase.routing
 
 import domain.model.Warehouse
 
