@@ -12,10 +12,14 @@ class DispatchVehicleUseCase(
 ) {
     operator fun invoke(vehicle: Vehicle, warehouse: Warehouse): List<Package> {
         val targetWarehouse = warehouseRepository.getAllWarehouses()
-            .firstOrNull { it.id == warehouse.id } ?: return emptyList()
+            .firstOrNull { it.id == warehouse.id }
 
         val targetVehicle = vehicleRepository.getAllVehicles()
-            .firstOrNull { it.id == vehicle.id && it.currentHub.id == targetWarehouse.id } ?: return emptyList()
+            .firstOrNull { it.id == vehicle.id && it.currentHub.id == targetWarehouse?.id }
+
+        if (targetWarehouse == null || targetVehicle == null) {
+            return emptyList()
+        }
 
         val queueCopy = ArrayList(targetWarehouse.cargoQueue)
         val loaded = queueCopy.fold(
