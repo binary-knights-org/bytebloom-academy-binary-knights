@@ -40,14 +40,17 @@ fun main() {
     runBreakdownSimulationDemo()
     runRoutingAndComparisonDemos(
         repositories, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
-    runSimulationDemos(graph)
+    runSimulationDemos(repositories, graph)
     printSystemFooter()
 }
 
-private fun runSimulationDemos(graph: List<Warehouse>) {
+private fun runSimulationDemos(repositories: domain.builder.RepositoryProvider, graph: List<Warehouse>) {
     printTreePerformanceAnalysis(AnalyzeTreePerformanceUseCase(), DEFAULT_PACKAGE_COUNT)
     printCommandPatternTest(
-        dispatchVehicleUseCase = DispatchVehicleUseCase(),
+        dispatchVehicleUseCase = DispatchVehicleUseCase(
+            vehicleRepository = repositories.vehicleRepository,
+            warehouseRepository = repositories.warehouseRepository
+        ),
         firstWarehouse = graph.first(),
         firstVehicle = graph.first().stationedVehicles.first()
     )
