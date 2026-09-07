@@ -3,7 +3,6 @@ package ui
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
-import domain.model.Warehouse
 import domain.pricing.EcoStrategy
 import domain.pricing.RoutePricingEngine
 import domain.usecase.analytics.CalculatePricingUseCase
@@ -34,11 +33,13 @@ fun main() {
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
 
     runCargoDemos(packageRepository, graph)
-    runPackageConsolidationDemo(findPackagesForConsolidationUseCase, findSuitableVehicleUseCase, assignPackagesToVehicleUseCase)
+    runPackageConsolidationDemo(
+        findPackagesForConsolidationUseCase, findSuitableVehicleUseCase, assignPackagesToVehicleUseCase)
     runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
     runBreakdownSimulationDemo()
-    runRoutingAndComparisonDemos(warehouseRepository, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
-    runSimulationDemos(graph)
+    runRoutingAndComparisonDemos(
+        warehouseRepository, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
+    runSimulationDemos(vehicleRepository, warehouseRepository, graph)
     printSystemFooter()
 }
 

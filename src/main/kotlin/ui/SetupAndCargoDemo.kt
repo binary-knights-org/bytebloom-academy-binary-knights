@@ -86,8 +86,7 @@ private fun printGraphSummary(
 }
 
 internal fun runCargoDemos(
-    packageRepository: PackageRepository,
-    graph: List<Warehouse>
+    packageRepository: PackageRepository, graph: List<Warehouse>
 ) {
     val sortedPackages = sortPackagesByImportance(packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
@@ -102,7 +101,8 @@ private fun printTopShipments(
     packages.take(limit).forEachIndexed { index, pkg ->
         val weightFormatted = "${pkg.weight} kg".padEnd(PAD_LARGE)
         println(
-            " ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id.padEnd(PAD_MEDIUM)}" + " | $weightFormatted | ${pkg.priority}"
+            " ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id.padEnd(PAD_MEDIUM)}"
+                    + " | $weightFormatted | ${pkg.priority}"
         )
     }
 }
