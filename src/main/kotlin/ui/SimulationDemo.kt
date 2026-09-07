@@ -8,12 +8,14 @@ import domain.model.Warehouse
 import domain.ring.DeterministicHashingEngine
 import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
-import domain.usecase.AnalyzeTreePerformanceUseCase
-import domain.usecase.DispatchVehicleUseCase
+import domain.usecase.analytics.AnalyzeTreePerformanceUseCase
+import domain.usecase.analytics.CalculateNetworkResilienceScoreUseCase
+import domain.usecase.vehicle.DispatchVehicleUseCase
 import java.util.Locale
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
+private const val DEFAULT_PACKAGE_COUNT = 1000
 
 internal fun runBreakdownSimulationDemo() {
     val simulationLogic = BreakdownSimulationLogic()
@@ -210,4 +212,26 @@ private fun printHistoryClearance(
     println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
     println("    Redo cleared: ${commandInvoker.redoHistorySize == 0}")
+}
+
+
+fun runSimulationDemos(graph: List<Warehouse>) {
+    printTreePerformanceAnalysis(AnalyzeTreePerformanceUseCase(), DEFAULT_PACKAGE_COUNT)
+    printCommandPatternTest(
+        dispatchVehicleUseCase = DispatchVehicleUseCase(),
+        firstWarehouse = graph.first(),
+        firstVehicle = graph.first().stationedVehicles.first()
+    )
+    printNetworkResilienceAnalysis(CalculateNetworkResilienceScoreUseCase(), graph)
+}
+
+private fun printNetworkResilienceAnalysis(
+    calculateNetworkResilienceScoreUseCase: CalculateNetworkResilienceScoreUseCase,
+    graph: List<Warehouse>
+) {
+    println("\n[NETWORK RESILIENCE ANALYSIS]")
+    println("============================================================")
+    val resilienceScore = calculateNetworkResilienceScoreUseCase(graph)
+    println("Network Resilience Score: $resilienceScore")
+    println("============================================================")
 }
