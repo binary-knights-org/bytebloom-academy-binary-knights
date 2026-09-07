@@ -7,7 +7,4 @@ import domain.model.Vehicle
 
 interface WarehouseRepository {
     fun getAllWarehouses(): List<Warehouse>
-    fun linkWarehouseData(
-        packages: List<Package>, vehicles: List<Vehicle>, routes: List<Route>
-    ): List<Warehouse>
 }
