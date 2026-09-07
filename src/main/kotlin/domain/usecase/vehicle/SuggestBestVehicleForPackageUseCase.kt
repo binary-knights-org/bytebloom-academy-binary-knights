@@ -1,4 +1,4 @@
-package domain.usecase
+package domain.usecase.vehicle
 
 import domain.model.Package
 import domain.model.Vehicle
