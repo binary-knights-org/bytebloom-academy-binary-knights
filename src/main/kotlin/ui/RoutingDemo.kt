@@ -22,17 +22,17 @@ internal data class RoutingResult(
 
 internal fun runRoutingAndComparisonDemos(
     warehouseRepository: WarehouseRepository,
-    graph: List<Warehouse>,
+    warehouses: List<Warehouse>,
     findOptimalPathUseCase: FindOptimalPathUseCase,
     findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
     findBidirectionalRouteUseCase: FindBidirectionalRouteUseCase
 ) {
     println("\n[PATHFINDING ALGORITHMS]")
     println("============================================================")
-    printRouteDemo(graph, findFewestHopsRouteUseCase::invoke, "Least-Hop Router (Standard BFS)")
-    printRouteDemo(graph, findBidirectionalRouteUseCase::invoke, "Bidirectional BFS Router")
-    printRouteDemo(graph, findOptimalPathUseCase::invoke, "Optimal Transit Router (Dijkstra)")
-    compareRoutingAlgorithms(warehouseRepository, graph)
+    printRouteDemo(warehouses, findFewestHopsRouteUseCase::invoke, "Least-Hop Router (Standard BFS)")
+    printRouteDemo(warehouses, findBidirectionalRouteUseCase::invoke, "Bidirectional BFS Router")
+    printRouteDemo(warehouses, findOptimalPathUseCase::invoke, "Optimal Transit Router (Dijkstra)")
+    compareRoutingAlgorithms(warehouseRepository, warehouses)
 }
 
 private fun calculateTotalDistance(path: List<Warehouse>?): Double {

@@ -1,5 +1,10 @@
 package ui
 
+import data.repository.CsvFilePaths
+import data.repository.CsvPackageRepository
+import data.repository.CsvRouteRepository
+import data.repository.CsvVehicleRepository
+import data.repository.CsvWarehouseRepository
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
@@ -16,14 +21,13 @@ import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 fun main() {
     printSystemHeader()
 
-    val warehouseRepository = data.repository.CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
-    val packageRepository = data.repository.CsvPackageRepository(PACKAGE_FILE_PATH, warehouseRepository)
-    val vehicleRepository = data.repository.CsvVehicleRepository(VEHICLES_FILE_PATH, warehouseRepository)
-    val routeRepository = data.repository.CsvRouteRepository(ROUTES_FILE_PATH, warehouseRepository)
-
+    val paths = CsvFilePaths(WAREHOUSES_FILE_PATH, PACKAGE_FILE_PATH, VEHICLES_FILE_PATH, ROUTES_FILE_PATH)
+    val warehouseRepository = CsvWarehouseRepository(paths)
+    val packageRepository = CsvPackageRepository(PACKAGE_FILE_PATH, warehouseRepository)
+    val vehicleRepository = CsvVehicleRepository(VEHICLES_FILE_PATH, warehouseRepository)
+    val routeRepository = CsvRouteRepository(ROUTES_FILE_PATH, warehouseRepository)
     printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
-
-    val graph = buildDomainGraph(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
+    val warehouses = buildDomainGraph(warehouseRepository)
     val findPackagesForConsolidationUseCase = FindPackagesForConsolidationUseCase(packageRepository)
     val findSuitableVehicleUseCase = FindSuitableVehicleUseCase(vehicleRepository)
     val assignPackagesToVehicleUseCase = AssignPackagesToVehicleUseCase()
@@ -32,14 +36,14 @@ fun main() {
     val findBidirectionalRouteUseCase = FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
 
-    runCargoDemos(packageRepository, graph)
+    runCargoDemos(packageRepository, warehouses)
     runPackageConsolidationDemo(
         findPackagesForConsolidationUseCase, findSuitableVehicleUseCase, assignPackagesToVehicleUseCase)
-    runPricingAndDecoratorDemos(graph, calculatePricingUseCase)
+    runPricingAndDecoratorDemos(warehouses, calculatePricingUseCase)
     runBreakdownSimulationDemo()
-    runRoutingAndComparisonDemos(
-        warehouseRepository, graph, findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
-    runSimulationDemos(vehicleRepository, warehouseRepository, graph)
+    runRoutingAndComparisonDemos(warehouseRepository, warehouses,
+        findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
+    runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
     printSystemFooter()
 }
 
