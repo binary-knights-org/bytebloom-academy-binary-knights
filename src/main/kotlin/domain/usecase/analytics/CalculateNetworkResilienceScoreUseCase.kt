@@ -1,4 +1,4 @@
-package domain.usecase
+package domain.usecase.analytics
 
 import domain.model.Warehouse
 
