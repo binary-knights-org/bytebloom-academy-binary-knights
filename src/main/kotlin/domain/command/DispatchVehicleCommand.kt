@@ -3,7 +3,7 @@ package domain.command
 import domain.model.Package
 import domain.model.Vehicle
 import domain.model.Warehouse
-import domain.usecase.DispatchVehicleUseCase
+import domain.usecase.vehicle.DispatchVehicleUseCase
 
 class DispatchVehicleCommand(
     private val dispatchVehicleUseCase: DispatchVehicleUseCase,

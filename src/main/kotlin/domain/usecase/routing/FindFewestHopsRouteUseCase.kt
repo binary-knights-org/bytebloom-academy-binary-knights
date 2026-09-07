@@ -1,10 +1,10 @@
-package domain.usecase
+package domain.usecase.routing
 
 import domain.algorithm.pathfinding.ShortestPathRouter
 import domain.model.Warehouse
 
-class FindOptimalPathUseCase(
-    private val router: ShortestPathRouter
+class FindFewestHopsRouteUseCase(
+    private val router: ShortestPathRouter,
 ) {
     operator fun invoke(
         origin: Warehouse,

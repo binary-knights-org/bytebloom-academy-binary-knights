@@ -3,8 +3,6 @@ package domain.builder
 import domain.model.Warehouse
 import domain.tree.HubNode
 
-private const val REGIONAL_CENTER_COUNT_PER_ZONE = 1
-
 class TreeBuilder {
 
     fun buildTree(warehouses: List<Warehouse>): HubNode.GlobalHub {
@@ -32,5 +30,9 @@ class TreeBuilder {
         }
 
         return regionalCenter
+    }
+
+    private companion object {
+        const val REGIONAL_CENTER_COUNT_PER_ZONE = 1
     }
 }
