@@ -51,20 +51,9 @@ internal fun printParsingReport(
 }
 
 internal fun buildDomainGraph(
-    vehicleRepository: VehicleRepository,
     warehouseRepository: WarehouseRepository,
-    packageRepository: PackageRepository,
-    routeRepository: RouteRepository
 ): List<Warehouse> {
-
-    val packages = packageRepository.getAllPackages()
-    val vehicles = vehicleRepository.getAllVehicles()
-    val routes = routeRepository.getAllRoutes()
-
-    val graph = warehouseRepository.linkWarehouseData(
-        packages = packages, vehicles = vehicles, routes = routes
-    )
-
+    val graph = warehouseRepository.getAllWarehouses()
     printGraphSummary(graph)
     return graph
 }
@@ -86,11 +75,11 @@ private fun printGraphSummary(
 }
 
 internal fun runCargoDemos(
-    packageRepository: PackageRepository, graph: List<Warehouse>
+    packageRepository: PackageRepository, warehouses: List<Warehouse>
 ) {
     val sortedPackages = sortPackagesByImportance(packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
-    printSortedCargoQueueForFirstWarehouse(graph)
+    printSortedCargoQueueForFirstWarehouse(warehouses)
 }
 
 private fun printTopShipments(

@@ -220,15 +220,15 @@ private fun printHistoryClearance(
 fun runSimulationDemos(
     vehicleRepository: VehicleRepository,
     warehouseRepository: WarehouseRepository,
-    graph: List<Warehouse>
+    warehouses: List<Warehouse>
 ) {
     printTreePerformanceAnalysis(AnalyzeTreePerformanceUseCase(), DEFAULT_PACKAGE_COUNT)
     printCommandPatternTest(
         dispatchVehicleUseCase = DispatchVehicleUseCase(vehicleRepository, warehouseRepository),
-        firstWarehouse = graph.first(),
-        firstVehicle = graph.first().stationedVehicles.first()
+        firstWarehouse = warehouses.first(),
+        firstVehicle = warehouses.first().stationedVehicles.first()
     )
-    printNetworkResilienceAnalysis(CalculateNetworkResilienceScoreUseCase(), graph)
+    printNetworkResilienceAnalysis(CalculateNetworkResilienceScoreUseCase(), warehouses)
 }
 
 private fun printNetworkResilienceAnalysis(
