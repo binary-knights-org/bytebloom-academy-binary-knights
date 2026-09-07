@@ -11,6 +11,6 @@ class GetOverloadedWarehousesUseCase(
 ) {
     operator fun invoke(): List<Warehouse> {
         return warehouseRepository.getAllWarehouses()
-            .filter { getWarehouseLoadFactorUseCase(it) > OVERLOAD_THRESHOLD }
+            .filter { getWarehouseLoadFactorUseCase(it.id) > OVERLOAD_THRESHOLD }
     }
 }

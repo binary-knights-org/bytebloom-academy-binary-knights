@@ -3,6 +3,7 @@ package data.repository
 import data.dataholder.VehicleRaw
 import data.mapper.toDomain
 import data.reader.CsvFileReader
+import data.reader.CsvFileWriter
 import data.utils.hasValidFieldCount
 import data.utils.parseCsvFields
 import domain.model.Vehicle
@@ -21,7 +22,8 @@ private const val INDEX_COST_PER_KM = 3
 class CsvVehicleRepository(
     private val filePath: String,
     private val warehouseRepository: WarehouseRepository,
-    private val reader: CsvFileReader = CsvFileReader()
+    private val reader: CsvFileReader = CsvFileReader(),
+    private val writer: CsvFileWriter = CsvFileWriter()
 ) : VehicleRepository {
 
     override fun getAllVehicles(): List<Vehicle> {
@@ -30,9 +32,28 @@ class CsvVehicleRepository(
         return extractVehicles(lines, warehousesById)
     }
 
+    override fun addVehicleToHub(vehicle: Vehicle): Boolean {
+        val vehicles = reader.readLines(filePath).mapNotNull { parseLine(it) }
+
+        val vehicleExists = vehicles.flatMap { it.vehicleIds }.any { it == vehicle.id }
+
+        if (vehicleExists) {
+            return false
+        }
+
+        val newVehicle = VehicleRaw(
+            vehicleIds = listOf(vehicle.id),
+            currentHubId = vehicle.currentHub.id,
+            maxCapacityKg = vehicle.maxCapacityKg,
+            costPerKm = vehicle.costPerKm
+        )
+
+        writer.writeVehicles(filePath, vehicles + newVehicle)
+        return true
+    }
+
     private fun extractVehicles(
-        lines: List<String>,
-        warehousesById: Map<String, Warehouse>
+        lines: List<String>, warehousesById: Map<String, Warehouse>
     ): List<Vehicle> {
         return lines.filter { it.isNotBlank() }.mapNotNull { parseLine(it)?.toDomain(warehousesById) }
     }
