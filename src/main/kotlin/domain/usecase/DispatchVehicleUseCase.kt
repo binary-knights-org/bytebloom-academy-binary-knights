@@ -27,13 +27,7 @@ class DispatchVehicleUseCase(
         ) { loaded, pkg ->
 
             if (targetVehicle.loadPackage(pkg)) {
-                if (targetVehicle != vehicle) {
-                    vehicle.loadPackage(pkg)
-                }
                 targetWarehouse.removePackage(pkg)
-                if (targetWarehouse != warehouse) {
-                    warehouse.removePackage(pkg)
-                }
                 loaded.add(pkg)
             }
 
