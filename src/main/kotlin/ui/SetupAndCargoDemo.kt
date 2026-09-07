@@ -1,14 +1,12 @@
 package ui
 
-import data.repository.CsvPackageRepository
-import data.repository.CsvRouteRepository
-import data.repository.CsvVehicleRepository
-import data.repository.CsvWarehouseRepository
 import domain.algorithm.sorting.sortPackagesByImportance
-import domain.builder.DomainGraphBuilder
-import domain.builder.RepositoryProvider
 import domain.model.Package
 import domain.model.Warehouse
+import domain.repository.PackageRepository
+import domain.repository.RouteRepository
+import domain.repository.VehicleRepository
+import domain.repository.WarehouseRepository
 
 internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
@@ -21,58 +19,52 @@ private const val PAD_MEDIUM = 5
 private const val PAD_LARGE = 8
 private const val QUEUE_DISPLAY_LIMIT = 5
 
-internal fun initializeRepositories(): RepositoryProvider {
-    val warehouseRepository =
-        CsvWarehouseRepository(WAREHOUSES_FILE_PATH)
-
-    val repositories = RepositoryProvider(
-        warehouseRepository = warehouseRepository,
-        vehicleRepository = CsvVehicleRepository(
-            filePath = VEHICLES_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        ),
-        packageRepository = CsvPackageRepository(
-            filePath = PACKAGE_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        ),
-        routeRepository = CsvRouteRepository(
-            filePath = ROUTES_FILE_PATH,
-            warehouseRepository = warehouseRepository
-        )
-    )
-    printParsingReport(repositories)
-    return repositories
-}
-
-private fun printParsingReport(
-    repositories: RepositoryProvider
+internal fun printParsingReport(
+    vehicleRepository: VehicleRepository,
+    warehouseRepository: WarehouseRepository,
+    packageRepository: PackageRepository,
+    routeRepository: RouteRepository
 ) {
     println("\n[DATA PARSING REPORT]")
     println("------------------------------------------------------------")
     println(
         " Fleet       : ${
-            repositories.vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
+            vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println(
         " Packages    : ${
-            repositories.packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
+            packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println(
         " Routes      : ${
-            repositories.routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
+            routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
-    println(" Warehouses  : ${
-        repositories.warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)} records parsed.")
+    println(
+        " Warehouses  : ${
+            warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)
+        } records parsed."
+    )
     println("------------------------------------------------------------")
 }
 
 internal fun buildDomainGraph(
-    repositories: RepositoryProvider
+    vehicleRepository: VehicleRepository,
+    warehouseRepository: WarehouseRepository,
+    packageRepository: PackageRepository,
+    routeRepository: RouteRepository
 ): List<Warehouse> {
-    val graph = DomainGraphBuilder(repositories).buildGraph()
+
+    val packages = packageRepository.getAllPackages()
+    val vehicles = vehicleRepository.getAllVehicles()
+    val routes = routeRepository.getAllRoutes()
+
+    val graph = warehouseRepository.linkWarehouseData(
+        packages = packages, vehicles = vehicles, routes = routes
+    )
+
     printGraphSummary(graph)
     return graph
 }
@@ -94,25 +86,23 @@ private fun printGraphSummary(
 }
 
 internal fun runCargoDemos(
-    repositories: RepositoryProvider,
+    packageRepository: PackageRepository,
     graph: List<Warehouse>
 ) {
-    val sortedPackages = sortPackagesByImportance(repositories.packageRepository.getAllPackages())
+    val sortedPackages = sortPackagesByImportance(packageRepository.getAllPackages())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(graph)
 }
 
 private fun printTopShipments(
-    packages: List<Package>,
-    limit: Int
+    packages: List<Package>, limit: Int
 ) {
     println("\n[TOP $limit PRIORITY SHIPMENTS]")
     println("------------------------------------------------------------")
     packages.take(limit).forEachIndexed { index, pkg ->
         val weightFormatted = "${pkg.weight} kg".padEnd(PAD_LARGE)
         println(
-            " ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id.padEnd(PAD_MEDIUM)}" +
-                    " | $weightFormatted | ${pkg.priority}"
+            " ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id.padEnd(PAD_MEDIUM)}" + " | $weightFormatted | ${pkg.priority}"
         )
     }
 }
