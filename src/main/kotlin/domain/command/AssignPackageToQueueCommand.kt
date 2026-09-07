@@ -2,7 +2,7 @@ package domain.command
 
 import domain.model.Package
 import domain.model.Warehouse
-import domain.usecase.AssignPackageToCargoQueueUseCase
+import domain.usecase.shipment.AssignPackageToCargoQueueUseCase
 
 class AssignPackageToQueueCommand(
     private val assignPackageToCargoQueueUseCase: AssignPackageToCargoQueueUseCase,

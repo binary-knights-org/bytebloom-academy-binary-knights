@@ -1,8 +1,8 @@
 package ui
 
-import domain.usecase.AssignPackagesToVehicleUseCase
-import domain.usecase.FindPackagesForConsolidationUseCase
-import domain.usecase.FindSuitableVehicleUseCase
+import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
+import domain.usecase.shipment.FindPackagesForConsolidationUseCase
+import domain.usecase.vehicle.FindSuitableVehicleUseCase
 
 private const val DISPLAY_LIMIT = 10
 
