@@ -18,9 +18,9 @@ import domain.usecase.analytics.PricingRequest
 private const val LABEL_PADDING = 12
 
 internal fun runPricingAndDecoratorDemos(
-    graph: List<Warehouse>, calculatePricingUseCase: CalculatePricingUseCase
+    warehouses: List<Warehouse>, calculatePricingUseCase: CalculatePricingUseCase
 ) {
-    val firstWarehouse = graph.firstOrNull()
+    val firstWarehouse = warehouses.firstOrNull()
     val firstRoute = firstWarehouse?.outgoingRoutes?.firstOrNull()
     val firstPackage = firstWarehouse?.cargoQueue?.firstOrNull()
 
