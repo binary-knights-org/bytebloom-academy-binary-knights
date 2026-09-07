@@ -2,11 +2,11 @@ package ui
 
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
-import domain.builder.RepositoryProvider
 import domain.model.Warehouse
-import domain.usecase.FindBidirectionalRouteUseCase
-import domain.usecase.FindFewestHopsRouteUseCase
-import domain.usecase.FindOptimalPathUseCase
+import domain.repository.WarehouseRepository
+import domain.usecase.routing.FindBidirectionalRouteUseCase
+import domain.usecase.routing.FindFewestHopsRouteUseCase
+import domain.usecase.routing.FindOptimalPathUseCase
 import java.util.*
 
 internal const val NANOS_TO_MILLIS = 1_000_000.0
@@ -21,7 +21,7 @@ internal data class RoutingResult(
 )
 
 internal fun runRoutingAndComparisonDemos(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     graph: List<Warehouse>,
     findOptimalPathUseCase: FindOptimalPathUseCase,
     findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
@@ -32,7 +32,7 @@ internal fun runRoutingAndComparisonDemos(
     printRouteDemo(graph, findFewestHopsRouteUseCase::invoke, "Least-Hop Router (Standard BFS)")
     printRouteDemo(graph, findBidirectionalRouteUseCase::invoke, "Bidirectional BFS Router")
     printRouteDemo(graph, findOptimalPathUseCase::invoke, "Optimal Transit Router (Dijkstra)")
-    compareRoutingAlgorithms(repositories, graph)
+    compareRoutingAlgorithms(warehouseRepository, graph)
 }
 
 private fun calculateTotalDistance(path: List<Warehouse>?): Double {
@@ -65,11 +65,11 @@ private fun printRouteDemo(
 }
 
 private fun runStandardBfs(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
 ): RoutingResult {
-    val router = LeastHopRouter(repositories.warehouseRepository)
+    val router = LeastHopRouter(warehouseRepository)
     val startTime = System.nanoTime()
     val path = router.findShortestPath(origin, destination)
     return RoutingResult(
@@ -81,11 +81,11 @@ private fun runStandardBfs(
 }
 
 private fun runBidirectionalBfs(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
 ): RoutingResult {
-    val router = BidirectionalBfsRouter(repositories.warehouseRepository)
+    val router = BidirectionalBfsRouter(warehouseRepository)
     val startTime = System.nanoTime()
     val path = router.findShortestPath(origin, destination)
     return RoutingResult(
@@ -97,14 +97,14 @@ private fun runBidirectionalBfs(
 }
 
 private fun compareRoutingAlgorithms(
-    repositories: RepositoryProvider,
+    warehouseRepository: WarehouseRepository,
     graph: List<Warehouse>
 ) {
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
 
-    val bfsResult = runStandardBfs(repositories, origin, destination)
-    val bidirectionalResult = runBidirectionalBfs(repositories, origin, destination)
+    val bfsResult = runStandardBfs(warehouseRepository, origin, destination)
+    val bidirectionalResult = runBidirectionalBfs(warehouseRepository, origin, destination)
     printComparisonReport(origin, destination, bfsResult, bidirectionalResult)
 }
 
