@@ -1,4 +1,4 @@
-package domain.usecase
+package domain.usecase.warehouse
 
 import domain.tree.HubNode
 
