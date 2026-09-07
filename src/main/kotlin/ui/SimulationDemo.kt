@@ -5,6 +5,8 @@ import domain.command.DispatchVehicleCommand
 import domain.model.Package
 import domain.model.Vehicle
 import domain.model.Warehouse
+import domain.repository.VehicleRepository
+import domain.repository.WarehouseRepository
 import domain.ring.DeterministicHashingEngine
 import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
@@ -215,10 +217,14 @@ private fun printHistoryClearance(
 }
 
 
-fun runSimulationDemos(graph: List<Warehouse>) {
+fun runSimulationDemos(
+    vehicleRepository: VehicleRepository,
+    warehouseRepository: WarehouseRepository,
+    graph: List<Warehouse>
+) {
     printTreePerformanceAnalysis(AnalyzeTreePerformanceUseCase(), DEFAULT_PACKAGE_COUNT)
     printCommandPatternTest(
-        dispatchVehicleUseCase = DispatchVehicleUseCase(),
+        dispatchVehicleUseCase = DispatchVehicleUseCase(vehicleRepository, warehouseRepository),
         firstWarehouse = graph.first(),
         firstVehicle = graph.first().stationedVehicles.first()
     )
