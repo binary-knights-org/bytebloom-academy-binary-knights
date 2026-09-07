@@ -2,12 +2,15 @@ package domain.decorator
 
 import domain.model.PackageComponent
 
-private const val DEFAULT_RISK_PREMIUM = 25.0
 class ExpressInsuranceDecorator(
-    wrappedPackage: PackageComponent,
+    component: PackageComponent,
     private val riskPremium: Double = DEFAULT_RISK_PREMIUM
-) : PackageDecorator(wrappedPackage) {
+) : PackageDecorator(component) {
     override fun calculateTransitRate(baseTransitRate: Double): Double {
-        return decoratedBaseRate(baseTransitRate) + riskPremium
+        return super.calculateTransitRate(baseTransitRate) + riskPremium
+    }
+
+    private companion object {
+        const val DEFAULT_RISK_PREMIUM = 25.0
     }
 }

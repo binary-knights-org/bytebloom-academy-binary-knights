@@ -22,6 +22,10 @@ data class Warehouse(
         _cargoQueue.add(pkg)
     }
 
+    fun removePackage(pkg: Package): Boolean {
+        return _cargoQueue.remove(pkg)
+    }
+
     fun addRoute(route: Route) {
         _outgoingRoutes.add(route)
     }
@@ -33,4 +37,9 @@ data class Warehouse(
     fun sortCargoQueueByWeightDescending() {
         sortPackagesDescendingByWeight(_cargoQueue)
     }
+    fun restoreCargoQueue(packages: List<Package>) {
+        _cargoQueue.clear()
+        _cargoQueue.addAll(packages)
+    }
+
 }

@@ -3,8 +3,6 @@ package domain.algorithm.pathfinding
 import domain.model.Warehouse
 import domain.repository.WarehouseRepository
 
-private const val SKIP_DUPLICATE_INTERSECTION_NODE_COUNT = 1
-
 class BidirectionalBfsRouter(
     private val warehouseRepository: WarehouseRepository
 ) : ShortestPathRouter {
@@ -145,5 +143,9 @@ class BidirectionalBfsRouter(
         }
 
         return path
+    }
+
+    private companion object {
+        const val SKIP_DUPLICATE_INTERSECTION_NODE_COUNT = 1
     }
 }

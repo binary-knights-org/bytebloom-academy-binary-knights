@@ -2,13 +2,15 @@ package domain.decorator
 
 import domain.model.PackageComponent
 
-
-private const val DEFAULT_REFRIGERATION_MULTIPLIER = 1.18
 class ColdChainDecorator(
-    wrappedPackage: PackageComponent,
+    component: PackageComponent,
     private val refrigerationMultiplier: Double = DEFAULT_REFRIGERATION_MULTIPLIER
-) : PackageDecorator(wrappedPackage) {
+) : PackageDecorator(component) {
     override fun calculateTransitRate(baseTransitRate: Double): Double {
-        return decoratedBaseRate(baseTransitRate) * refrigerationMultiplier
+        return super.calculateTransitRate(baseTransitRate) * refrigerationMultiplier
+    }
+
+    private companion object {
+        const val DEFAULT_REFRIGERATION_MULTIPLIER = 1.18
     }
 }

@@ -1,13 +1,23 @@
 package ui
 
+import domain.command.CommandInvoker
+import domain.command.DispatchVehicleCommand
 import domain.model.Package
 import domain.model.Vehicle
+import domain.model.Warehouse
+import domain.repository.VehicleRepository
+import domain.repository.WarehouseRepository
 import domain.ring.DeterministicHashingEngine
 import domain.ring.breakdown.BreakdownSimulationLogic
 import domain.ring.breakdown.VerificationReport
+import domain.usecase.analytics.AnalyzeTreePerformanceUseCase
+import domain.usecase.analytics.CalculateNetworkResilienceScoreUseCase
+import domain.usecase.vehicle.DispatchVehicleUseCase
+import java.util.Locale
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
+private const val DEFAULT_PACKAGE_COUNT = 1000
 
 internal fun runBreakdownSimulationDemo() {
     val simulationLogic = BreakdownSimulationLogic()
@@ -36,8 +46,7 @@ private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) 
         val slot = DeterministicHashingEngine.calculateSlot(pkg)
         println("   [${pkg.id}] -> Slot %02d -> Assigned to: ${vehicle.id}".format(slot))
     }
-    if (assignments.size > DISPLAY_LIMIT)
-        println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
+    if (assignments.size > DISPLAY_LIMIT) println("   ... and ${assignments.size - DISPLAY_LIMIT} more packages.")
 }
 
 private fun printVerificationReport(report: VerificationReport) {
@@ -55,5 +64,180 @@ private fun printVerificationReport(report: VerificationReport) {
             }${if (report.migratedPackageIds.size > MIGRATED_DISPLAY_LIMIT) "..." else ""}"
         )
     }
+    println("============================================================")
+}
+
+fun printTreePerformanceAnalysis(
+    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase, count: Int = 1000
+) {
+    println("\n[The Balanced Index Simulator]".uppercase())
+    println("============================================================")
+
+    val perfAnalysis = analyzeTreePerformanceUseCase(count)
+
+    println("Generated ${perfAnalysis.totalCount} sequential tracking IDs")
+    println("Unbalanced BST Search Steps:")
+    println("  - Max steps (Worst Case):  ${perfAnalysis.unbalancedMaxSteps} (Degrades to O(N) linear time)")
+    println("  - Total steps ($count keys): ${perfAnalysis.unbalancedTotalSteps}")
+    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.unbalancedAvgSteps)}")
+
+    println("Balanced AVL Tree Search Steps:")
+    println("  - Max steps (Worst Case):  ${perfAnalysis.balancedMaxSteps} (Maintains O(log N) logarithmic time)")
+    println("  - Total steps ($count keys): ${perfAnalysis.balancedTotalSteps}")
+    println("  - Average steps per search: ${"%.2f".format(Locale.US, perfAnalysis.balancedAvgSteps)}")
+    println("============================================================")
+}
+
+fun printCommandPatternTest(
+    dispatchVehicleUseCase: DispatchVehicleUseCase,
+    firstWarehouse: Warehouse,
+    firstVehicle: Vehicle
+) {
+    println("\n[Time-Machine Dispatch Panel]".uppercase())
+    println("============================================================")
+
+    val commandInvoker = CommandInvoker()
+    val secondVehicle = firstWarehouse.stationedVehicles.getOrNull(1)
+    val thirdVehicle = firstWarehouse.stationedVehicles.getOrNull(2)
+
+    if (secondVehicle == null || thirdVehicle == null) {
+        println("  - Multi-level test requires at least 3 vehicles.")
+        println("============================================================")
+        return
+    }
+
+    val (dispatch1, dispatch2, dispatch3) = createDispatchCommands(
+        dispatchVehicleUseCase, firstWarehouse, firstVehicle, secondVehicle, thirdVehicle
+    )
+
+    printCommandExecution(commandInvoker, dispatch1, firstWarehouse, firstVehicle, "Command 1")
+    printCommandExecution(commandInvoker, dispatch2, firstWarehouse, secondVehicle, "Command 2")
+    printUndo(commandInvoker, firstWarehouse, secondVehicle, "Undo Command 2")
+    printUndo(commandInvoker, firstWarehouse, firstVehicle, "Undo Command 1")
+    printRedo(commandInvoker, firstWarehouse, firstVehicle, "Redo Command 1")
+    printRedo(commandInvoker, firstWarehouse, secondVehicle, "Redo Command 2")
+    printHistoryClearance(commandInvoker, dispatch3, firstWarehouse, thirdVehicle)
+
+    println("============================================================")
+}
+
+private fun createDispatchCommands(
+    useCase: DispatchVehicleUseCase,
+    warehouse: Warehouse,
+    v1: Vehicle,
+    v2: Vehicle,
+    v3: Vehicle
+): Triple<DispatchVehicleCommand, DispatchVehicleCommand, DispatchVehicleCommand> {
+    return Triple(
+        DispatchVehicleCommand(useCase, v1, warehouse),
+        DispatchVehicleCommand(useCase, v2, warehouse),
+        DispatchVehicleCommand(useCase, v3, warehouse)
+    )
+}
+
+private fun printCommandExecution(
+    commandInvoker: CommandInvoker,
+    command: DispatchVehicleCommand,
+    warehouse: Warehouse,
+    vehicle: Vehicle,
+    title: String
+) {
+    println("\n== $title ==")
+
+    val executed = commandInvoker.executeCommand(command)
+
+    println("Execution:")
+    println("  - Success: $executed")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+}
+
+private fun printUndo(
+    commandInvoker: CommandInvoker,
+    warehouse: Warehouse,
+    vehicle: Vehicle,
+    title: String
+) {
+    println("\n== $title ==")
+
+    val undone = commandInvoker.undo()
+
+    println("Undo Operation:")
+    println("  - Success: $undone")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+}
+
+private fun printRedo(
+    commandInvoker: CommandInvoker,
+    warehouse: Warehouse,
+    vehicle: Vehicle,
+    title: String
+) {
+    println("\n== $title ==")
+
+    val redone = commandInvoker.redo()
+
+    println("Redo Operation:")
+    println("  - Success: $redone")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+}
+
+private fun printHistoryClearance(
+    commandInvoker: CommandInvoker,
+    command: DispatchVehicleCommand,
+    warehouse: Warehouse,
+    vehicle: Vehicle
+) {
+    println("\n== History Clearance ==")
+
+    commandInvoker.undo()
+
+    println("Undo Operation:")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+
+    val executed = commandInvoker.executeCommand(command)
+
+    println("New Command Execution:")
+    println("  - Success: $executed")
+    println("  - Queue size: ${warehouse.cargoQueue.size}")
+    println("  - Vehicle loaded cargo size: ${vehicle.loadedCargo.size}")
+    println("  - Undo stack size: ${commandInvoker.undoHistorySize}")
+    println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
+    println("    Redo cleared: ${commandInvoker.redoHistorySize == 0}")
+}
+
+
+fun runSimulationDemos(
+    vehicleRepository: VehicleRepository,
+    warehouseRepository: WarehouseRepository,
+    graph: List<Warehouse>
+) {
+    printTreePerformanceAnalysis(AnalyzeTreePerformanceUseCase(), DEFAULT_PACKAGE_COUNT)
+    printCommandPatternTest(
+        dispatchVehicleUseCase = DispatchVehicleUseCase(vehicleRepository, warehouseRepository),
+        firstWarehouse = graph.first(),
+        firstVehicle = graph.first().stationedVehicles.first()
+    )
+    printNetworkResilienceAnalysis(CalculateNetworkResilienceScoreUseCase(), graph)
+}
+
+private fun printNetworkResilienceAnalysis(
+    calculateNetworkResilienceScoreUseCase: CalculateNetworkResilienceScoreUseCase,
+    graph: List<Warehouse>
+) {
+    println("\n[NETWORK RESILIENCE ANALYSIS]")
+    println("============================================================")
+    val resilienceScore = calculateNetworkResilienceScoreUseCase(graph)
+    println("Network Resilience Score: $resilienceScore")
     println("============================================================")
 }
