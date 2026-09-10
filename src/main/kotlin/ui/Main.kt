@@ -1,13 +1,13 @@
 package ui
 
-import data.repository.PackageRepositoryImpl
-import data.repository.RouteRepositoryImpl
-import data.repository.VehicleRepositoryImpl
-import data.repository.WarehouseRepositoryImpl
 import data.local.csv.CsvPackageDataSource
 import data.local.csv.CsvRouteDataSource
 import data.local.csv.CsvVehicleDataSource
 import data.local.csv.CsvWarehouseDataSource
+import data.repository.PackageRepositoryImpl
+import data.repository.RouteRepositoryImpl
+import data.repository.VehicleRepositoryImpl
+import data.repository.WarehouseRepositoryImpl
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
@@ -49,8 +49,7 @@ fun main() {
     runRoutingAndComparisonDemos(warehouseRepository, warehouses,
         findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
     runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
-    printSystemFooter()
-}
+    printSystemFooter() }
 
 private fun printSystemHeader() {
     println(
