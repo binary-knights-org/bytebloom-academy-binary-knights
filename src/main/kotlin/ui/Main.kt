@@ -4,6 +4,10 @@ import data.repository.PackageRepositoryImpl
 import data.repository.RouteRepositoryImpl
 import data.repository.VehicleRepositoryImpl
 import data.repository.WarehouseRepositoryImpl
+import data.local.csv.CsvPackageDataSource
+import data.local.csv.CsvRouteDataSource
+import data.local.csv.CsvVehicleDataSource
+import data.local.csv.CsvWarehouseDataSource
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
 import domain.algorithm.pathfinding.OptimalTransitRouter
@@ -19,11 +23,15 @@ import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 
 fun main() {
     printSystemHeader()
+    val warehouseDataSource = CsvWarehouseDataSource(WAREHOUSES_FILE_PATH)
+    val packageDataSource = CsvPackageDataSource(PACKAGE_FILE_PATH)
+    val vehicleDataSource = CsvVehicleDataSource(VEHICLES_FILE_PATH)
+    val routeDataSource = CsvRouteDataSource(ROUTES_FILE_PATH)
     val warehouseRepository =
-        WarehouseRepositoryImpl(WAREHOUSES_FILE_PATH, PACKAGE_FILE_PATH, VEHICLES_FILE_PATH, ROUTES_FILE_PATH)
-    val packageRepository = PackageRepositoryImpl(PACKAGE_FILE_PATH, warehouseRepository)
-    val vehicleRepository = VehicleRepositoryImpl(VEHICLES_FILE_PATH, warehouseRepository)
-    val routeRepository = RouteRepositoryImpl(ROUTES_FILE_PATH, warehouseRepository)
+        WarehouseRepositoryImpl(warehouseDataSource, packageDataSource, vehicleDataSource, routeDataSource)
+    val packageRepository = PackageRepositoryImpl(packageDataSource, warehouseRepository)
+    val vehicleRepository = VehicleRepositoryImpl(vehicleDataSource, warehouseRepository)
+    val routeRepository = RouteRepositoryImpl(routeDataSource, warehouseRepository)
     printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
     val warehouses = buildDomainGraph(warehouseRepository)
     val findPackagesForConsolidationUseCase = FindPackagesForConsolidationUseCase(packageRepository)

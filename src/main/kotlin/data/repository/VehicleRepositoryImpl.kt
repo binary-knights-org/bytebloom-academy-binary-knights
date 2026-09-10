@@ -2,25 +2,19 @@ package data.repository
 
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
-import data.local.csv.CsvVehicleDataSource
 import data.mapper.toDomain
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
 
 class VehicleRepositoryImpl(
-    private val filePath: String,
+    private val dataSource: VehicleDataSource,
     private val warehouseRepository: WarehouseRepository
 ) : VehicleRepository {
-
-    private val dataSource: VehicleDataSource =
-        CsvVehicleDataSource(filePath)
-
     override fun getAllVehicles(): List<Vehicle> {
         val warehousesById = warehouseRepository
             .getAllWarehouses()
             .associateBy { it.id }
-
         return dataSource
             .getRawVehicles()
             .mapNotNull { it.toDomain(warehousesById) }
