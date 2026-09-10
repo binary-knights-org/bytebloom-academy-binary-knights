@@ -43,3 +43,56 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+*.log
+!docker-compose.yml
+/frontend/admin-desktop-app/schemas/edu.bytebloom.platform.data.local.AdminDatabase/1.json
+/frontend/mentee-app/schemas/edu.bytebloom.platform.data.local.AppDatabase/1.json
+/frontend/mentor-desktop-app/schemas/edu.bytebloom.platform.data.local.MentorDatabase/1.json
+/frontend/mentee-app/schemas/edu.bytebloom.platform.data.local.AppDatabase/2.json
+/frontend/mentee-app/schemas/edu.bytebloom.platform.data.local.AppDatabase/3.json
+/frontend/mentee-app/release/mentee-app-release.apk
+/frontend/mentee-app/release/baselineProfiles/0/mentee-app-release.dm
+/frontend/mentee-app/release/baselineProfiles/1/mentee-app-release.dm
+/frontend/mentee-app/release/output-metadata.json
+
+**/build/
+xcuserdata
+!src/**/build/
+.idea
+captures
+.externalNativeBuild
+.cxx
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+node_modules/
+.env
+
+.gradle/
+.secrets/
+
+# IntelliJ IDEA specific
+.project/
+
+# JVM
+*.class
+*.war
+*.ear
+*.zip
+*.tar
+*.gz
+hs_err_pid*
+
+# Android
+.cxx/
+.externalNativeBuild/
+captures/
+instant-run/
+app/build/
+app/.cxx/
+app/.externalNativeBuild/
+
+local.properties
