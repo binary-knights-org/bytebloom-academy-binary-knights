@@ -2,25 +2,59 @@ package data.local.csv
 
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
-import data.processing.parser.VehicleCsvParser
-import data.processing.reader.CsvFileReader
-import data.processing.writer.CsvFileWriter
+
 
 class CsvVehicleDataSource(
-    private val filePath: String,
-    private val reader: CsvFileReader = CsvFileReader(),
-    private val parser: VehicleCsvParser = VehicleCsvParser()
+    private val csvHandler: CsvFileHandler,
 ) : VehicleDataSource {
-    private val vehicleRaws = mutableListOf<VehicleRaw>()
-
     override fun getRawVehicles(): List<VehicleRaw> {
-        val fileVehicles = reader.readLines(filePath)
-            .filter { it.isNotBlank() }
-            .mapNotNull { parser.parseLine(it) }
-        return fileVehicles + vehicleRaws
+        return try {
+            val lines = csvHandler.readLines()
+            lines.mapNotNull { parseLine(it) }
+        } catch (_: CsvFileNotFoundException) {
+            emptyList()
+        }
     }
 
     override fun addRawVehicle(vehicle: VehicleRaw) {
-        vehicleRaws.add(vehicle)
+        val lines = vehicle.vehicleIds.map { id ->
+            "$id,${vehicle.currentHubId},${vehicle.maxCapacityKg},${vehicle.costPerKm}"
+        }
+        csvHandler.appendLines(lines)
+    }
+
+    fun parseLine(line: String): VehicleRaw? {
+        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
+        if (fields.size != EXPECTED_VEHICLE_FIELDS) {
+            return null
+        }
+        return mapFieldsToVehicle(fields)
+    }
+
+    private fun mapFieldsToVehicle(fields: List<String>): VehicleRaw? {
+        val vehicleId = fields[INDEX_VEHICLE_ID]
+        val currentHubId = fields[INDEX_CURRENT_HUB_ID]
+        val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
+        val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull()
+
+        return when {
+            maxCapacity == null || costPerKm == null -> null
+            else -> VehicleRaw(
+                vehicleIds = listOf(vehicleId),
+                currentHubId = currentHubId,
+                maxCapacityKg = maxCapacity,
+                costPerKm = costPerKm
+            )
+        }
+    }
+
+    private companion object {
+        const val EXPECTED_VEHICLE_FIELDS = 4
+        const val CSV_DELIMITER = ","
+
+        const val INDEX_VEHICLE_ID = 0
+        const val INDEX_CURRENT_HUB_ID = 1
+        const val INDEX_MAX_CAPACITY = 2
+        const val INDEX_COST_PER_KM = 3
     }
 }

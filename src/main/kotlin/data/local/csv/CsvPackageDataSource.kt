@@ -2,18 +2,71 @@ package data.local.csv
 
 import data.dataholder.PackageRaw
 import data.datasource.PackageDataSource
-import data.processing.parser.PackageCsvParser
-import data.processing.reader.CsvFileReader
 
 class CsvPackageDataSource(
-    private val filePath: String,
-    private val reader: CsvFileReader = CsvFileReader(),
-    private val parser: PackageCsvParser = PackageCsvParser()
+    private val csvHandler: CsvFileHandler,
 ) : PackageDataSource {
     override fun getRawPackages(): List<PackageRaw> {
-        return reader.readLines(filePath)
-            .filter { it.isNotBlank() }
-            .mapNotNull { parser.parseLine(it) }
+
+        return try {
+            val lines = csvHandler.readLines()
+            lines.mapNotNull { parseLine(it) }
+        } catch (_: CsvFileNotFoundException) {
+            emptyList()
+        }
+    }
+
+    fun parseLine(line: String): PackageRaw? {
+        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
+        if (fields.size != EXPECTED_PACKAGE_FIELDS) {
+            return null
+        }
+        return mapFieldsToPackage(fields)
+    }
+
+    private fun mapFieldsToPackage(fields: List<String>): PackageRaw {
+        val packageId = fields[INDEX_ID]
+        val weight = parseWeight(fields[INDEX_WEIGHT])
+        val originHubId = fields[INDEX_ORIGIN_HUB]
+        val destinationHubId = fields[INDEX_DESTINATION_HUB]
+        val priority = parsePriority(fields[INDEX_PRIORITY])
+
+        return PackageRaw(
+            packageId = packageId,
+            weight = weight,
+            originHubId = originHubId,
+            destinationHubId = destinationHubId,
+            priority = priority
+        )
+    }
+
+    private fun parseWeight(weight: String): Double {
+        val cleanWeight = weight.replace(WEIGHT_UNIT_KG, "", ignoreCase = true).trim()
+        return cleanWeight.toDoubleOrNull() ?: INVALID_WEIGHT_DEFAULT
+    }
+
+    private fun parsePriority(priorityRaw: String): String {
+        return when (val upperPriority = priorityRaw.uppercase()) {
+            PRIORITY_URGENT, PRIORITY_STANDARD, PRIORITY_LOW -> upperPriority
+
+            else -> DEFAULT_PRIORITY
+        }
+    }
+
+    private companion object {
+        const val EXPECTED_PACKAGE_FIELDS = 5
+        const val CSV_DELIMITER = ","
+        const val WEIGHT_UNIT_KG = "kg"
+        const val INVALID_WEIGHT_DEFAULT = -1.0
+        const val INDEX_ID = 0
+        const val INDEX_WEIGHT = 1
+        const val INDEX_ORIGIN_HUB = 2
+        const val INDEX_DESTINATION_HUB = 3
+        const val INDEX_PRIORITY = 4
+
+        const val PRIORITY_URGENT = "URGENT"
+        const val PRIORITY_STANDARD = "STANDARD"
+        const val PRIORITY_LOW = "LOW"
+        const val DEFAULT_PRIORITY = PRIORITY_LOW
     }
 }
-
