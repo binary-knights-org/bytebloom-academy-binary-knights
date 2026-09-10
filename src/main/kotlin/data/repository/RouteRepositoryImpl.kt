@@ -12,8 +12,12 @@ class RouteRepositoryImpl(
 ) : RouteRepository {
 
     override fun getAllRoutes(): List<Route> {
-        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
+        val warehousesById = warehouseRepository
+            .getAllWarehouses()
+            .associateBy { it.id }
 
-        return dataSource.getRawRoutes().mapNotNull { it.toDomain(warehousesById) }
+        return dataSource
+            .getRawRoutes()
+            .mapNotNull { it.toDomain(warehousesById) }
     }
 }
