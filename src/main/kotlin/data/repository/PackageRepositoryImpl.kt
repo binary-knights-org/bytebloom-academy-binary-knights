@@ -12,8 +12,12 @@ class PackageRepositoryImpl(
 ) : PackageRepository {
 
     override fun getAllPackages(): List<Package> {
-        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
+        val warehousesById = warehouseRepository
+            .getAllWarehouses()
+            .associateBy { it.id }
 
-        return dataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
+        return dataSource
+            .getRawPackages()
+            .mapNotNull { it.toDomain(warehousesById) }
     }
 }
