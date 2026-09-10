@@ -1,13 +1,23 @@
-package data.processing.parser
+package data.local.csv
 
 import data.dataholder.WarehouseRaw
-import data.utils.hasValidFieldCount
-import data.utils.parseCsvFields
+import data.datasource.WarehouseDataSource
 
-class WarehouseCsvParser {
+class CsvWarehouseDataSource(
+    private val csvHandler: CsvFileHandler,
+) : WarehouseDataSource {
+    override fun getRawWarehouses(): List<WarehouseRaw> {
+        return try {
+            val lines = csvHandler.readLines()
+            lines.mapNotNull { parseLine(it) }
+        } catch (_: CsvFileNotFoundException) {
+            emptyList()
+        }
+    }
+
     fun parseLine(line: String): WarehouseRaw? {
-        val fields = parseCsvFields(line, CSV_DELIMITER)
-        if (!hasValidFieldCount(fields, EXPECTED_WAREHOUSE_FIELDS)) {
+        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
+        if (fields.size != EXPECTED_WAREHOUSE_FIELDS) {
             return null
         }
         return mapFieldsToWarehouse(fields)

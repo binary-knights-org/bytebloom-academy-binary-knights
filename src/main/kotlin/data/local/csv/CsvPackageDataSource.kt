@@ -1,13 +1,24 @@
-package data.processing.parser
+package data.local.csv
 
 import data.dataholder.PackageRaw
-import data.utils.hasValidFieldCount
-import data.utils.parseCsvFields
+import data.datasource.PackageDataSource
 
-class PackageCsvParser {
+class CsvPackageDataSource(
+    private val csvHandler: CsvFileHandler,
+) : PackageDataSource {
+    override fun getRawPackages(): List<PackageRaw> {
+
+        return try {
+            val lines = csvHandler.readLines()
+            lines.mapNotNull { parseLine(it) }
+        } catch (_: CsvFileNotFoundException) {
+            emptyList()
+        }
+    }
+
     fun parseLine(line: String): PackageRaw? {
-        val fields = parseCsvFields(line, CSV_DELIMITER)
-        if (!hasValidFieldCount(fields, EXPECTED_PACKAGE_FIELDS)) {
+        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
+        if (fields.size != EXPECTED_PACKAGE_FIELDS) {
             return null
         }
         return mapFieldsToPackage(fields)
@@ -47,7 +58,6 @@ class PackageCsvParser {
         const val CSV_DELIMITER = ","
         const val WEIGHT_UNIT_KG = "kg"
         const val INVALID_WEIGHT_DEFAULT = -1.0
-
         const val INDEX_ID = 0
         const val INDEX_WEIGHT = 1
         const val INDEX_ORIGIN_HUB = 2

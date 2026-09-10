@@ -1,13 +1,23 @@
-package data.processing.parser
+package data.local.csv
 
 import data.dataholder.RouteRaw
-import data.utils.hasValidFieldCount
-import data.utils.parseCsvFields
+import data.datasource.RouteDataSource
 
-class RouteCsvParser {
+class CsvRouteDataSource(
+    private val csvHandler: CsvFileHandler
+) : RouteDataSource {
+    override fun getRawRoutes(): List<RouteRaw> {
+        return try {
+            val lines = csvHandler.readLines()
+            lines.mapNotNull { parseLine(it) }
+        } catch (_: CsvFileNotFoundException) {
+            emptyList()
+        }
+    }
+
     fun parseLine(line: String): RouteRaw? {
-        val fields = parseCsvFields(line, CSV_DELIMITER)
-        if (!hasValidFieldCount(fields, EXPECTED_ROUTE_FIELDS)) {
+        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
+        if (fields.size != EXPECTED_ROUTE_FIELDS) {
             return null
         }
         return mapFieldsToRoute(fields)

@@ -1,9 +1,10 @@
 package ui
 
-import data.datasource.CsvPackageDataSource
-import data.datasource.CsvRouteDataSource
-import data.datasource.CsvVehicleDataSource
-import data.datasource.CsvWarehouseDataSource
+import data.local.csv.CsvFileHandler
+import data.local.csv.CsvPackageDataSource
+import data.local.csv.CsvRouteDataSource
+import data.local.csv.CsvVehicleDataSource
+import data.local.csv.CsvWarehouseDataSource
 import data.repository.PackageRepositoryImpl
 import data.repository.RouteRepositoryImpl
 import data.repository.VehicleRepositoryImpl
@@ -23,10 +24,10 @@ import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 
 fun main() {
     printSystemHeader()
-    val warehouseDataSource = CsvWarehouseDataSource(WAREHOUSES_FILE_PATH)
-    val packageDataSource = CsvPackageDataSource(PACKAGE_FILE_PATH)
-    val vehicleDataSource = CsvVehicleDataSource(VEHICLES_FILE_PATH)
-    val routeDataSource = CsvRouteDataSource(ROUTES_FILE_PATH)
+    val warehouseDataSource = CsvWarehouseDataSource(CsvFileHandler(WAREHOUSES_FILE_PATH))
+    val packageDataSource = CsvPackageDataSource(CsvFileHandler(PACKAGE_FILE_PATH))
+    val vehicleDataSource = CsvVehicleDataSource(CsvFileHandler(VEHICLES_FILE_PATH))
+    val routeDataSource = CsvRouteDataSource(CsvFileHandler(ROUTES_FILE_PATH))
     val warehouseRepository =
         WarehouseRepositoryImpl(warehouseDataSource, packageDataSource, vehicleDataSource, routeDataSource)
     val packageRepository = PackageRepositoryImpl(packageDataSource, warehouseRepository)
@@ -43,13 +44,17 @@ fun main() {
     val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
     runCargoDemos(packageRepository, warehouses)
     runPackageConsolidationDemo(
-        findPackagesForConsolidationUseCase, findSuitableVehicleUseCase, assignPackagesToVehicleUseCase)
+        findPackagesForConsolidationUseCase, findSuitableVehicleUseCase, assignPackagesToVehicleUseCase
+    )
     runPricingAndDecoratorDemos(warehouses, calculatePricingUseCase)
     runBreakdownSimulationDemo()
-    runRoutingAndComparisonDemos(warehouseRepository, warehouses,
-        findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase)
+    runRoutingAndComparisonDemos(
+        warehouseRepository, warehouses,
+        findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase
+    )
     runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
-    printSystemFooter() }
+    printSystemFooter()
+}
 
 private fun printSystemHeader() {
     println(

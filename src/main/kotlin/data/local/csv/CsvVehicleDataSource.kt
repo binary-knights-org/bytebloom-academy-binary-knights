@@ -1,13 +1,31 @@
-package data.processing.parser
+package data.local.csv
 
 import data.dataholder.VehicleRaw
-import data.utils.hasValidFieldCount
-import data.utils.parseCsvFields
+import data.datasource.VehicleDataSource
 
-class VehicleCsvParser {
+
+class CsvVehicleDataSource(
+    private val csvHandler: CsvFileHandler,
+) : VehicleDataSource {
+    override fun getRawVehicles(): List<VehicleRaw> {
+        return try {
+            val lines = csvHandler.readLines()
+            lines.mapNotNull { parseLine(it) }
+        } catch (_: CsvFileNotFoundException) {
+            emptyList()
+        }
+    }
+
+    override fun addRawVehicle(vehicle: VehicleRaw) {
+        val lines = vehicle.vehicleIds.map { id ->
+            "$id,${vehicle.currentHubId},${vehicle.maxCapacityKg},${vehicle.costPerKm}"
+        }
+        csvHandler.appendLines(lines)
+    }
+
     fun parseLine(line: String): VehicleRaw? {
-        val fields = parseCsvFields(line, CSV_DELIMITER)
-        if (!hasValidFieldCount(fields, EXPECTED_VEHICLE_FIELDS)) {
+        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
+        if (fields.size != EXPECTED_VEHICLE_FIELDS) {
             return null
         }
         return mapFieldsToVehicle(fields)
