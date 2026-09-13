@@ -1,5 +1,6 @@
 package ui
 
+import data.datasource.SupabaseWarehouseDataSource
 import data.local.csv.CsvFileHandler
 import data.local.csv.CsvPackageDataSource
 import data.local.csv.CsvRouteDataSource
@@ -24,7 +25,7 @@ import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 
 fun main() {
     printSystemHeader()
-    val warehouseDataSource = CsvWarehouseDataSource(CsvFileHandler(WAREHOUSES_FILE_PATH))
+    val warehouseDataSource = SupabaseWarehouseDataSource()
     val packageDataSource = CsvPackageDataSource(CsvFileHandler(PACKAGE_FILE_PATH))
     val vehicleDataSource = CsvVehicleDataSource(CsvFileHandler(VEHICLES_FILE_PATH))
     val routeDataSource = CsvRouteDataSource(CsvFileHandler(ROUTES_FILE_PATH))
