@@ -1,6 +1,7 @@
 package data.mapper
 
 import data.dataholder.WarehouseRaw
+import data.remote.dto.WarehouseDto
 import domain.model.Warehouse
 
 fun WarehouseRaw.toDomain(): Warehouse {
@@ -12,3 +13,14 @@ fun WarehouseRaw.toDomain(): Warehouse {
         longitude = longitude
     )
 }
+
+fun WarehouseDto.toRaw(): WarehouseRaw {
+    return WarehouseRaw(
+        hubId = hubId,
+        hubName = hubName,
+        regionalZone = regionalZone,
+        latitude = latitude,
+        longitude = longitude
+    )
+}
+
