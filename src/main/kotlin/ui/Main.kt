@@ -21,11 +21,12 @@ import domain.usecase.routing.FindOptimalPathUseCase
 import domain.usecase.shipment.FindPackagesForConsolidationUseCase
 import domain.usecase.vehicle.FindSuitableVehicleUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
+import data.datasource.SupabasePackageDataSource
 
 fun main() {
     printSystemHeader()
     val warehouseDataSource = SupabaseWarehouseDataSource()
-    val packageDataSource = CsvPackageDataSource(CsvFileHandler(PACKAGE_FILE_PATH))
+    val packageDataSource = SupabasePackageDataSource()
     val vehicleDataSource = CsvVehicleDataSource(CsvFileHandler(VEHICLES_FILE_PATH))
     val routeDataSource = CsvRouteDataSource(CsvFileHandler(ROUTES_FILE_PATH))
     val warehouseRepository =
