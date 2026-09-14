@@ -1,6 +1,5 @@
 package ui
 
-import data.remote.SupabaseWarehouseDataSource
 import data.local.csv.CsvFileHandler
 import data.local.csv.CsvRouteDataSource
 import data.repository.PackageRepositoryImpl
@@ -20,9 +19,9 @@ import domain.usecase.shipment.FindPackagesForConsolidationUseCase
 import domain.usecase.vehicle.FindSuitableVehicleUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 import data.remote.SupabaseHttpClient
-import data.datasource.SupabasePackageDataSource
-import data.datasource.SupabaseWarehouseDataSource
-import data.datasource.SupabaseVehicleDataSource
+import data.remote.SupabaseWarehouseDataSource
+import data.remote.SupabasePackageDataSource
+import data.remote.SupabaseVehicleDataSource
 
 
 fun main() {
