@@ -1,8 +1,8 @@
-package data.datasource
+package data.remote
 
 import data.dataholder.WarehouseRaw
+import data.datasource.WarehouseDataSource
 import data.mapper.toRaw
-import data.remote.SupabaseHttpClient
 import data.remote.dto.WarehouseDto
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
