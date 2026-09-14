@@ -2,9 +2,7 @@ package ui
 
 import data.datasource.SupabaseWarehouseDataSource
 import data.local.csv.CsvFileHandler
-import data.local.csv.CsvPackageDataSource
 import data.local.csv.CsvRouteDataSource
-import data.local.csv.CsvVehicleDataSource
 import data.repository.PackageRepositoryImpl
 import data.repository.RouteRepositoryImpl
 import data.repository.VehicleRepositoryImpl
@@ -22,12 +20,13 @@ import domain.usecase.shipment.FindPackagesForConsolidationUseCase
 import domain.usecase.vehicle.FindSuitableVehicleUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 import data.datasource.SupabasePackageDataSource
-
+import data.remote.SupabaseHttpClient
+import data.remote.SupabaseVehicleDataSource
 fun main() {
     printSystemHeader()
     val warehouseDataSource = SupabaseWarehouseDataSource()
     val packageDataSource = SupabasePackageDataSource()
-    val vehicleDataSource = CsvVehicleDataSource(CsvFileHandler(VEHICLES_FILE_PATH))
+    val vehicleDataSource = SupabaseVehicleDataSource(SupabaseHttpClient)
     val routeDataSource = CsvRouteDataSource(CsvFileHandler(ROUTES_FILE_PATH))
     val warehouseRepository =
         WarehouseRepositoryImpl(warehouseDataSource, packageDataSource, vehicleDataSource, routeDataSource)
