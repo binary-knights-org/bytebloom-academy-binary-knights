@@ -1,7 +1,6 @@
 package data.mapper
 
 import data.dataholder.WarehouseRaw
-import data.remote.dto.WarehouseDto
 import domain.model.Warehouse
 
 fun WarehouseRaw.toDomain(): Warehouse {
