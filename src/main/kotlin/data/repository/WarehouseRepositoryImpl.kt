@@ -5,6 +5,9 @@ import data.datasource.RouteDataSource
 import data.datasource.VehicleDataSource
 import data.datasource.WarehouseDataSource
 import data.mapper.packages.toDomain
+import data.mapper.vehicles.toDomain
+import data.mapper.routes.toDomain
+import data.mapper.warehouses.toDomain
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle

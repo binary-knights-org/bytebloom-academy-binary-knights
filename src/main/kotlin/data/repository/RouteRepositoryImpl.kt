@@ -1,7 +1,7 @@
 package data.repository
 
 import data.datasource.RouteDataSource
-import data.mapper.packages.toDomain
+import data.mapper.routes.toDomain
 import domain.model.Route
 import domain.repository.RouteRepository
 import domain.repository.WarehouseRepository

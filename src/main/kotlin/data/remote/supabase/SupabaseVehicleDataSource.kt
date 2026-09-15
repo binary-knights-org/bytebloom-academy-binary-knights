@@ -2,7 +2,7 @@ package data.remote.supabase
 
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
-import data.mapper.packages.toRaw
+import data.mapper.vehicles.toRaw
 import data.remote.dto.VehicleResponseDto
 import io.ktor.client.call.body
 import data.mapper.vehicles.toRequestDto
