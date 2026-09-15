@@ -6,7 +6,7 @@ import domain.usecase.vehicle.FindSuitableVehicleUseCase
 
 private const val DISPLAY_LIMIT = 10
 
-internal fun runPackageConsolidationDemo(
+internal suspend fun runPackageConsolidationDemo(
     findPackagesForConsolidationUseCase: FindPackagesForConsolidationUseCase,
     findSuitableVehicleUseCase: FindSuitableVehicleUseCase,
     assignPackagesToVehicleUseCase: AssignPackagesToVehicleUseCase

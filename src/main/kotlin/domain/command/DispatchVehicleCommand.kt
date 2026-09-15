@@ -17,7 +17,7 @@ class DispatchVehicleCommand(
     override val description: String
         get() = "DispatchVehicleCommand(vehicle=${vehicle.id}, warehouse=${warehouse.id})"
 
-    override fun execute(): Boolean {
+    override suspend  fun execute(): Boolean {
 
         previousVehicleCargo = vehicle.loadedCargo.toList()
         previousWarehouseQueue = warehouse.cargoQueue.toList()
@@ -27,7 +27,7 @@ class DispatchVehicleCommand(
         return result.isNotEmpty()
     }
 
-    override fun undo(): Boolean {
+    override suspend  fun undo(): Boolean {
         warehouse.restoreCargoQueue(previousWarehouseQueue)
         vehicle.restoreCargo(previousVehicleCargo)
 

@@ -6,5 +6,5 @@ import domain.model.Route
 import domain.model.Vehicle
 
 interface WarehouseRepository {
-    fun getAllWarehouses(): List<Warehouse>
+   suspend fun getAllWarehouses(): List<Warehouse>
 }

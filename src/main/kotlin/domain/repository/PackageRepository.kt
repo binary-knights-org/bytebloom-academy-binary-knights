@@ -3,5 +3,5 @@ package domain.repository
 import domain.model.Package
 
 interface PackageRepository {
-    fun getAllPackages(): List<Package>
+   suspend fun getAllPackages(): List<Package>
 }

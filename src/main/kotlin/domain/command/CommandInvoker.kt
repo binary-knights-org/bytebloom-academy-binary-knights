@@ -13,7 +13,7 @@ class CommandInvoker {
     val redoHistorySize: Int
         get() = redoStack.size
 
-    fun executeCommand(command: Command): Boolean {
+    suspend fun executeCommand(command: Command): Boolean {
         val success = command.execute()
 
         if (success) {
@@ -24,7 +24,7 @@ class CommandInvoker {
         return success
     }
 
-    fun undo(): Boolean {
+    suspend  fun undo(): Boolean {
         if (undoStack.isEmpty()) return false
 
         val lastCommand = undoStack.pop()
@@ -39,7 +39,7 @@ class CommandInvoker {
         return success
     }
 
-    fun redo(): Boolean {
+    suspend  fun redo(): Boolean {
         if (redoStack.isEmpty()) return false
 
         val lastCommand = redoStack.pop()

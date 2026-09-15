@@ -11,7 +11,7 @@ class VehicleRepositoryImpl(
     private val dataSource: VehicleDataSource,
     private val warehouseRepository: WarehouseRepository
 ) : VehicleRepository {
-    override fun getAllVehicles(): List<Vehicle> {
+    override suspend fun getAllVehicles(): List<Vehicle> {
         val warehousesById = warehouseRepository
             .getAllWarehouses()
             .associateBy { it.id }
@@ -19,7 +19,7 @@ class VehicleRepositoryImpl(
             .getRawVehicles()
             .mapNotNull { it.toDomain(warehousesById) }
     }
-    override fun addVehicleToHub(vehicle: Vehicle): Boolean {
+    override suspend fun addVehicleToHub(vehicle: Vehicle): Boolean {
         val vehicleExists = dataSource.getRawVehicles()
             .flatMap { it.vehicleIds }
             .any { it == vehicle.id }

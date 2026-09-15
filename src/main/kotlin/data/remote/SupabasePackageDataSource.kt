@@ -3,22 +3,19 @@ package data.remote
 import data.dataholder.PackageRaw
 import data.datasource.PackageDataSource
 import data.mapper.toRaw
-import data.remote.dto.PackageDto
 import io.ktor.client.call.body
-import kotlinx.coroutines.runBlocking
+import data.remote.dto.PackageResponseDto
 
 private const val PACKAGES_TABLE = "packages"
 
 class SupabasePackageDataSource (
     private val httpClient: SupabaseHttpClient
 ): PackageDataSource {
+    override suspend fun getRawPackages(): List<PackageRaw> {
+        val response = httpClient.get(PACKAGES_TABLE)
+        val dtos: List<PackageResponseDto> = response.body()
 
-    override fun getRawPackages(): List<PackageRaw> {
-        return runBlocking {
-            val response = httpClient.get(PACKAGES_TABLE)
-            val dtos: List<PackageDto> = response.body()
-            dtos.map { it.toRaw() }
-        }
+        return dtos.map { it.toRaw() }
     }
 }
 

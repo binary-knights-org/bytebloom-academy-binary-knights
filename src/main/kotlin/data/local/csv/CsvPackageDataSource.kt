@@ -6,7 +6,7 @@ import data.datasource.PackageDataSource
 class CsvPackageDataSource(
     private val csvHandler: CsvFileHandler,
 ) : PackageDataSource {
-    override fun getRawPackages(): List<PackageRaw> {
+    override suspend fun getRawPackages(): List<PackageRaw> {
 
         return try {
             val lines = csvHandler.readLines()

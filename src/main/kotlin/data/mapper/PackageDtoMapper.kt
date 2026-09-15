@@ -1,9 +1,9 @@
 package data.mapper
 
 import data.dataholder.PackageRaw
-import data.remote.dto.PackageDto
+import data.remote.dto.PackageResponseDto
 
-fun PackageDto.toRaw(): PackageRaw {
+fun PackageResponseDto.toRaw(): PackageRaw {
     return PackageRaw(
         packageId = id,
         weight = weight,

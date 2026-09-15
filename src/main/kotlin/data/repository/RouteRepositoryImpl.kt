@@ -11,7 +11,7 @@ class RouteRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : RouteRepository {
 
-    override fun getAllRoutes(): List<Route> {
+    override suspend fun getAllRoutes(): List<Route> {
         val warehousesById = warehouseRepository
             .getAllWarehouses()
             .associateBy { it.id }

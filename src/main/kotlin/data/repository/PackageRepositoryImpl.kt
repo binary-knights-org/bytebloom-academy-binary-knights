@@ -11,7 +11,7 @@ class PackageRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : PackageRepository {
 
-    override fun getAllPackages(): List<Package> {
+    override suspend fun getAllPackages(): List<Package> {
         val warehousesById = warehouseRepository
             .getAllWarehouses()
             .associateBy { it.id }

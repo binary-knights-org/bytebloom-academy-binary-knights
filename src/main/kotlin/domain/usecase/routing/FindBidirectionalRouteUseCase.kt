@@ -6,8 +6,9 @@ import domain.model.Warehouse
 class FindBidirectionalRouteUseCase(
     private val router: ShortestPathRouter
 ) {
-    operator fun invoke(
-        origin: Warehouse, destination: Warehouse
+    suspend operator fun invoke(
+        origin: Warehouse,
+        destination: Warehouse
     ): List<Warehouse>? {
         return router.findShortestPath(origin, destination)
     }
