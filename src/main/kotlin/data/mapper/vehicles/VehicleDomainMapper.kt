@@ -1,4 +1,4 @@
-package data.mapper
+package data.mapper.vehicles
 
 import data.dataholder.VehicleRaw
 import domain.model.Vehicle

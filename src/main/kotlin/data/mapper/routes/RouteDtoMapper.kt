@@ -1,4 +1,4 @@
-package data.mapper
+package data.mapper.routes
 
 import data.dataholder.RouteRaw
 import data.remote.dto.RouteResponseDto

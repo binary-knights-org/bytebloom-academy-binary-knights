@@ -1,4 +1,4 @@
-package data.mapper
+package data.mapper.packages
 
 import data.dataholder.PackageRaw
 import data.remote.dto.PackageResponseDto
