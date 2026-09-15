@@ -1,4 +1,4 @@
-package data.mapper
+package data.mapper.warehouses
 
 import data.dataholder.WarehouseRaw
 import data.remote.dto.WarehouseResponseDto
