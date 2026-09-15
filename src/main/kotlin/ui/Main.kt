@@ -16,11 +16,11 @@ import domain.usecase.routing.FindOptimalPathUseCase
 import domain.usecase.shipment.FindPackagesForConsolidationUseCase
 import domain.usecase.vehicle.FindSuitableVehicleUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
-import data.remote.SupabaseHttpClient
-import data.remote.SupabaseWarehouseDataSource
-import data.remote.SupabasePackageDataSource
-import data.remote.SupabaseRouteDataSource
-import data.remote.SupabaseVehicleDataSource
+import data.remote.client.SupabaseHttpClient
+import data.remote.supabase.SupabaseWarehouseDataSource
+import data.remote.supabase.SupabasePackageDataSource
+import data.remote.supabase.SupabaseRouteDataSource
+import data.remote.supabase.SupabaseVehicleDataSource
 import kotlinx.coroutines.runBlocking
 
 

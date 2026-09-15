@@ -1,4 +1,4 @@
-package data.remote
+package data.remote.client
 
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
