@@ -1,7 +1,7 @@
 package data.repository
 
 import data.datasource.PackageDataSource
-import data.mapper.toDomain
+import data.mapper.packages.toDomain
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
@@ -11,13 +11,14 @@ class PackageRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : PackageRepository {
 
-    override suspend fun getAllPackages(): List<Package> {
-        val warehousesById = warehouseRepository
-            .getAllWarehouses()
-            .associateBy { it.id }
+    private var packages: List<Package>? = null
 
-        return dataSource
-            .getRawPackages()
-            .mapNotNull { it.toDomain(warehousesById) }
+    override suspend fun getAllPackages(): List<Package> {
+        packages?.let { return it }
+        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
+        val loadedPackages = dataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
+
+        packages = loadedPackages
+        return loadedPackages
     }
 }
