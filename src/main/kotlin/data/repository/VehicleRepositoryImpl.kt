@@ -2,7 +2,7 @@ package data.repository
 
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
-import data.mapper.packages.toDomain
+import data.mapper.vehicles.toDomain
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository

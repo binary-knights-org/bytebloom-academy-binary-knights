@@ -2,7 +2,7 @@ package data.remote.supabase
 
 import data.dataholder.RouteRaw
 import data.datasource.RouteDataSource
-import data.mapper.packages.toRaw
+import data.mapper.routes.toRaw
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.RouteResponseDto
 import io.ktor.client.call.body
