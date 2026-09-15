@@ -15,20 +15,4 @@ fun RouteDto.toRaw(): RouteRaw {
     )
 }
 
-fun RouteDto.toDomain(
-    warehousesById: Map<String, Warehouse>
-): Route? {
-    val originWarehouse = warehousesById[originHubId]
-    val destinationWarehouse = warehousesById[destinationHubId]
 
-    return when {
-        originWarehouse == null || destinationWarehouse == null -> null
-        else -> Route(
-            id = routeId,
-            distanceKm = distanceKm,
-            typicalDelayMin = typicalDelayMin,
-            originHub = originWarehouse,
-            destinationHub = destinationWarehouse
-        )
-    }
-}
