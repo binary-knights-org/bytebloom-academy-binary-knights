@@ -1,8 +1,9 @@
-package data.remote
+package data.remote.supabase
 
 import data.dataholder.PackageRaw
 import data.datasource.PackageDataSource
-import data.mapper.toRaw
+import data.mapper.packages.toRaw
+import data.remote.client.SupabaseHttpClient
 import io.ktor.client.call.body
 import data.remote.dto.PackageResponseDto
 
