@@ -1,4 +1,4 @@
-package data.remote
+package data.remote.client
 
 object SupabaseConfig {
     val BASE_URL: String = System.getenv("SUPABASE_URL") ?: ""

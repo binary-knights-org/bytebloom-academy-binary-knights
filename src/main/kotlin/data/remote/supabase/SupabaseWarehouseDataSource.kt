@@ -1,8 +1,8 @@
-package data.remote
+package data.remote.supabase
 import data.dataholder.WarehouseRaw
 import data.datasource.WarehouseDataSource
-import data.mapper.toRaw
-import data.remote.dto.WarehouseRequestDto
+import data.mapper.packages.toRaw
+import data.remote.client.SupabaseHttpClient
 import data.remote.dto.WarehouseResponseDto
 import io.ktor.client.call.body
 private const val WAREHOUSES_TABLE = "warehouses"
