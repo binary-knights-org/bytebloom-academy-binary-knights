@@ -1,12 +1,12 @@
-package domain.usecase.crud
+package domain.usecase.crud.route
 
 import domain.model.Route
 import domain.repository.RouteRepository
 
-class UpdateRouteUseCase(
+class CreateRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(route: Route): Boolean {
-        return routeRepository.updateRoute(route)
+        return routeRepository.createRoute(route)
     }
 }
