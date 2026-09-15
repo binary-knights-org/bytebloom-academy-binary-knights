@@ -19,7 +19,7 @@ private const val PAD_MEDIUM = 5
 private const val PAD_LARGE = 8
 private const val QUEUE_DISPLAY_LIMIT = 5
 
-internal fun printParsingReport(
+internal suspend  fun printParsingReport(
     vehicleRepository: VehicleRepository,
     warehouseRepository: WarehouseRepository,
     packageRepository: PackageRepository,
@@ -50,7 +50,7 @@ internal fun printParsingReport(
     println("------------------------------------------------------------")
 }
 
-internal fun buildDomainGraph(
+internal suspend  fun buildDomainGraph(
     warehouseRepository: WarehouseRepository,
 ): List<Warehouse> {
     val graph = warehouseRepository.getAllWarehouses()
@@ -74,7 +74,7 @@ private fun printGraphSummary(
     println("------------------------------------------------------------")
 }
 
-internal fun runCargoDemos(
+internal suspend  fun runCargoDemos(
     packageRepository: PackageRepository, warehouses: List<Warehouse>
 ) {
     val sortedPackages = sortPackagesByImportance(packageRepository.getAllPackages())

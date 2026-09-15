@@ -5,24 +5,26 @@ import data.datasource.VehicleDataSource
 import data.mapper.toRaw
 import data.remote.dto.VehicleResponseDto
 import io.ktor.client.call.body
-import kotlinx.coroutines.runBlocking
-
+import data.mapper.toRequestDto
 private const val VEHICLES_TABLE = "vehicles"
 
 class SupabaseVehicleDataSource(
     private val httpClient: SupabaseHttpClient
 ) : VehicleDataSource {
 
-    override fun getRawVehicles(): List<VehicleRaw> = runBlocking {
+    override suspend fun getRawVehicles(): List<VehicleRaw> {
 
         val response = httpClient.get(VEHICLES_TABLE)
 
         val vehicles: List<VehicleResponseDto> = response.body()
 
-        vehicles.map { it.toRaw() }
+        return vehicles.map { it.toRaw() }
     }
-
-    override fun addRawVehicle(vehicle: VehicleRaw) {
-        TODO("POST will be implemented next")
+    override suspend fun addRawVehicle(vehicle: VehicleRaw) {
+        val request = vehicle.toRequestDto()
+        httpClient.post(
+            VEHICLES_TABLE,
+            request
+        )
     }
 }

@@ -10,7 +10,7 @@ class BidirectionalBfsRouter(
     var visitedWarehouseCount = 0
         private set
 
-    override fun findShortestPath(
+    override suspend fun findShortestPath(
         origin: Warehouse,
         destination: Warehouse
     ): List<Warehouse>? {
@@ -18,7 +18,6 @@ class BidirectionalBfsRouter(
 
         val allWarehouses = warehouseRepository.getAllWarehouses()
         val warehousesById = allWarehouses.associateBy { it.id }
-
         val actualOrigin = warehousesById[origin.id]
         val actualDestination = warehousesById[destination.id]
 

@@ -1,9 +1,9 @@
 package data.mapper
 
 import data.dataholder.RouteRaw
-import data.remote.dto.RouteDto
+import data.remote.dto.RouteResponseDto
 
-fun RouteDto.toRaw(): RouteRaw {
+fun RouteResponseDto.toRaw(): RouteRaw {
     return RouteRaw(
         routeId = routeId,
         originHubId = originHubId,

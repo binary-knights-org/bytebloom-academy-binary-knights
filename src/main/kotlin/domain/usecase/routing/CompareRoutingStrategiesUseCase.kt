@@ -8,7 +8,7 @@ class CompareRoutingStrategiesUseCase(
     private val findOptimalPathUseCase: FindOptimalPathUseCase,
     private val findBidirectionalRouteUseCase: FindBidirectionalRouteUseCase
 ) {
-    operator fun invoke(origin: Warehouse, destination: Warehouse): RoutingComparison {
+  suspend  operator fun invoke(origin: Warehouse, destination: Warehouse): RoutingComparison {
         return RoutingComparison(
             fewestHops = findFewestHopsRouteUseCase(origin, destination),
             optimalDistance = findOptimalPathUseCase(origin, destination),

@@ -88,7 +88,7 @@ fun printTreePerformanceAnalysis(
     println("============================================================")
 }
 
-fun printCommandPatternTest(
+suspend fun printCommandPatternTest(
     dispatchVehicleUseCase: DispatchVehicleUseCase,
     firstWarehouse: Warehouse,
     firstVehicle: Vehicle
@@ -135,7 +135,7 @@ private fun createDispatchCommands(
     )
 }
 
-private fun printCommandExecution(
+private suspend  fun printCommandExecution(
     commandInvoker: CommandInvoker,
     command: DispatchVehicleCommand,
     warehouse: Warehouse,
@@ -154,7 +154,7 @@ private fun printCommandExecution(
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
 }
 
-private fun printUndo(
+private suspend  fun printUndo(
     commandInvoker: CommandInvoker,
     warehouse: Warehouse,
     vehicle: Vehicle,
@@ -172,7 +172,7 @@ private fun printUndo(
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
 }
 
-private fun printRedo(
+private suspend  fun printRedo(
     commandInvoker: CommandInvoker,
     warehouse: Warehouse,
     vehicle: Vehicle,
@@ -190,7 +190,7 @@ private fun printRedo(
     println("  - Redo stack size: ${commandInvoker.redoHistorySize}")
 }
 
-private fun printHistoryClearance(
+private suspend  fun printHistoryClearance(
     commandInvoker: CommandInvoker,
     command: DispatchVehicleCommand,
     warehouse: Warehouse,
@@ -217,7 +217,7 @@ private fun printHistoryClearance(
 }
 
 
-fun runSimulationDemos(
+suspend fun  runSimulationDemos(
     vehicleRepository: VehicleRepository,
     warehouseRepository: WarehouseRepository,
     warehouses: List<Warehouse>

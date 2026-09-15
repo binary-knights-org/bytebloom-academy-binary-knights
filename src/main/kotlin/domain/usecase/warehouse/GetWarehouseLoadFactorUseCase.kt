@@ -7,7 +7,7 @@ private const val ZERO_CAPACITY = 0.0
 class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
-    operator fun invoke(warehouseId: String): Double {
+    suspend  operator fun invoke(warehouseId: String): Double {
         val warehouse = warehouseRepository.getAllWarehouses()
             .firstOrNull { it.id == warehouseId } ?: return ZERO_CAPACITY
 

@@ -20,7 +20,7 @@ internal data class RoutingResult(
     val totalDistanceKm: Double
 )
 
-internal fun runRoutingAndComparisonDemos(
+internal suspend fun runRoutingAndComparisonDemos(
     warehouseRepository: WarehouseRepository,
     warehouses: List<Warehouse>,
     findOptimalPathUseCase: FindOptimalPathUseCase,
@@ -35,7 +35,7 @@ internal fun runRoutingAndComparisonDemos(
     compareRoutingAlgorithms(warehouseRepository, warehouses)
 }
 
-private fun calculateTotalDistance(path: List<Warehouse>?): Double {
+private  fun calculateTotalDistance(path: List<Warehouse>?): Double {
     if (path == null || path.size < 2) return 0.0
     var distance = 0.0
     for (i in 0 until path.size - 1) {
@@ -47,9 +47,9 @@ private fun calculateTotalDistance(path: List<Warehouse>?): Double {
     return distance
 }
 
-private fun printRouteDemo(
+private suspend  fun printRouteDemo(
     graph: List<Warehouse>,
-    findPath: (Warehouse, Warehouse) -> List<Warehouse>?,
+    findPath: suspend  (Warehouse, Warehouse) -> List<Warehouse>?,
     label: String
 ) {
     val origin = graph.firstOrNull() ?: return
@@ -64,7 +64,7 @@ private fun printRouteDemo(
     }
 }
 
-private fun runStandardBfs(
+private suspend  fun runStandardBfs(
     warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
@@ -80,7 +80,7 @@ private fun runStandardBfs(
     )
 }
 
-private fun runBidirectionalBfs(
+private suspend  fun runBidirectionalBfs(
     warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
@@ -96,7 +96,7 @@ private fun runBidirectionalBfs(
     )
 }
 
-private fun compareRoutingAlgorithms(
+private suspend  fun compareRoutingAlgorithms(
     warehouseRepository: WarehouseRepository,
     graph: List<Warehouse>
 ) {

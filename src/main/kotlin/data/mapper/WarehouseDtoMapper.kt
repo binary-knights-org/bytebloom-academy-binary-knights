@@ -1,9 +1,9 @@
 package data.mapper
 
 import data.dataholder.WarehouseRaw
-import data.remote.dto.WarehouseDto
+import data.remote.dto.WarehouseResponseDto
 
-fun WarehouseDto.toRaw(): WarehouseRaw {
+fun WarehouseResponseDto.toRaw(): WarehouseRaw {
     return WarehouseRaw(
         hubId = hubId,
         hubName = hubName,

@@ -10,3 +10,4 @@
         @SerialName("max_capacity_kg") val maxCapacityKg: Double,
         @SerialName("cost_per_km") val costPerKm: Double
     )
+

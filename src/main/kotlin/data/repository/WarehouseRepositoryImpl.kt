@@ -17,7 +17,7 @@ class WarehouseRepositoryImpl(
     private val vehicleDataSource: VehicleDataSource,
     private val routeDataSource: RouteDataSource
 ) : WarehouseRepository {
-    private val warehouses: List<Warehouse> by lazy {
+    override suspend fun getAllWarehouses(): List<Warehouse> {
         val warehouses = warehouseDataSource
             .getRawWarehouses()
             .map { it.toDomain() }
@@ -31,13 +31,13 @@ class WarehouseRepositoryImpl(
         val routes = routeDataSource
             .getRawRoutes()
             .mapNotNull { it.toDomain(warehousesById) }
-        linkWarehouseData(warehouses, packages, vehicles, routes)
+        return linkWarehouseData(
+            warehouses,
+            packages,
+            vehicles,
+            routes
+        )
     }
-
-    override fun getAllWarehouses(): List<Warehouse> {
-        return warehouses
-    }
-
     private fun linkWarehouseData(
         warehouses: List<Warehouse>,
         packages: List<Package>,

@@ -23,7 +23,7 @@ import data.remote.SupabaseRouteDataSource
 import data.remote.SupabaseVehicleDataSource
 
 
-fun main() {
+suspend fun main() {
     printSystemHeader()
     val warehouseDataSource = SupabaseWarehouseDataSource(SupabaseHttpClient)
     val packageDataSource = SupabasePackageDataSource(SupabaseHttpClient)

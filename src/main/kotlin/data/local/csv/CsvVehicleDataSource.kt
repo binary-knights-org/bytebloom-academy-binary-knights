@@ -7,7 +7,7 @@ import data.datasource.VehicleDataSource
 class CsvVehicleDataSource(
     private val csvHandler: CsvFileHandler,
 ) : VehicleDataSource {
-    override  fun getRawVehicles(): List<VehicleRaw> {
+    override suspend  fun getRawVehicles(): List<VehicleRaw> {
         return try {
             val lines = csvHandler.readLines()
             lines.mapNotNull { parseLine(it) }
@@ -16,7 +16,7 @@ class CsvVehicleDataSource(
         }
     }
 
-    override  fun addRawVehicle(vehicle: VehicleRaw) {
+    override suspend  fun addRawVehicle(vehicle: VehicleRaw) {
         val lines = vehicle.vehicleIds.map { id ->
             "$id,${vehicle.currentHubId},${vehicle.maxCapacityKg},${vehicle.costPerKm}"
         }
