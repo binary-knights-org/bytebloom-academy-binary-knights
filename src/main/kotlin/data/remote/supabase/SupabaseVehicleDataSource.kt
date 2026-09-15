@@ -1,11 +1,13 @@
-package data.remote
+package data.remote.supabase
 
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
-import data.mapper.toRaw
+import data.mapper.vehicles.toRaw
 import data.remote.dto.VehicleResponseDto
 import io.ktor.client.call.body
-import data.mapper.toRequestDto
+import data.mapper.vehicles.toRequestDto
+import data.remote.client.SupabaseHttpClient
+
 private const val VEHICLES_TABLE = "vehicles"
 
 class SupabaseVehicleDataSource(

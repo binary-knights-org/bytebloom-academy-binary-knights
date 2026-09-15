@@ -1,22 +1,22 @@
-package data.mapper
+package data.mapper.routes
 
-import data.dataholder.PackageRaw
-import domain.model.Package
+import data.dataholder.RouteRaw
+import domain.model.Route
 import domain.model.Warehouse
 
-fun PackageRaw.toDomain(
+fun RouteRaw.toDomain(
     warehousesById: Map<String, Warehouse>
-): Package? {
+): Route? {
     val originWarehouse = warehousesById[originHubId]
     val destinationWarehouse = warehousesById[destinationHubId]
 
     return when {
         originWarehouse == null || destinationWarehouse == null -> null
 
-        else -> Package(
-            id = packageId,
-            weight = weight,
-            priority = priority,
+        else -> Route(
+            id = routeId,
+            distanceKm = distanceKm,
+            typicalDelayMin = typicalDelayMin,
             originHub = originWarehouse,
             destinationHub = destinationWarehouse
         )

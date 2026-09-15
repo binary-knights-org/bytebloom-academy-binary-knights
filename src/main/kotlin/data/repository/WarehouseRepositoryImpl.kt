@@ -4,7 +4,10 @@ import data.datasource.PackageDataSource
 import data.datasource.RouteDataSource
 import data.datasource.VehicleDataSource
 import data.datasource.WarehouseDataSource
-import data.mapper.toDomain
+import data.mapper.packages.toDomain
+import data.mapper.vehicles.toDomain
+import data.mapper.routes.toDomain
+import data.mapper.warehouses.toDomain
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
@@ -17,32 +20,27 @@ class WarehouseRepositoryImpl(
     private val vehicleDataSource: VehicleDataSource,
     private val routeDataSource: RouteDataSource
 ) : WarehouseRepository {
+
+    private var warehouses: List<Warehouse>? = null
+
     override suspend fun getAllWarehouses(): List<Warehouse> {
-        val warehouses = warehouseDataSource
-            .getRawWarehouses()
-            .map { it.toDomain() }
-        val warehousesById = warehouses.associateBy { it.id }
-        val packages = packageDataSource
-            .getRawPackages()
-            .mapNotNull { it.toDomain(warehousesById) }
-        val vehicles = vehicleDataSource
-            .getRawVehicles()
-            .mapNotNull { it.toDomain(warehousesById) }
-        val routes = routeDataSource
-            .getRawRoutes()
-            .mapNotNull { it.toDomain(warehousesById) }
-        return linkWarehouseData(
-            warehouses,
-            packages,
-            vehicles,
-            routes
-        )
+        warehouses?.let { return it }
+
+        val loadedWarehouses = warehouseDataSource.getRawWarehouses().map { it.toDomain() }
+
+        val warehousesById = loadedWarehouses.associateBy { it.id }
+
+        val packages = packageDataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
+        val vehicles = vehicleDataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
+        val routes = routeDataSource.getRawRoutes().mapNotNull { it.toDomain(warehousesById) }
+
+        val linkedWarehouses = linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
+        warehouses = linkedWarehouses
+        return linkedWarehouses
     }
+
     private fun linkWarehouseData(
-        warehouses: List<Warehouse>,
-        packages: List<Package>,
-        vehicles: List<Vehicle>,
-        routes: List<Route>
+        warehouses: List<Warehouse>, packages: List<Package>, vehicles: List<Vehicle>, routes: List<Route>
     ): List<Warehouse> {
         val warehouseMap = warehouses.associateBy { it.id }
         packages.forEach { pkg ->
