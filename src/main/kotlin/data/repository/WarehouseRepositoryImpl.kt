@@ -39,6 +39,40 @@ class WarehouseRepositoryImpl(
         return linkedWarehouses
     }
 
+    override suspend fun createWarehouse(warehouse: Warehouse): Boolean {
+        val currentWarehouses = getAllWarehouses().toMutableList()
+        if (currentWarehouses.any { it.id == warehouse.id }) {
+            return false
+        }
+        currentWarehouses.add(warehouse)
+        warehouses = currentWarehouses
+        return true
+    }
+
+    override suspend fun getWarehouseById(id: String): Warehouse? {
+        return getAllWarehouses().find { it.id == id }
+    }
+
+    override suspend fun updateWarehouse(warehouse: Warehouse): Boolean {
+        val currentWarehouses = getAllWarehouses().toMutableList()
+        val index = currentWarehouses.indexOfFirst { it.id == warehouse.id }
+        if (index == -1) {
+            return false
+        }
+        currentWarehouses[index] = warehouse
+        warehouses = currentWarehouses
+        return true
+    }
+
+    override suspend fun deleteWarehouse(id: String): Boolean {
+        val currentWarehouses = getAllWarehouses().toMutableList()
+        val removed = currentWarehouses.removeIf { it.id == id }
+        if (removed) {
+            warehouses = currentWarehouses
+        }
+        return removed
+    }
+
     private fun linkWarehouseData(
         warehouses: List<Warehouse>, packages: List<Package>, vehicles: List<Vehicle>, routes: List<Route>
     ): List<Warehouse> {
@@ -54,4 +88,5 @@ class WarehouseRepositoryImpl(
         }
         return warehouses
     }
+
 }
