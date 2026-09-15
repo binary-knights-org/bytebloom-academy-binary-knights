@@ -1,5 +1,6 @@
 package data.remote.client
 
+import data.remote.SupabaseHttpClientFactory
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
