@@ -39,15 +39,14 @@ fun main() = runBlocking {
    val warehouses = buildDomainGraph(warehouseRepository)
    val findPackagesForConsolidationUseCase = FindPackagesForConsolidationUseCase(packageRepository)
    val findSuitableVehicleUseCase = FindSuitableVehicleUseCase(vehicleRepository)
-   val assignPackagesToVehicleUseCase = AssignPackagesToVehicleUseCase()
+   val assignPackagesToVehicleUseCase = AssignPackagesToVehicleUseCase(findPackagesForConsolidationUseCase,
+       findSuitableVehicleUseCase)
    val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(warehouseRepository))
    val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(warehouseRepository))
    val findBidirectionalRouteUseCase = FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
    val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
    runCargoDemos(packageRepository, warehouses)
-   runPackageConsolidationDemo(
-       findPackagesForConsolidationUseCase, findSuitableVehicleUseCase, assignPackagesToVehicleUseCase
-   )
+    runPackageConsolidationDemo(assignPackagesToVehicleUseCase)
    runPricingAndDecoratorDemos(warehouses, calculatePricingUseCase)
    runBreakdownSimulationDemo()
    runRoutingAndComparisonDemos(

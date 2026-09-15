@@ -1,26 +1,16 @@
 package ui
 
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
-import domain.usecase.shipment.FindPackagesForConsolidationUseCase
-import domain.usecase.vehicle.FindSuitableVehicleUseCase
 
 private const val DISPLAY_LIMIT = 10
 
 internal suspend fun runPackageConsolidationDemo(
-    findPackagesForConsolidationUseCase: FindPackagesForConsolidationUseCase,
-    findSuitableVehicleUseCase: FindSuitableVehicleUseCase,
     assignPackagesToVehicleUseCase: AssignPackagesToVehicleUseCase
 ) {
-    val packageGroups = findPackagesForConsolidationUseCase()
+    val assignments = assignPackagesToVehicleUseCase()
 
     println("\n[PACKAGE CONSOLIDATION]")
     println("------------------------------------------------------------")
-
-    val assignments = packageGroups.mapNotNull { packages ->
-        val vehicle = findSuitableVehicleUseCase(packages)
-
-        vehicle?.let { assignPackagesToVehicleUseCase(packages, it) }
-    }
 
     if (assignments.isEmpty()) {
         println(" No packages were assigned to available vehicles.")
