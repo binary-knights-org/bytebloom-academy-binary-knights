@@ -97,7 +97,7 @@ object WarehouseValidator {
 
         if (id.isBlank()) {
             errors += FieldError("id", "Warehouse id must not be blank.")
-        } else if (!id.startsWith(WAREHOUSE_ID_PREFIX) && !isValidUuid(id)) {
+        } else if (!id.startsWith(WAREHOUSE_ID_PREFIX)) {
             errors += FieldError(
                 "id", "Warehouse id must start with \"$WAREHOUSE_ID_PREFIX\" or be a valid UUID."
             )
@@ -105,13 +105,5 @@ object WarehouseValidator {
 
         return if (errors.isEmpty()) ValidationResult.Success else ValidationResult.Failure(errors)
     }
-
-    private fun isValidUuid(value: String): Boolean {
-        return try {
-            UUID.fromString(value)
-            true
-        } catch (e: IllegalArgumentException) {
-            false
-        }
-    }
 }
+
