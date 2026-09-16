@@ -1,4 +1,4 @@
-package domain.usecase.crud
+package domain.usecase.crud.route
 
 import domain.repository.RouteRepository
 
