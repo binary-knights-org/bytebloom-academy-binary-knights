@@ -53,23 +53,25 @@ class WarehouseRepositoryImpl(
     }
 
     override suspend fun updateWarehouse(warehouse: Warehouse): Boolean {
-        val currentWarehouses = getAllWarehouses().toMutableList()
-        val index = currentWarehouses.indexOfFirst { it.id == warehouse.id }
-        if (index == -1) {
+        val currentWarehouses = getAllWarehouses()
+        if (currentWarehouses.none { it.id == warehouse.id }) {
             return false
         }
-        currentWarehouses[index] = warehouse
-        warehouses = currentWarehouses
+        warehouses = currentWarehouses.map {
+            if (it.id == warehouse.id) warehouse else it
+        }
         return true
     }
 
     override suspend fun deleteWarehouse(id: String): Boolean {
-        val currentWarehouses = getAllWarehouses().toMutableList()
-        val removed = currentWarehouses.removeIf { it.id == id }
-        if (removed) {
-            warehouses = currentWarehouses
+        val currentWarehouses = getAllWarehouses()
+        val filteredWarehouses = currentWarehouses.filterNot { it.id == id }
+
+        val wasRemoved = filteredWarehouses.size != currentWarehouses.size
+        if (wasRemoved) {
+            warehouses = filteredWarehouses
         }
-        return removed
+        return wasRemoved
     }
 
     private fun linkWarehouseData(
