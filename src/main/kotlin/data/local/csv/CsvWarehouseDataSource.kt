@@ -15,6 +15,10 @@ class CsvWarehouseDataSource(
         }
     }
 
+    override suspend fun createRawWarehouse(warehouse: WarehouseRaw): Boolean = false
+    override suspend fun updateRawWarehouse(id: String, warehouse: WarehouseRaw): Boolean = false
+    override suspend fun deleteRawWarehouse(id: String): Boolean = false
+
     fun parseLine(line: String): WarehouseRaw? {
         val fields = csvHandler.splitFields(line, CSV_DELIMITER)
         if (fields.size != EXPECTED_WAREHOUSE_FIELDS) {

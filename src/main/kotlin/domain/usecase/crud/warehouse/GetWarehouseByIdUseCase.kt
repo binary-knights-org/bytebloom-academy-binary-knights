@@ -7,6 +7,6 @@ class GetWarehouseByIdUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(warehouseId:String): Warehouse? {
-        return warehouseRepository.getWarehouseById(warehouseId)
+        return warehouseRepository.getById(warehouseId)
     }
 }

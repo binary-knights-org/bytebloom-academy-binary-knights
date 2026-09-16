@@ -16,7 +16,7 @@ class LeastHopRouter(
     ): List<Warehouse>? {
         visitedWarehouseCount = 0
 
-        val allWarehouses = warehouseRepository.getAllWarehouses()
+        val allWarehouses = warehouseRepository.getAll()
         val warehousesById = allWarehouses.associateBy { it.id }
 
         val actualOrigin = warehousesById[origin.id]

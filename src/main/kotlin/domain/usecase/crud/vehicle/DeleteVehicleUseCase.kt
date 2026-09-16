@@ -6,7 +6,7 @@ import domain.repository.VehicleRepository
 class DeleteVehicleUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(vehicle: Vehicle): Vehicle  {
-        return vehicleRepository.delete(vehicle)
+    suspend operator fun invoke(id: String): Boolean  {
+        return vehicleRepository.delete(id)
     }
 }

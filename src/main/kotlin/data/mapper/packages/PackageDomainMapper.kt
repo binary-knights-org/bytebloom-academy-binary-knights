@@ -22,3 +22,12 @@ fun PackageRaw.toDomain(
         )
     }
 }
+
+fun Package.toRaw(): PackageRaw =
+    PackageRaw(
+        packageId = id,
+        weight = weight,
+        originHubId = originHub.id,
+        destinationHubId = destinationHub.id,
+        priority = priority
+    )

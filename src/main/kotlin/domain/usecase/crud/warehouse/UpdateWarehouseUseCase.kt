@@ -7,6 +7,6 @@ class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(warehouse: Warehouse): Boolean {
-       return warehouseRepository.updateWarehouse(warehouse)
+       return warehouseRepository.update(warehouse)
     }
 }

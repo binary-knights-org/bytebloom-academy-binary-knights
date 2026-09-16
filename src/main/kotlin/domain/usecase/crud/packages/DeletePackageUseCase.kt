@@ -6,6 +6,6 @@ class DeletePackageUseCase(
     private val packageRepository: PackageRepository
 ) {
     suspend operator fun invoke(id: String): Boolean{
-        return packageRepository.deletePackage(id)
+        return packageRepository.delete(id)
     }
 }

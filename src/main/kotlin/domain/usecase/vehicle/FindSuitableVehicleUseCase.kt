@@ -11,7 +11,7 @@ class FindSuitableVehicleUseCase(
         val origin = packages.first().originHub
         val totalWeight = packages.sumOf { it.weight }
 
-        return vehicleRepository.getAllVehicles()
+        return vehicleRepository.getAll()
             .filter { it.currentHub == origin }
             .firstOrNull { vehicle ->
                 vehicle.currentLoadKg + totalWeight <= vehicle.maxCapacityKg

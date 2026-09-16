@@ -27,17 +27,19 @@ object SupabaseHttpClient {
     suspend inline fun <reified T> patch(
         table: String,
         id: String,
-        body: T
+        body: T,
+        primaryKey: String = "id"
     ): HttpResponse {
-        return client.patch("$table?id=eq.$id") {
+        return client.patch("$table?$primaryKey=eq.$id") {
             setBody(body)
         }
     }
 
     suspend fun delete(
         table: String,
-        id: String
+        id: String,
+        primaryKey: String = "id"
     ): HttpResponse {
-        return client.delete("$table?id=eq.$id")
+        return client.delete("$table?$primaryKey=eq.$id")
     }
 }

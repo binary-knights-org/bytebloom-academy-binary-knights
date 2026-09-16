@@ -8,7 +8,7 @@ class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend  operator fun invoke(warehouseId: String): Double {
-        val warehouse = warehouseRepository.getAllWarehouses()
+        val warehouse = warehouseRepository.getAll()
             .firstOrNull { it.id == warehouseId } ?: return ZERO_CAPACITY
 
         val cargoWeight = warehouse.cargoQueue.sumOf { it.weight }

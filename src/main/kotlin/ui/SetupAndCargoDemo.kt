@@ -29,22 +29,22 @@ internal suspend  fun printParsingReport(
     println("------------------------------------------------------------")
     println(
         " Fleet       : ${
-            vehicleRepository.getAllVehicles().size.toString().padEnd(PAD_SMALL)
+            vehicleRepository.getAll().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println(
         " Packages    : ${
-            packageRepository.getAllPackages().size.toString().padEnd(PAD_SMALL)
+            packageRepository.getAll().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println(
         " Routes      : ${
-            routeRepository.getAllRoutes().size.toString().padEnd(PAD_SMALL)
+            routeRepository.getAll().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println(
         " Warehouses  : ${
-            warehouseRepository.getAllWarehouses().size.toString().padEnd(PAD_SMALL)
+            warehouseRepository.getAll().size.toString().padEnd(PAD_SMALL)
         } records parsed."
     )
     println("------------------------------------------------------------")
@@ -53,7 +53,7 @@ internal suspend  fun printParsingReport(
 internal suspend  fun buildDomainGraph(
     warehouseRepository: WarehouseRepository,
 ): List<Warehouse> {
-    val graph = warehouseRepository.getAllWarehouses()
+    val graph = warehouseRepository.getAll()
     printGraphSummary(graph)
     return graph
 }
@@ -77,7 +77,7 @@ private fun printGraphSummary(
 internal suspend  fun runCargoDemos(
     packageRepository: PackageRepository, warehouses: List<Warehouse>
 ) {
-    val sortedPackages = sortPackagesByImportance(packageRepository.getAllPackages())
+    val sortedPackages = sortPackagesByImportance(packageRepository.getAll())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(warehouses)
 }

@@ -16,45 +16,9 @@ class CsvVehicleDataSource(
         }
     }
 
-    override suspend fun getRawVehicleById(id: String): VehicleRaw? {
-        return getRawVehicles().firstOrNull {
-            it.vehicleIds.contains(id)
-        }
-    }
-
-    override suspend fun addRawVehicle(vehicle: VehicleRaw) {
-        val lines = vehicle.vehicleIds.map { id ->
-            "$id,${vehicle.currentHubId},${vehicle.maxCapacityKg},${vehicle.costPerKm}"
-        }
-        csvHandler.appendLines(lines)
-    }
-
-    override suspend fun updateRawVehicle(vehicle: VehicleRaw) {
-        val lines = csvHandler.readLines()
-
-        val updatedLines = lines.map { line ->
-            val existingVehicle = parseLine(line)
-
-            if (existingVehicle?.vehicleIds?.contains(vehicle.vehicleIds.first()) == true) {
-                "${vehicle.vehicleIds.first()},${vehicle.currentHubId},${vehicle.maxCapacityKg},${vehicle.costPerKm}"
-            } else {
-                line
-            }
-        }
-
-        csvHandler.rewriteLines(updatedLines)
-    }
-
-    override suspend fun deleteRawVehicle(id: String) {
-        val lines = csvHandler.readLines()
-
-        val remainingLines = lines.filter { line ->
-            val vehicle = parseLine(line)
-            vehicle?.vehicleIds?.contains(id) != true
-        }
-
-        csvHandler.rewriteLines(remainingLines)
-    }
+    override suspend fun createRawVehicle(vehicle: VehicleRaw): Boolean = false
+    override suspend fun updateRawVehicle(id: String, vehicle: VehicleRaw): Boolean = false
+    override suspend fun deleteRawVehicle(id: String): Boolean = false
 
     fun parseLine(line: String): VehicleRaw? {
         val fields = csvHandler.splitFields(line, CSV_DELIMITER)
