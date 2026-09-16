@@ -7,6 +7,7 @@ import data.mapper.routes.toRequestDto
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.routeDto.RouteResponseDto
 import io.ktor.client.call.body
+import io.ktor.http.isSuccess
 
 private const val ROUTES_TABLE = "routes"
 
@@ -25,7 +26,7 @@ class SupabaseRouteDataSource(
             table = ROUTES_TABLE,
             body = route.toRequestDto()
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 
     override suspend fun updateRawRoute(id: String, route: RouteRaw): Boolean {
@@ -34,7 +35,7 @@ class SupabaseRouteDataSource(
             id = id,
             body = route.toRequestDto()
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 
     override suspend fun deleteRawRoute(id: String): Boolean {
@@ -42,6 +43,6 @@ class SupabaseRouteDataSource(
             table = ROUTES_TABLE,
             id = id
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 }

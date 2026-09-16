@@ -7,6 +7,7 @@ import data.mapper.warehouses.toRequestDto
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.warehouseDto.WarehouseResponseDto
 import io.ktor.client.call.body
+import io.ktor.http.isSuccess
 
 private const val WAREHOUSES_TABLE = "warehouses"
 
@@ -25,7 +26,7 @@ class SupabaseWarehouseDataSource(
             table = WAREHOUSES_TABLE,
             body = warehouse.toRequestDto()
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 
     override suspend fun updateRawWarehouse(id: String, warehouse: WarehouseRaw): Boolean {
@@ -34,7 +35,7 @@ class SupabaseWarehouseDataSource(
             id = id,
             body = warehouse.toRequestDto()
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 
     override suspend fun deleteRawWarehouse(id: String): Boolean {
@@ -42,6 +43,6 @@ class SupabaseWarehouseDataSource(
             table = WAREHOUSES_TABLE,
             id = id
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 }

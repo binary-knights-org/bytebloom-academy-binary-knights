@@ -7,6 +7,7 @@ import data.mapper.packages.toRequestDto
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.packageDto.PackageResponseDto
 import io.ktor.client.call.body
+import io.ktor.http.isSuccess
 
 private const val PACKAGES_TABLE = "packages"
 
@@ -26,7 +27,7 @@ class SupabasePackageDataSource(
             table = PACKAGES_TABLE,
             body = pkg.toRequestDto()
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 
     override suspend fun updateRawPackage(id: String, pkg: PackageRaw): Boolean {
@@ -36,7 +37,7 @@ class SupabasePackageDataSource(
             body = pkg.toRequestDto(),
             primaryKey = "package_id"
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 
     override suspend fun deleteRawPackage(id: String): Boolean {
@@ -45,6 +46,6 @@ class SupabasePackageDataSource(
             id = id,
             primaryKey = "package_id"
         )
-        return response.status.value in 200..299
+        return response.status.isSuccess()
     }
 }
