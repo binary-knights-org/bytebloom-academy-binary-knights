@@ -10,7 +10,7 @@ class LeastHopRouter(
     var visitedWarehouseCount: Int = 0
         private set
 
-    override fun findShortestPath(
+    override suspend fun findShortestPath(
         origin: Warehouse,
         destination: Warehouse
     ): List<Warehouse>? {

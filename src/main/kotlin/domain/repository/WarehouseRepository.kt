@@ -1,10 +1,13 @@
 package domain.repository
 
 import domain.model.Warehouse
-import domain.model.Package
-import domain.model.Route
-import domain.model.Vehicle
 
-interface WarehouseRepository {
-    fun getAllWarehouses(): List<Warehouse>
+interface WarehouseRepository : BaseRepository<Warehouse, String> {
+
+   suspend fun getAllWarehouses(): List<Warehouse>
+   suspend fun createWarehouse(warehouse: Warehouse): Boolean
+   suspend fun getWarehouseById(id: String): Warehouse?
+   suspend fun updateWarehouse(warehouse: Warehouse): Boolean
+   suspend fun deleteWarehouse(id: String): Boolean
+
 }

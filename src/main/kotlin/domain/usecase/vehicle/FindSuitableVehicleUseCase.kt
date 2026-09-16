@@ -7,7 +7,7 @@ import domain.repository.VehicleRepository
 class FindSuitableVehicleUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    operator fun invoke(packages: List<Package>): Vehicle? {
+    suspend   operator fun invoke(packages: List<Package>): Vehicle? {
         val origin = packages.first().originHub
         val totalWeight = packages.sumOf { it.weight }
 

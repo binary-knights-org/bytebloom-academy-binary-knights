@@ -2,7 +2,7 @@ package domain.command
 
 interface Command {
     val description: String
-    fun execute(): Boolean
-    fun undo(): Boolean
+    suspend  fun execute(): Boolean
+    suspend  fun undo(): Boolean
 
 }

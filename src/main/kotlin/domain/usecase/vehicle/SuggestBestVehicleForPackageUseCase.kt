@@ -7,7 +7,7 @@ import domain.repository.VehicleRepository
 class SuggestBestVehicleForPackageUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    operator fun invoke(pkg: Package): Vehicle? {
+    suspend operator fun invoke(pkg: Package): Vehicle? {
         return vehicleRepository.getAllVehicles()
             .filter { vehicle -> hasSufficientRemainingCapacity(vehicle, pkg) }
             .minByOrNull { it.costPerKm }

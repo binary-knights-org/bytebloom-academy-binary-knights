@@ -13,12 +13,12 @@ class AssignPackageToQueueCommand(
     override val description: String
         get() = "AssignPackageToQueueCommand(package=${pkg.id}, warehouse=${warehouse.id})"
 
-    override fun execute(): Boolean {
+    override suspend  fun execute(): Boolean {
         assignPackageToCargoQueueUseCase(warehouse, pkg)
         return true
     }
 
-    override fun undo(): Boolean {
+    override suspend  fun undo(): Boolean {
         return warehouse.removePackage(pkg)
     }
 }

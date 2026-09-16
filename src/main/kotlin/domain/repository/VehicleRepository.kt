@@ -2,7 +2,8 @@ package domain.repository
 
 import domain.model.Vehicle
 
-interface VehicleRepository {
-    fun getAllVehicles(): List<Vehicle>
-    fun addVehicleToHub(vehicle: Vehicle): Boolean
+interface VehicleRepository : BaseRepository<Vehicle, String> {
+
+    suspend fun getAllVehicles(): List<Vehicle>
+    suspend fun addVehicleToHub(vehicle: Vehicle): Boolean
 }

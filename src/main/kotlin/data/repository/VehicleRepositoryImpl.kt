@@ -2,7 +2,7 @@ package data.repository
 
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
-import data.mapper.toDomain
+import data.mapper.vehicles.toDomain
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
@@ -12,26 +12,28 @@ class VehicleRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : VehicleRepository {
 
-    override fun getAllVehicles(): List<Vehicle> {
-        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
+    private var vehicles: List<Vehicle>? = null
 
-        return dataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
+    override suspend fun getAllVehicles(): List<Vehicle> {
+        vehicles?.let { return it }
+        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
+        val loadedVehicles = dataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
+
+        vehicles = loadedVehicles
+        return loadedVehicles
     }
 
-    override fun addVehicleToHub(vehicle: Vehicle): Boolean {
+    override suspend fun addVehicleToHub(vehicle: Vehicle): Boolean {
         val vehicleExists = dataSource.getRawVehicles().flatMap { it.vehicleIds }.any { it == vehicle.id }
-
         if (vehicleExists) {
             return false
         }
-
         val newVehicle = VehicleRaw(
             vehicleIds = listOf(vehicle.id),
             currentHubId = vehicle.currentHub.id,
             maxCapacityKg = vehicle.maxCapacityKg,
             costPerKm = vehicle.costPerKm
         )
-
         dataSource.addRawVehicle(newVehicle)
         return true
     }

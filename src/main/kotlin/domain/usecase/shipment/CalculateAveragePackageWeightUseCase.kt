@@ -7,7 +7,7 @@ private const val DEFAULT_AVERAGE_WEIGHT = 0.0
 class CalculateAveragePackageWeightUseCase (
     private val warehouseRepository: WarehouseRepository
 ){
-    operator fun invoke(): Double{
+   suspend operator fun invoke(): Double{
        val allPackage = warehouseRepository
             .getAllWarehouses()
             .flatMap { it.cargoQueue }

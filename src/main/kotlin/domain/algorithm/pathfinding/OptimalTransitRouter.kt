@@ -42,7 +42,7 @@ class OptimalTransitRouter(
     private val warehouseRepository: WarehouseRepository
 ) : ShortestPathRouter {
 
-    override fun findShortestPath(
+    override suspend fun findShortestPath(
         origin: Warehouse,
         destination: Warehouse
     ): List<Warehouse>? {
