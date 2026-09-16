@@ -15,6 +15,9 @@ class CsvPackageDataSource(
             emptyList()
         }
     }
+    override suspend fun createRawPackage(pkg: PackageRaw): Boolean = false
+    override suspend fun updateRawPackage(id: String, pkg: PackageRaw): Boolean = false
+    override suspend fun deleteRawPackage(id: String): Boolean = false
 
     fun parseLine(line: String): PackageRaw? {
         val fields = csvHandler.splitFields(line, CSV_DELIMITER)

@@ -3,10 +3,10 @@ package data.remote.supabase
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
 import data.mapper.vehicles.toRaw
-import data.remote.dto.VehicleResponseDto
-import io.ktor.client.call.body
 import data.mapper.vehicles.toRequestDto
 import data.remote.client.SupabaseHttpClient
+import data.remote.dto.vehicleDto.VehicleResponseDto
+import io.ktor.client.call.body
 
 private const val VEHICLES_TABLE = "vehicles"
 
@@ -15,43 +15,33 @@ class SupabaseVehicleDataSource(
 ) : VehicleDataSource {
 
     override suspend fun getRawVehicles(): List<VehicleRaw> {
-
         val response = httpClient.get(VEHICLES_TABLE)
-
-        val vehicles: List<VehicleResponseDto> = response.body()
-
-        return vehicles.map { it.toRaw() }
+        val dtos: List<VehicleResponseDto> = response.body()
+        return dtos.map { it.toRaw() }
     }
 
-    override suspend fun addRawVehicle(vehicle: VehicleRaw) {
-        val request = vehicle.toRequestDto()
-        httpClient.post(
-            VEHICLES_TABLE,
-            request
+    override suspend fun createRawVehicle(vehicle: VehicleRaw): Boolean {
+        val response = httpClient.post(
+            table = VEHICLES_TABLE,
+            body = vehicle.toRequestDto()
         )
+        return response.status.value in 200..299
     }
 
-    override suspend fun updateRawVehicle(vehicle: VehicleRaw) {
-        val request = vehicle.toRequestDto()
-        httpClient.patch(
-            VEHICLES_TABLE,
-            vehicle.vehicleIds.first(),
-            request
+    override suspend fun updateRawVehicle(id: String, vehicle: VehicleRaw): Boolean {
+        val response = httpClient.patch(
+            table = VEHICLES_TABLE,
+            id = id,
+            body = vehicle.toRequestDto()
         )
+        return response.status.value in 200..299
     }
 
-    override suspend fun getRawVehicleById(id: String): VehicleRaw? {
-        val response = httpClient.get(
-            "$VEHICLES_TABLE?vehicle_id=eq.$id"
+    override suspend fun deleteRawVehicle(id: String): Boolean {
+        val response = httpClient.delete(
+            table = VEHICLES_TABLE,
+            id = id
         )
-        val vehicles: List<VehicleResponseDto> = response.body()
-
-        return vehicles.firstOrNull()?.toRaw()
-    }
-    override suspend fun deleteRawVehicle(id: String) {
-        httpClient.delete(
-            VEHICLES_TABLE,
-            id
-        )
+        return response.status.value in 200..299
     }
 }
