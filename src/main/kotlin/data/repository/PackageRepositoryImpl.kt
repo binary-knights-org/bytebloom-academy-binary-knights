@@ -21,4 +21,38 @@ class PackageRepositoryImpl(
         packages = loadedPackages
         return loadedPackages
     }
+
+    override suspend fun getPackageById(id: String): Package? {
+        return getAllPackages().find { it.id == id }
+    }
+
+    override suspend fun createPackage(pkg: Package): Boolean {
+        val currentPackages = getAllPackages().toMutableList()
+        if (currentPackages.any { it.id == pkg.id }) {
+            return false
+        }
+        currentPackages.add(pkg)
+        packages = currentPackages
+        return true
+    }
+
+    override suspend fun deletePackage(id: String): Boolean {
+        val currentPackages = getAllPackages().toMutableList()
+        val removed = currentPackages.removeIf { it.id == id }
+        if (removed) {
+            packages = currentPackages
+        }
+        return removed
+    }
+
+    override suspend fun updatePackage(pkg: Package): Boolean {
+        val currentPackages = getAllPackages().toMutableList()
+        val index = currentPackages.indexOfFirst { it.id == pkg.id }
+        if (index == -1) {
+            return false
+        }
+        currentPackages[index] = pkg
+        packages = currentPackages
+        return true
+    }
 }
