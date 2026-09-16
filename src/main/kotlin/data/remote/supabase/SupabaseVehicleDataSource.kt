@@ -22,11 +22,36 @@ class SupabaseVehicleDataSource(
 
         return vehicles.map { it.toRaw() }
     }
+
     override suspend fun addRawVehicle(vehicle: VehicleRaw) {
         val request = vehicle.toRequestDto()
         httpClient.post(
             VEHICLES_TABLE,
             request
+        )
+    }
+
+    override suspend fun updateRawVehicle(vehicle: VehicleRaw) {
+        val request = vehicle.toRequestDto()
+        httpClient.patch(
+            VEHICLES_TABLE,
+            vehicle.vehicleIds.first(),
+            request
+        )
+    }
+
+    override suspend fun getRawVehicleById(id: String): VehicleRaw? {
+        val response = httpClient.get(
+            "$VEHICLES_TABLE?vehicle_id=eq.$id"
+        )
+        val vehicles: List<VehicleResponseDto> = response.body()
+
+        return vehicles.firstOrNull()?.toRaw()
+    }
+    override suspend fun deleteRawVehicle(id: String) {
+        httpClient.delete(
+            VEHICLES_TABLE,
+            id
         )
     }
 }

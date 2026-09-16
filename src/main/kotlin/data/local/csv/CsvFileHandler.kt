@@ -90,4 +90,23 @@ class CsvFileHandler(
     fun splitFields(line: String, delimiter: String = ","): List<String> {
         return line.split(delimiter).map { it.trim() }
     }
+    fun rewriteLines(lines: List<String>) {
+        if (!file.exists()) {
+            throw CsvFileNotFoundException(filePath)
+        }
+
+        try {
+            val header = file.readLines().take(headerLinesToSkip)
+            val validLines = lines.filter { it.isNotBlank() }
+
+            val content = (header + validLines).joinToString(
+                separator = "\n",
+                postfix = "\n"
+            )
+
+            file.writeText(content)
+        } catch (e: IOException) {
+            throw CsvWriteException(e)
+        }
+    }
 }

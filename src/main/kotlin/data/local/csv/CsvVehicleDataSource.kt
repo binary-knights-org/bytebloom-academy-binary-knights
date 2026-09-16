@@ -3,11 +3,11 @@ package data.local.csv
 import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
 
-
 class CsvVehicleDataSource(
     private val csvHandler: CsvFileHandler,
 ) : VehicleDataSource {
-    override suspend  fun getRawVehicles(): List<VehicleRaw> {
+
+    override suspend fun getRawVehicles(): List<VehicleRaw> {
         return try {
             val lines = csvHandler.readLines()
             lines.mapNotNull { parseLine(it) }
@@ -16,18 +16,53 @@ class CsvVehicleDataSource(
         }
     }
 
-    override suspend  fun addRawVehicle(vehicle: VehicleRaw) {
+    override suspend fun getRawVehicleById(id: String): VehicleRaw? {
+        return getRawVehicles().firstOrNull {
+            it.vehicleIds.contains(id)
+        }
+    }
+
+    override suspend fun addRawVehicle(vehicle: VehicleRaw) {
         val lines = vehicle.vehicleIds.map { id ->
             "$id,${vehicle.currentHubId},${vehicle.maxCapacityKg},${vehicle.costPerKm}"
         }
         csvHandler.appendLines(lines)
     }
 
+    override suspend fun updateRawVehicle(vehicle: VehicleRaw) {
+        val lines = csvHandler.readLines()
+
+        val updatedLines = lines.map { line ->
+            val existingVehicle = parseLine(line)
+
+            if (existingVehicle?.vehicleIds?.contains(vehicle.vehicleIds.first()) == true) {
+                "${vehicle.vehicleIds.first()},${vehicle.currentHubId},${vehicle.maxCapacityKg},${vehicle.costPerKm}"
+            } else {
+                line
+            }
+        }
+
+        csvHandler.rewriteLines(updatedLines)
+    }
+
+    override suspend fun deleteRawVehicle(id: String) {
+        val lines = csvHandler.readLines()
+
+        val remainingLines = lines.filter { line ->
+            val vehicle = parseLine(line)
+            vehicle?.vehicleIds?.contains(id) != true
+        }
+
+        csvHandler.rewriteLines(remainingLines)
+    }
+
     fun parseLine(line: String): VehicleRaw? {
         val fields = csvHandler.splitFields(line, CSV_DELIMITER)
+
         if (fields.size != EXPECTED_VEHICLE_FIELDS) {
             return null
         }
+
         return mapFieldsToVehicle(fields)
     }
 
