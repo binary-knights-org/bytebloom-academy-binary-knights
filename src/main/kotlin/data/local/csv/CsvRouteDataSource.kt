@@ -15,6 +15,10 @@ class CsvRouteDataSource(
         }
     }
 
+    override suspend fun createRawRoute(route: RouteRaw): Boolean = false
+    override suspend fun updateRawRoute(id: String, route: RouteRaw): Boolean = false
+    override suspend fun deleteRawRoute(id: String): Boolean = false
+
     fun parseLine(line: String): RouteRaw? {
         val fields = csvHandler.splitFields(line, CSV_DELIMITER)
         if (fields.size != EXPECTED_ROUTE_FIELDS) {

@@ -46,7 +46,7 @@ class OptimalTransitRouter(
         origin: Warehouse,
         destination: Warehouse
     ): List<Warehouse>? {
-        val allWarehouses = warehouseRepository.getAllWarehouses()
+        val allWarehouses = warehouseRepository.getAll()
         val warehousesById = allWarehouses.associateBy { it.id }
 
         val actualOrigin = warehousesById[origin.id]

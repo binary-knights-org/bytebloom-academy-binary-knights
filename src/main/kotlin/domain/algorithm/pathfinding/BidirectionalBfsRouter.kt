@@ -16,7 +16,7 @@ class BidirectionalBfsRouter(
     ): List<Warehouse>? {
         visitedWarehouseCount = 0
 
-        val allWarehouses = warehouseRepository.getAllWarehouses()
+        val allWarehouses = warehouseRepository.getAll()
         val warehousesById = allWarehouses.associateBy { it.id }
         val actualOrigin = warehousesById[origin.id]
         val actualDestination = warehousesById[destination.id]

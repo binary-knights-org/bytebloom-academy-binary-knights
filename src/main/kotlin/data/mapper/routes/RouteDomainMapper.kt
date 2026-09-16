@@ -12,7 +12,6 @@ fun RouteRaw.toDomain(
 
     return when {
         originWarehouse == null || destinationWarehouse == null -> null
-
         else -> Route(
             id = routeId,
             distanceKm = distanceKm,
@@ -22,3 +21,12 @@ fun RouteRaw.toDomain(
         )
     }
 }
+
+fun Route.toRaw(): RouteRaw =
+    RouteRaw(
+        routeId = id,
+        originHubId = originHub.id,
+        destinationHubId = destinationHub.id,
+        distanceKm = distanceKm,
+        typicalDelayMin = typicalDelayMin
+    )

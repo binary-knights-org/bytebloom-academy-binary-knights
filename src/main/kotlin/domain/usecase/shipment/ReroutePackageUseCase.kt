@@ -20,12 +20,12 @@ class ReroutePackageUseCase(
     }
 
     private suspend  fun findPackage(packageId: String): Package {
-        val packagesById = packageRepository.getAllPackages().associateBy { it.id }
+        val packagesById = packageRepository.getAll().associateBy { it.id }
         return requireNotNull(packagesById[packageId]) { "Package not found: $packageId" }
     }
 
     private suspend  fun findWarehouse(warehouseId: String): Warehouse {
-        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
+        val warehousesById = warehouseRepository.getAll().associateBy { it.id }
         return requireNotNull(warehousesById[warehouseId]) { "Warehouse not found: $warehouseId" }
     }
 }

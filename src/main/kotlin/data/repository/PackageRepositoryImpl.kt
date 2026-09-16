@@ -2,6 +2,7 @@ package data.repository
 
 import data.datasource.PackageDataSource
 import data.mapper.packages.toDomain
+import data.mapper.packages.toRaw
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
@@ -13,46 +14,31 @@ class PackageRepositoryImpl(
 
     private var packages: List<Package>? = null
 
-    override suspend fun getAllPackages(): List<Package> {
-        packages?.let { return it }
-        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
-        val loadedPackages = dataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
+    override suspend fun getAll(): List<Package> =
+        packages ?: fetchPackagesFromSource().also { packages = it }
 
-        packages = loadedPackages
-        return loadedPackages
-    }
+    override suspend fun getById(id: String): Package? =
+        getAll().find { it.id == id }
 
-    override suspend fun getPackageById(id: String): Package? {
-        return getAllPackages().find { it.id == id }
-    }
-
-    override suspend fun createPackage(pkg: Package): Boolean {
-        val currentPackages = getAllPackages().toMutableList()
-        if (currentPackages.any { it.id == pkg.id }) {
-            return false
+    override suspend fun create(item: Package): Boolean =
+        dataSource.createRawPackage(item.toRaw()).also { isSuccess ->
+            if (isSuccess) packages = null
         }
-        currentPackages.add(pkg)
-        packages = currentPackages
-        return true
-    }
 
-    override suspend fun deletePackage(id: String): Boolean {
-        val currentPackages = getAllPackages().toMutableList()
-        val removed = currentPackages.removeIf { it.id == id }
-        if (removed) {
-            packages = currentPackages
+    override suspend fun update(item: Package): Boolean =
+        dataSource.updateRawPackage(item.id, item.toRaw()).also { isSuccess ->
+            if (isSuccess) packages = null
         }
-        return removed
-    }
 
-    override suspend fun updatePackage(pkg: Package): Boolean {
-        val currentPackages = getAllPackages().toMutableList()
-        val index = currentPackages.indexOfFirst { it.id == pkg.id }
-        if (index == -1) {
-            return false
+    override suspend fun delete(id: String): Boolean =
+        dataSource.deleteRawPackage(id).also { isSuccess ->
+            if (isSuccess) packages = null
         }
-        currentPackages[index] = pkg
-        packages = currentPackages
-        return true
-    }
+
+    private suspend fun fetchPackagesFromSource(): List<Package> =
+        warehouseRepository.getAll()
+            .associateBy { it.id }
+            .let { warehousesById ->
+                dataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
+            }
 }

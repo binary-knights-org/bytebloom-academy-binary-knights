@@ -11,10 +11,10 @@ class DispatchVehicleUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(vehicle: Vehicle, warehouse: Warehouse): List<Package> {
-        val targetWarehouse = warehouseRepository.getAllWarehouses()
+        val targetWarehouse = warehouseRepository.getAll()
             .firstOrNull { it.id == warehouse.id }
 
-        val targetVehicle = vehicleRepository.getAllVehicles()
+        val targetVehicle = vehicleRepository.getAll()
             .firstOrNull { it.id == vehicle.id && it.currentHub.id == targetWarehouse?.id }
 
         if (targetWarehouse == null || targetVehicle == null) {

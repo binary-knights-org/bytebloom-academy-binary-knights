@@ -5,7 +5,9 @@ import domain.repository.VehicleRepository
 import domain.validator.ValidationResult
 import domain.validator.VehicleValidator
 
-class GetVehicleByIdUseCase(private val vehicleRepository: VehicleRepository) {
+class GetVehicleByIdUseCase(
+    private val vehicleRepository: VehicleRepository
+) {
     suspend operator fun invoke(id: String): Vehicle? {
         val validationResult = VehicleValidator.validateId(id)
         if (validationResult is ValidationResult.Failure) {

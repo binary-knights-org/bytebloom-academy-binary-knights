@@ -7,7 +7,7 @@ class FindStationedVehiclesByCapacityUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend  operator fun invoke(warehouseId: String, minCapacityKg: Double): List<Vehicle> {
-        val warehouse = warehouseRepository.getAllWarehouses()
+        val warehouse = warehouseRepository.getAll()
             .firstOrNull { it.id == warehouseId } ?: return emptyList()
         return warehouse.stationedVehicles.filter { it.maxCapacityKg >= minCapacityKg }
     }
