@@ -7,6 +7,6 @@ class CreateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke ( warehouse: Warehouse): Boolean {
-        return warehouseRepository.createWarehouse(warehouse)
+        return warehouseRepository.create(warehouse)
     }
 }

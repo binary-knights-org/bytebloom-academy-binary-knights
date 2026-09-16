@@ -8,7 +8,7 @@ class FindPackagesForConsolidationUseCase(
 ) {
 
     suspend operator fun invoke(): List<List<Package>> {
-        return packageRepository.getAllPackages()
+        return packageRepository.getAll()
             .groupBy { it.originHub.id to it.destinationHub.id }
             .values.filter { it.size >= MIN_PACKAGES_FOR_CONSOLIDATION }
     }
