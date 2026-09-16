@@ -6,7 +6,6 @@ import data.mapper.vehicles.toDomain
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
-import domain.exception.VehicleException
 
 class VehicleRepositoryImpl(
     private val dataSource: VehicleDataSource,
