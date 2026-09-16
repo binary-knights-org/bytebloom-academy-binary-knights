@@ -3,6 +3,7 @@ package domain.validator
 import java.util.UUID
 
 private const val PACKAGE_ID_PREFIX = "PKG-"
+private const val MINIMUM_WEIGHT = 0.0
 
 private val ALLOWED_PRIORITIES = setOf("URGENT", "STANDARD", "LOW")
 
@@ -28,7 +29,7 @@ object PackageValidator {
         if (fields.packageId.isBlank()) {
             errors += FieldError("packageId", "Package id must not be blank.")
         }
-        if (fields.weight <= 0.0) {
+        if (fields.weight <= MINIMUM_WEIGHT) {
             errors += FieldError("weight", "Weight must be greater than 0.")
         }
         if (fields.originHubId.isBlank()) {
@@ -80,7 +81,7 @@ object PackageValidator {
 
         if (id.isBlank()) {
             errors += FieldError("id", "Package id must not be blank.")
-        } else if (!id.startsWith(PACKAGE_ID_PREFIX) && !isValidUuid(id)) {
+        } else if (!id.startsWith(PACKAGE_ID_PREFIX)) {
             errors += FieldError(
                 "id", "Package id must start with \"$PACKAGE_ID_PREFIX\" or be a valid UUID."
             )
@@ -89,12 +90,4 @@ object PackageValidator {
         return if (errors.isEmpty()) ValidationResult.Success else ValidationResult.Failure(errors)
     }
 
-    private fun isValidUuid(value: String): Boolean {
-        return try {
-            UUID.fromString(value)
-            true
-        } catch (_: IllegalArgumentException) {
-            false
-        }
-    }
 }
