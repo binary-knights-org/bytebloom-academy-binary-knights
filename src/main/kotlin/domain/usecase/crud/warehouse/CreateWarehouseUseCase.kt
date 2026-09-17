@@ -1,24 +1,29 @@
 package domain.usecase.crud.warehouse
 
+import domain.exception.DatabaseConflictException
+import domain.exception.EntityValidationException
 import domain.model.Warehouse
 import domain.repository.WarehouseRepository
-import domain.validator.ValidationResult
-import domain.validator.WarehouseCreateFields
-import domain.validator.WarehouseValidator
+import domain.validator.warehouse.ValidationResult
+import domain.validator.warehouse.ValidateCreateWarehouseUseCase
 
 class CreateWarehouseUseCase(
-    private val warehouseRepository: WarehouseRepository
+    private val warehouseRepository: WarehouseRepository,
+    private val validator: ValidateCreateWarehouseUseCase = ValidateCreateWarehouseUseCase()
 ) {
-    suspend operator fun invoke(warehouse: Warehouse): Boolean {
-        val fields = WarehouseCreateFields(
-            hubId = warehouse.id,
-            hubName = warehouse.name,
-            regionalZone = warehouse.regionalZone,
-            latitude = warehouse.latitude,
-            longitude = warehouse.longitude
-        )
+    suspend operator fun invoke(warehouse: Warehouse): Result<Boolean> {
+        val validation = validator(warehouse)
+        if (validation is ValidationResult.Invalid) {
+            return Result.failure(EntityValidationException(validation.violations))
+        }
 
-        val isValid = WarehouseValidator.validateForCreate(fields) is ValidationResult.Success
-        return isValid && warehouseRepository.create(warehouse)
+        return runCatching {
+            val created = warehouseRepository.create(warehouse)
+            if (!created) {
+                throw DatabaseConflictException("Warehouse with ID '${warehouse.id}'" +
+                        " already exists or conflict occurred")
+            }
+            true
+        }
     }
 }
