@@ -10,11 +10,6 @@ class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(warehouse: Warehouse): Boolean {
-        val idValidation = WarehouseValidator.validateId(warehouse.id)
-        if (idValidation is ValidationResult.Failure) {
-            return false
-        }
-
         val fields = WarehouseUpdateFields(
             hubName = warehouse.name,
             regionalZone = warehouse.regionalZone,
@@ -22,11 +17,9 @@ class UpdateWarehouseUseCase(
             longitude = warehouse.longitude
         )
 
-        val fieldsValidation = WarehouseValidator.validateForUpdate(fields)
-        if (fieldsValidation is ValidationResult.Failure) {
-            return false
-        }
+        val isValid = WarehouseValidator.validateId(warehouse.id) is ValidationResult.Success &&
+                WarehouseValidator.validateForUpdate(fields) is ValidationResult.Success
 
-        return warehouseRepository.updateWarehouse(warehouse)
+        return isValid && warehouseRepository.update(warehouse)
     }
 }

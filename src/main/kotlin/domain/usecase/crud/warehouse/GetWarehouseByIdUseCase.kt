@@ -9,11 +9,7 @@ class GetWarehouseByIdUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(warehouseId: String): Warehouse? {
-        val validationResult = WarehouseValidator.validateId(warehouseId)
-        if (validationResult is ValidationResult.Failure) {
-            return null
-        }
-
-        return warehouseRepository.getWarehouseById(warehouseId)
+        val isValid = WarehouseValidator.validateId(warehouseId) is ValidationResult.Success
+        return if (isValid) warehouseRepository.getById(warehouseId) else null
     }
 }

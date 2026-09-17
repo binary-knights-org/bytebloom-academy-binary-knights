@@ -8,11 +8,7 @@ class DeleteWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(id: String): Boolean {
-        val validationResult = WarehouseValidator.validateId(id)
-        if (validationResult is ValidationResult.Failure) {
-            return false
-        }
-
-        return warehouseRepository.deleteWarehouse(id)
+        val isValid = WarehouseValidator.validateId(id) is ValidationResult.Success
+        return isValid && warehouseRepository.delete(id)
     }
 }
