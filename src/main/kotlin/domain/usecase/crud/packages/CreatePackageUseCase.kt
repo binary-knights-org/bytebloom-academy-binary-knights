@@ -18,11 +18,7 @@ class CreatePackageUseCase(
             priority = pkg.priority
         )
 
-        val validationResult = PackageValidator.validateForCreate(fields)
-        if (validationResult is ValidationResult.Failure) {
-            return false
-        }
-
-        return packageRepository.createPackage(pkg)
+        val isValid = PackageValidator.validateForCreate(fields) is ValidationResult.Success
+        return isValid && packageRepository.create(pkg)
     }
 }

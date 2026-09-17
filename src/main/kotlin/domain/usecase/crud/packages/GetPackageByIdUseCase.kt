@@ -9,11 +9,7 @@ class GetPackageByIdUseCase(
     private val packageRepository: PackageRepository
 ) {
     suspend operator fun invoke(id: String): Package? {
-        val validationResult = PackageValidator.validateId(id)
-        if (validationResult is ValidationResult.Failure) {
-            return null
-        }
-
-        return packageRepository.getPackageById(id)
+        val isValid = PackageValidator.validateId(id) is ValidationResult.Success
+        return if (isValid) packageRepository.getById(id) else null
     }
 }

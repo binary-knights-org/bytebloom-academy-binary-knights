@@ -7,12 +7,8 @@ import domain.validator.ValidationResult
 class DeletePackageUseCase(
     private val packageRepository: PackageRepository
 ) {
-    suspend operator fun invoke(id: String): Boolean{
-        val validationResult = PackageValidator.validateId(id)
-        if (validationResult is ValidationResult.Failure) {
-            return false
-        }
-
-        return packageRepository.deletePackage(id)
+    suspend operator fun invoke(id: String): Boolean {
+        val isValid = PackageValidator.validateId(id) is ValidationResult.Success
+        return isValid && packageRepository.delete(id)
     }
 }
