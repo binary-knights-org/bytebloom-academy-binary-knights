@@ -6,6 +6,6 @@ class DeleteWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(id:String):Boolean {
-    return   warehouseRepository.deleteWarehouse(id)
+    return   warehouseRepository.delete(id)
     }
 }

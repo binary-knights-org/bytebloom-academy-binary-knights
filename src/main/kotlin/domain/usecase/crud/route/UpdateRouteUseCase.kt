@@ -7,6 +7,6 @@ class UpdateRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(route: Route): Boolean {
-        return routeRepository.updateRoute(route)
+        return routeRepository.update(route)
     }
 }

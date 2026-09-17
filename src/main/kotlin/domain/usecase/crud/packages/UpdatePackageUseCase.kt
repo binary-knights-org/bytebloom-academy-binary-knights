@@ -7,6 +7,6 @@ class UpdatePackageUseCase(
     private val packageRepository: PackageRepository
 ) {
     suspend operator fun invoke(pkg: Package): Boolean {
-        return packageRepository.updatePackage(pkg)
+        return packageRepository.update(pkg)
     }
 }

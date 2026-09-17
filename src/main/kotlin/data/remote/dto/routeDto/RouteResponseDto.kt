@@ -1,4 +1,4 @@
-package data.remote.dto
+package data.remote.dto.routeDto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

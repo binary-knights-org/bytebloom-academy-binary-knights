@@ -10,7 +10,7 @@ class GetOverloadedWarehousesUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend  operator fun invoke(): List<Warehouse> {
-        return warehouseRepository.getAllWarehouses()
+        return warehouseRepository.getAll()
             .filter { getWarehouseLoadFactorUseCase(it.id) > OVERLOAD_THRESHOLD }
     }
 }

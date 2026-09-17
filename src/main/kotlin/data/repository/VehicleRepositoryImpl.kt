@@ -1,8 +1,8 @@
 package data.repository
 
-import data.dataholder.VehicleRaw
 import data.datasource.VehicleDataSource
 import data.mapper.vehicles.toDomain
+import data.mapper.vehicles.toRaw
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
@@ -14,75 +14,31 @@ class VehicleRepositoryImpl(
 
     private var vehicles: List<Vehicle>? = null
 
-    override suspend fun getAllVehicles(): List<Vehicle> {
-        vehicles?.let { return it }
-        val warehousesById = warehouseRepository.getAllWarehouses().associateBy { it.id }
-        val loadedVehicles = dataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
+    override suspend fun getAll(): List<Vehicle> =
+        vehicles ?: fetchVehiclesFromSource().also { vehicles = it }
 
-        vehicles = loadedVehicles
-        return loadedVehicles
-    }
+    override suspend fun getById(id: String): Vehicle? =
+        getAll().find { it.id == id }
 
-    override suspend fun addVehicleToHub(vehicle: Vehicle): Boolean {
-        val vehicleExists = dataSource.getRawVehicles().flatMap { it.vehicleIds }.any { it == vehicle.id }
-        if (vehicleExists) {
-            return false
-        }
-        val newVehicle = VehicleRaw(
-            vehicleIds = listOf(vehicle.id),
-            currentHubId = vehicle.currentHub.id,
-            maxCapacityKg = vehicle.maxCapacityKg,
-            costPerKm = vehicle.costPerKm
-        )
-        dataSource.addRawVehicle(newVehicle)
-        return true
-    }
-
-    override suspend fun create(vehicle: Vehicle): Vehicle {
-        val newVehicle = VehicleRaw(
-            vehicleIds = listOf(vehicle.id),
-            currentHubId = vehicle.currentHub.id,
-            maxCapacityKg = vehicle.maxCapacityKg,
-            costPerKm = vehicle.costPerKm
-        )
-
-        dataSource.addRawVehicle(newVehicle)
-
-        return vehicle
-    }
-    override suspend fun update(vehicle: Vehicle): Vehicle {
-        val existingVehicle = dataSource
-            .getRawVehicles()
-            .firstOrNull { it.vehicleIds.contains(vehicle.id) }
-
-        if (existingVehicle != null) {
-            val updatedVehicle = VehicleRaw(
-                vehicleIds = existingVehicle.vehicleIds,
-                currentHubId = vehicle.currentHub.id,
-                maxCapacityKg = vehicle.maxCapacityKg,
-                costPerKm = vehicle.costPerKm
-            )
-
-            dataSource.updateRawVehicle(updatedVehicle)
+    override suspend fun create(item: Vehicle): Boolean =
+        dataSource.createRawVehicle(item.toRaw()).also { isSuccess ->
+            if (isSuccess) vehicles = null
         }
 
-        return vehicle
-    }
+    override suspend fun update(item: Vehicle): Boolean =
+        dataSource.updateRawVehicle(item.id, item.toRaw()).also { isSuccess ->
+            if (isSuccess) vehicles = null
+        }
 
-    override suspend fun getByID(id: String): Vehicle? {
-        val rawVehicle = dataSource
-            .getRawVehicleById(id)
+    override suspend fun delete(id: String): Boolean =
+        dataSource.deleteRawVehicle(id).also { isSuccess ->
+            if (isSuccess) vehicles = null
+        }
 
-        val warehouseById = warehouseRepository
-            .getAllWarehouses()
+    private suspend fun fetchVehiclesFromSource(): List<Vehicle> =
+        warehouseRepository.getAll()
             .associateBy { it.id }
-
-        return rawVehicle?.toDomain(warehouseById)
-
-    }
-    override suspend fun delete(vehicle: Vehicle): Vehicle {
-        dataSource.deleteRawVehicle(vehicle.id)
-
-        return vehicle
-    }
+            .let { warehousesById ->
+                dataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
+            }
 }

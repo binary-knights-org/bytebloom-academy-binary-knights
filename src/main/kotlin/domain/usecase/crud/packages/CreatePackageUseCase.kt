@@ -7,6 +7,6 @@ class CreatePackageUseCase(
     private val packageRepository: PackageRepository
 ) {
     suspend operator fun invoke(pkg: Package): Boolean{
-        return packageRepository.createPackage(pkg)
+        return packageRepository.create(pkg)
     }
 }

@@ -7,6 +7,6 @@ class GetRouteByIdUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(id: String): Route? {
-        return routeRepository.getRouteById(id)
+        return routeRepository.getById(id)
     }
 }

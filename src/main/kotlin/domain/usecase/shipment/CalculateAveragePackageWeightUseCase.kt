@@ -9,7 +9,7 @@ class CalculateAveragePackageWeightUseCase (
 ){
    suspend operator fun invoke(): Double{
        val allPackage = warehouseRepository
-            .getAllWarehouses()
+            .getAll()
             .flatMap { it.cargoQueue }
        val totalWeight =  allPackage.sumOf { it.weight }
        val packageCount = allPackage.size

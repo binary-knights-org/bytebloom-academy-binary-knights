@@ -4,7 +4,6 @@ import data.dataholder.VehicleRaw
 import domain.model.Vehicle
 import domain.model.Warehouse
 
-
 fun VehicleRaw.toDomain(
     warehousesById: Map<String, Warehouse>
 ): Vehicle? {
@@ -23,4 +22,10 @@ fun VehicleRaw.toDomain(
     }
 }
 
-
+fun Vehicle.toRaw(): VehicleRaw =
+    VehicleRaw(
+        vehicleIds = listOf(id),
+        currentHubId = currentHub.id,
+        maxCapacityKg = maxCapacityKg,
+        costPerKm = costPerKm
+    )

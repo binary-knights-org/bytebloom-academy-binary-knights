@@ -8,7 +8,7 @@ class FindPackagesByOriginUseCase(
     private val packageRepository: PackageRepository
 ) {
     suspend operator fun invoke(originHub: Warehouse): List<Package> {
-        return packageRepository.getAllPackages().filter { it.originHub == originHub }
+        return packageRepository.getAll().filter { it.originHub == originHub }
     }
 }
 

@@ -7,6 +7,6 @@ class CreateRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(route: Route): Boolean {
-        return routeRepository.createRoute(route)
+        return routeRepository.create(route)
     }
 }
