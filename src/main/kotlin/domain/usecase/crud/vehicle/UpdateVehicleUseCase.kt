@@ -7,23 +7,17 @@ import domain.validator.VehicleUpdateFields
 import domain.validator.VehicleValidator
 
 class UpdateVehicleUseCase(private val vehicleRepository: VehicleRepository) {
-    suspend operator fun invoke(vehicle: Vehicle): Vehicle? {
-        val idValidation = VehicleValidator.validateId(vehicle.id)
-        if (idValidation is ValidationResult.Failure) {
-            return null
-        }
-
+    suspend operator fun invoke(vehicle: Vehicle): Boolean {
         val fields = VehicleUpdateFields(
             maxCapacityKg = vehicle.maxCapacityKg,
             costPerKm = vehicle.costPerKm,
             currentHubId = vehicle.currentHub.id
         )
 
-        val fieldsValidation = VehicleValidator.validateForUpdate(fields)
-        if (fieldsValidation is ValidationResult.Failure) {
-            return null
-        }
+        val isVaild = VehicleValidator.validateForUpdate(fields) is ValidationResult.Success &&
+                VehicleValidator.validateId(vehicle.id) is ValidationResult.Success
 
-        return vehicleRepository.update(vehicle)
+        return isVaild && vehicleRepository.update(vehicle)
     }
 }
+

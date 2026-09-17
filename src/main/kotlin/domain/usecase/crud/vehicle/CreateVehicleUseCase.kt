@@ -7,7 +7,7 @@ import domain.validator.VehicleCreateFields
 import domain.validator.VehicleValidator
 
 class CreateVehicleUseCase(private val vehicleRepository: VehicleRepository) {
-    suspend operator fun invoke(vehicle: Vehicle): Vehicle? {
+    suspend operator fun invoke(vehicle: Vehicle): Boolean {
         val fields = VehicleCreateFields(
             vehicleId = vehicle.id,
             maxCapacityKg = vehicle.maxCapacityKg,
@@ -15,11 +15,8 @@ class CreateVehicleUseCase(private val vehicleRepository: VehicleRepository) {
             currentHubId = vehicle.currentHub.id
         )
 
-        val validationResult = VehicleValidator.validateForCreate(fields)
-        if (validationResult is ValidationResult.Failure) {
-            return null
-        }
-
-        return vehicleRepository.create(vehicle)
+        val isValid = VehicleValidator.validateForCreate(fields) is ValidationResult.Success
+        return  isValid && vehicleRepository.create(vehicle)
     }
 }
+

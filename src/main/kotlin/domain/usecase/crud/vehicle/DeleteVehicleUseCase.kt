@@ -8,12 +8,9 @@ import domain.validator.VehicleValidator
 class DeleteVehicleUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(vehicle: Vehicle): Vehicle? {
-        val validationResult = VehicleValidator.validateId(vehicle.id)
-        if (validationResult is ValidationResult.Failure) {
-            return null
-        }
-
-        return vehicleRepository.delete(vehicle)
+    suspend operator fun invoke(id: String): Boolean {
+        val isVaild = VehicleValidator.validateId(id) is ValidationResult.Success
+        return vehicleRepository.delete(id) && isVaild
     }
 }
+

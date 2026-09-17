@@ -9,11 +9,8 @@ class GetVehicleByIdUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
     suspend operator fun invoke(id: String): Vehicle? {
-        val validationResult = VehicleValidator.validateId(id)
-        if (validationResult is ValidationResult.Failure) {
-            return null
-        }
-
-        return vehicleRepository.getByID(id)
+        val isVaild = VehicleValidator.validateId(id) is ValidationResult.Success
+        return  if (isVaild) vehicleRepository.getById(id) else null
     }
 }
+
