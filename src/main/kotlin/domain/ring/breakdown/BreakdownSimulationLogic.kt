@@ -20,7 +20,7 @@ class BreakdownSimulationLogic {
 
     private fun createPackages(hub: Warehouse, count: Int): List<Package> {
         return List(count) { index ->
-            Package(
+            Package.create(
                 id = "PKG-%03d".format(index + 1),
                 weight = DEFAULT_WEIGHT,
                 priority = DEFAULT_PRIORITY,
