@@ -10,22 +10,15 @@ class UpdateRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(route: Route): Boolean {
-        val idValidation = RouteValidator.validateId(route.id)
-        if (idValidation is ValidationResult.Failure) {
-            return false
-        }
-
         val fields = RouteUpdateFields(
             distanceKm = route.distanceKm,
             typicalDelayMin = route.typicalDelayMin,
             destinationHubId = route.destinationHub.id
         )
 
-        val fieldsValidation = RouteValidator.validateForUpdate(fields)
-        if (fieldsValidation is ValidationResult.Failure) {
-            return false
-        }
+        val isValid = RouteValidator.validateId(route.id) is ValidationResult.Success &&
+                RouteValidator.validateForUpdate(fields) is ValidationResult.Success
 
-        return routeRepository.updateRoute(route)
+        return isValid && routeRepository.update(route)
     }
 }

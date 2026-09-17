@@ -18,11 +18,7 @@ class CreateRouteUseCase(
             destinationHubId = route.destinationHub.id
         )
 
-        val validationResult = RouteValidator.validateForCreate(fields)
-        if (validationResult is ValidationResult.Failure) {
-            return false
-        }
-
-        return routeRepository.createRoute(route)
+        val isValid = RouteValidator.validateForCreate(fields) is ValidationResult.Success
+        return isValid && routeRepository.create(route)
     }
 }

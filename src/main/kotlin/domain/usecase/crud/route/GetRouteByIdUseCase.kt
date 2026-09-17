@@ -9,11 +9,7 @@ class GetRouteByIdUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(id: String): Route? {
-        val validationResult = RouteValidator.validateId(id)
-        if (validationResult is ValidationResult.Failure) {
-            return null
-        }
-
-        return routeRepository.getRouteById(id)
+        val isValid = RouteValidator.validateId(id) is ValidationResult.Success
+        return if (isValid) routeRepository.getById(id) else null
     }
 }
