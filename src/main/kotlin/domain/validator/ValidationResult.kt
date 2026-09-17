@@ -1,11 +1,15 @@
 package domain.validator
 
 sealed class ValidationResult {
-    object Success : ValidationResult()
-    data class Failure(val errors: List<FieldError>) : ValidationResult()
+
+    data object Valid : ValidationResult()
+
+    data class Invalid(
+        val violations: List<FieldViolation>
+    ) : ValidationResult()
 }
 
-data class FieldError(
-    val faildName : String,
+data class FieldViolation(
+    val field: String,
     val message: String
 )
