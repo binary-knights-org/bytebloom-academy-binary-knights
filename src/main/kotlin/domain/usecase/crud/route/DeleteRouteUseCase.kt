@@ -8,7 +8,7 @@ class DeleteRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(id: String): Boolean {
-        val isValid = RouteValidator.validateId(id) is ValidationResult.Success
+        val isValid = RouteValidator.validateId(id) is ValidationResult.Invalid
         return isValid && routeRepository.delete(id)
     }
 }
