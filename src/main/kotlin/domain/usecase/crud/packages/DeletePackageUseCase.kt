@@ -1,7 +1,7 @@
 package domain.usecase.crud.packages
 
+import domain.exception.EntityValidationException
 import domain.repository.PackageRepository
-import domain.validator.FieldViolation
 import domain.validator.ValidationResult
 import domain.validator.packages.PackageIdValidator
 
@@ -9,19 +9,15 @@ class DeletePackageUseCase(
     private val packageRepository: PackageRepository,
     private val idValidator: PackageIdValidator
 ) {
-    suspend operator fun invoke(id: String): ValidationResult {
-        val validationResult = idValidator.validate(id)
-        if (validationResult is ValidationResult.Invalid) {
-            return validationResult
-        }
+    suspend operator fun invoke(id: String): Boolean {
+        val validation = idValidator.validate(id)
 
-        val isDeleted = packageRepository.delete(id)
-        return if (isDeleted) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(
-                listOf(FieldViolation("database", "Failed to delete package from database."))
+        if (validation is ValidationResult.Failure) {
+            throw EntityValidationException(
+                "Cannot delete package: invalid package ID."
             )
         }
+
+        return packageRepository.delete(id)
     }
 }
