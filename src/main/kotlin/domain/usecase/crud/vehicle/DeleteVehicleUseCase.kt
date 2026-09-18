@@ -1,16 +1,19 @@
 package domain.usecase.crud.vehicle
 
-import domain.model.Vehicle
+import domain.exception.EntityValidationException
 import domain.repository.VehicleRepository
 import domain.validator.ValidationResult
-import domain.validator.VehicleValidator
+import domain.validator.vehicle.VehicleIdValidator
 
 class DeleteVehicleUseCase(
-    private val vehicleRepository: VehicleRepository
+    private val vehicleRepository: VehicleRepository,
+    private val idValidator: VehicleIdValidator
 ) {
     suspend operator fun invoke(id: String): Boolean {
-        val isVaild = VehicleValidator.validateId(id) is ValidationResult.Success
-        return vehicleRepository.delete(id) && isVaild
+        if (idValidator.validate(id) is ValidationResult.Failure) {
+            throw EntityValidationException("Cannot delete vehicle: invalid vehicle ID.")
+        }
+
+        return vehicleRepository.delete(id)
     }
 }
-
