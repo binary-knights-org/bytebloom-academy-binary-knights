@@ -1,9 +1,8 @@
 package domain.usecase.crud.packages
 
+import domain.exception.EntityValidationException
 import domain.model.Package
-import domain.model.input.CreatePackageInput
 import domain.repository.PackageRepository
-import domain.validator.FieldViolation
 import domain.validator.ValidationResult
 import domain.validator.packages.CreatePackageValidator
 
@@ -11,19 +10,15 @@ class CreatePackageUseCase(
     private val packageRepository: PackageRepository,
     private val validator: CreatePackageValidator
 ) {
-    suspend operator fun invoke(input: CreatePackageInput): ValidationResult {
-        val validation = validator.validate(input)
-        if (validation is ValidationResult.Invalid) return validation
+    suspend operator fun invoke(pkg: Package): Boolean {
+        val validation = validator.validate(pkg)
 
-        val pkg = Package.create(
-            id = input.id,
-            weight = input.weight,
-            priority = input.priority,
-            originHub = input.originHub,
-            destinationHub = input.destinationHub
-        )
+        if (validation is ValidationResult.Failure) {
+            throw EntityValidationException(
+                "Cannot create package: invalid package data."
+            )
+        }
 
-        return if (packageRepository.create(pkg)) ValidationResult.Valid
-        else ValidationResult.Invalid(listOf(FieldViolation("database", "Failed to create package.")))
+        return packageRepository.create(pkg)
     }
 }
