@@ -13,7 +13,7 @@ class UpdatePackageValidator {
     ): ValidationResult {
         val errors = mutableListOf<FieldError>()
 
-        if (input.weight == null && input.priority == null && input.originHub == null && input.destinationHub == null) {
+        if (hasNoFieldsToUpdate(input)) {
             errors.add(
                 FieldError(
                     "update", "At least one target property must be populated for update."
@@ -45,3 +45,11 @@ class UpdatePackageValidator {
         return if (errors.isEmpty()) ValidationResult.Success else ValidationResult.Failure(errors)
     }
 }
+    private fun hasNoFieldsToUpdate(input: UpdatePackageInput): Boolean =
+        listOfNotNull(
+            input.weight,
+            input.priority,
+            input.originHub,
+            input.destinationHub,
+        ).isEmpty()
+
