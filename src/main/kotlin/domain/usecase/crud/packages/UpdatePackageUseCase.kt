@@ -1,22 +1,33 @@
 package domain.usecase.crud.packages
 
+import domain.exception.EntityValidationException
 import domain.model.Package
 import domain.model.input.UpdatePackageInput
 import domain.repository.PackageRepository
-import domain.validator.FieldViolation
 import domain.validator.ValidationResult
+import domain.validator.packages.PackageIdValidator
 import domain.validator.packages.UpdatePackageValidator
 
 class UpdatePackageUseCase(
     private val packageRepository: PackageRepository,
+    private val idValidator: PackageIdValidator,
     private val validator: UpdatePackageValidator
 ) {
-    suspend operator fun invoke(input: UpdatePackageInput): ValidationResult {
-        val validation = validator.validate(input)
-        if (validation is ValidationResult.Invalid) return validation
+    suspend operator fun invoke(input: UpdatePackageInput): Boolean {
+        val idValidation = idValidator.validate(input.id)
+        if (idValidation is ValidationResult.Failure) {
+            throw EntityValidationException(
+                "Cannot update package: invalid package ID."
+            )
+        }
+
+        val fieldValidation = validator.validate(input)
+        if (fieldValidation is ValidationResult.Failure) {
+            throw EntityValidationException("Cannot update package: invalid package data.")
+        }
 
         val existingPkg = packageRepository.getById(input.id)
-            ?: return ValidationResult.Invalid(listOf(FieldViolation("id", "Package not found.")))
+            ?: throw EntityValidationException("Package with ID '${input.id}' was not found.")
 
         val updatedPkg = Package.create(
             id = existingPkg.id,
@@ -26,7 +37,6 @@ class UpdatePackageUseCase(
             destinationHub = input.destinationHub ?: existingPkg.destinationHub
         )
 
-        return if (packageRepository.update(updatedPkg)) ValidationResult.Valid
-        else ValidationResult.Invalid(listOf(FieldViolation("database", "Failed to update package.")))
+        return packageRepository.update(updatedPkg)
     }
 }
