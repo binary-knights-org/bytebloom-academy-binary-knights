@@ -11,7 +11,7 @@ class UpdateWarehouseValidator {
     ): ValidationResult {
         val errors = mutableListOf<FieldError>()
 
-        if (input.regionalZone == null && input.latitude == null  &&  input.longitude == null &&  input.name == null) {
+        if (hasNoFieldsToUpdate(input)) {
             errors.add(
                 FieldError(
                     "update", "At least one field must be provided for update."
@@ -66,3 +66,10 @@ class UpdateWarehouseValidator {
         }
     }
 }
+    private fun hasNoFieldsToUpdate(input: UpdateWarehouseInput): Boolean =
+        listOfNotNull(
+            input.regionalZone,
+            input.latitude,
+            input.longitude,
+            input.name,
+        ).isEmpty()
