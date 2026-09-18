@@ -14,7 +14,7 @@ class UpdateRouteValidator {
 
         val errors = mutableListOf<FieldError>()
 
-        if (input.distanceKm == null && input.typicalDelayMin == null && input.originHub == null && input.destinationHub == null) {
+        if (hasNoFieldsToUpdate(input)) {
             errors.add(
                 FieldError(
                     "update", "At least one field must be provided for update."
@@ -69,3 +69,11 @@ class UpdateRouteValidator {
         }
     }
 }
+    private fun hasNoFieldsToUpdate(input: UpdateRouteInput): Boolean =
+        listOfNotNull(
+            input.distanceKm,
+            input.typicalDelayMin,
+            input.originHub,
+            input.destinationHub,
+        ).isEmpty()
+
