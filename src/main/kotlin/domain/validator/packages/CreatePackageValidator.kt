@@ -1,27 +1,38 @@
 package domain.validator.packages
 
-import domain.model.input.CreatePackageInput
 import domain.model.Package
-import domain.validator.FieldViolation
+import domain.validator.FieldError
 import domain.validator.ValidationResult
 
 class CreatePackageValidator(
     private val idValidator: PackageIdValidator
 ) {
-    fun validate(input: CreatePackageInput): ValidationResult {
-        val violations = mutableListOf<FieldViolation>()
+    fun validate(pkg: Package): ValidationResult {
+        val errors = mutableListOf<FieldError>()
 
-        val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Invalid) violations.addAll(idResult.violations)
+        val idResult = idValidator.validate(pkg.id)
 
-        if (!Package.isValidWeight(input.weight)) {
-            violations.add(FieldViolation("weight", "Weight must be greater than ${Package.MIN_WEIGHT}."))
+        if (idResult is ValidationResult.Failure)
+            errors.addAll(idResult.errors)
+
+        if (!Package.isValidWeight(pkg.weight)) {
+            errors.add(
+                FieldError(
+                    "weight",
+                    "Weight must be greater than ${Package.MIN_WEIGHT}."
+                )
+            )
         }
 
-        if (!Package.isValidPriority(input.priority)) {
-            violations.add(FieldViolation("priority", "Priority must be one of: ${Package.ALLOWED_PRIORITIES.joinToString(", ")}."))
+        if (!Package.isValidPriority(pkg.priority)) {
+            errors.add(
+                FieldError(
+                    "priority",
+                    "Priority must be one of: ${Package.ALLOWED_PRIORITIES.joinToString(", ")}."
+                )
+            )
         }
 
-        return if (violations.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(violations)
+        return if (errors.isEmpty()) ValidationResult.Success else ValidationResult.Failure(errors)
     }
 }
