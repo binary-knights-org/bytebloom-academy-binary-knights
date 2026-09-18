@@ -1,5 +1,6 @@
 package domain.model
 
+import domain.exception.EntityValidationException
 import java.util.UUID
 
 class Package private constructor(
@@ -31,10 +32,22 @@ class Package private constructor(
                originHub: Warehouse,
                destinationHub: Warehouse
           ): Package {
-               require(isValidId(id)) { "Invalid Package ID format (Must start with PKG- or be a valid UUID)." }
-               require(isValidWeight(weight)) { "Weight must be greater than $MIN_WEIGHT." }
-               require(isValidPriority(priority)) { "Invalid priority value." }
+               val validationError = when {
+                    !isValidId(id) ->
+                         "Invalid Package ID format (Must start with PKG- or be a valid UUID)."
 
+                    !isValidWeight(weight) ->
+                         "Weight must be greater than $MIN_WEIGHT."
+
+                    !isValidPriority(priority) ->
+                         "Invalid priority value."
+
+                    else -> null
+               }
+
+               if (validationError != null) {
+                    throw EntityValidationException(validationError)
+               }
                return Package(id, weight, priority.uppercase(), originHub, destinationHub)
           }
      }
