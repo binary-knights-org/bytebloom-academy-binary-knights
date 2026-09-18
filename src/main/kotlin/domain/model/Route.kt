@@ -45,22 +45,21 @@ data class Route private constructor(
             destinationHub: Warehouse
         ): Route {
 
-            if (!isValidId(id)) {
-                throw EntityValidationException(
+            val validationError = when {
+                !isValidId(id) ->
                     "Invalid Route ID format (Must start with RT- or be a valid UUID)."
-                )
-            }
 
-            if (!isValidDistance(distanceKm)) {
-                throw EntityValidationException(
+                !isValidDistance(distanceKm) ->
                     "Distance must be greater than $MIN_DISTANCE_KM."
-                )
+
+                !isValidDelay(typicalDelayMin) ->
+                    "Typical delay must not be negative."
+
+                else -> null
             }
 
-            if (!isValidDelay(typicalDelayMin)) {
-                throw EntityValidationException(
-                    "Typical delay must not be negative."
-                )
+            if (validationError != null) {
+                throw EntityValidationException(validationError)
             }
 
             return Route(
