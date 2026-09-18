@@ -14,17 +14,7 @@ class UpdatePackageUseCase(
     private val validator: UpdatePackageValidator
 ) {
     suspend operator fun invoke(input: UpdatePackageInput): Boolean {
-        val idValidation = idValidator.validate(input.id)
-        if (idValidation is ValidationResult.Failure) {
-            throw EntityValidationException(
-                "Cannot update package: invalid package ID."
-            )
-        }
-
-        val fieldValidation = validator.validate(input)
-        if (fieldValidation is ValidationResult.Failure) {
-            throw EntityValidationException("Cannot update package: invalid package data.")
-        }
+        validateInput(input)
 
         val existingPkg = packageRepository.getById(input.id)
             ?: throw EntityValidationException("Package with ID '${input.id}' was not found.")
@@ -38,5 +28,15 @@ class UpdatePackageUseCase(
         )
 
         return packageRepository.update(updatedPkg)
+    }
+
+    private fun validateInput(input: UpdatePackageInput) {
+        if (idValidator.validate(input.id) is ValidationResult.Failure) {
+            throw EntityValidationException("Cannot update package: invalid package ID.")
+        }
+
+        if (validator.validate(input) is ValidationResult.Failure) {
+            throw EntityValidationException("Cannot update package: invalid package data.")
+        }
     }
 }
