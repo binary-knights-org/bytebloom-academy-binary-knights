@@ -1,24 +1,38 @@
 package domain.usecase.crud.route
 
+import domain.exception.EntityValidationException
 import domain.model.Route
 import domain.repository.RouteRepository
-import domain.validator.RouteUpdateFields
-import domain.validator.RouteValidator
 import domain.validator.ValidationResult
+import domain.validator.routes.RouteIdValidator
+import domain.validator.routes.UpdateRouteValidator
 
 class UpdateRouteUseCase(
-    private val routeRepository: RouteRepository
+    private val routeRepository: RouteRepository,
+    private val idValidator: RouteIdValidator,
+    private val validator: UpdateRouteValidator
 ) {
     suspend operator fun invoke(route: Route): Boolean {
-        val fields = RouteUpdateFields(
+        val idValidation = idValidator.validate(route.id)
+
+        if (idValidation is ValidationResult.Failure) {
+            throw EntityValidationException(
+                "Cannot update route: invalid route ID."
+            )
+        }
+
+        val fieldValidation = validator.validate(
             distanceKm = route.distanceKm,
             typicalDelayMin = route.typicalDelayMin,
-            destinationHubId = route.destinationHub.id
+            destinationHub = route.destinationHub
         )
 
-        val isValid = RouteValidator.validateId(route.id) is ValidationResult.Success &&
-                RouteValidator.validateForUpdate(fields) is ValidationResult.Success
+        if (fieldValidation is ValidationResult.Failure) {
+            throw EntityValidationException(
+                "Cannot update route: invalid route data."
+            )
+        }
 
-        return isValid && routeRepository.update(route)
+        return routeRepository.update(route)
     }
 }
