@@ -1,22 +1,20 @@
 package domain.usecase.crud.vehicle
 
+import domain.exception.EntityValidationException
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.validator.ValidationResult
-import domain.validator.VehicleCreateFields
-import domain.validator.VehicleValidator
+import domain.validator.vehicle.CreateVehicleValidator
 
-class CreateVehicleUseCase(private val vehicleRepository: VehicleRepository) {
+class CreateVehicleUseCase(
+    private val vehicleRepository: VehicleRepository,
+    private val validator: CreateVehicleValidator
+) {
     suspend operator fun invoke(vehicle: Vehicle): Boolean {
-        val fields = VehicleCreateFields(
-            vehicleId = vehicle.id,
-            maxCapacityKg = vehicle.maxCapacityKg,
-            costPerKm = vehicle.costPerKm,
-            currentHubId = vehicle.currentHub.id
-        )
+        if (validator.validate(vehicle) is ValidationResult.Failure) {
+            throw EntityValidationException("Cannot create vehicle: invalid vehicle data.")
+        }
 
-        val isValid = VehicleValidator.validateForCreate(fields) is ValidationResult.Success
-        return  isValid && vehicleRepository.create(vehicle)
+        return vehicleRepository.create(vehicle)
     }
 }
-
