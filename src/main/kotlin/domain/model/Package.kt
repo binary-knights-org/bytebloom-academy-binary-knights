@@ -2,12 +2,13 @@ package domain.model
 
 import domain.validator.IdValidator
 import domain.exception.InvalidWeightException
+import java.util.UUID
 
 private const val PACKAGE_ID_PREFIX = "PKG-"
 private const val MIN_WEIGHT = 0.0
 
 data class Package(
-    val id: String,
+    val id: String= "$PACKAGE_ID_PREFIX${UUID.randomUUID()}",
     val weight: Double,
     val priority: String,
     val originHub: Warehouse,
