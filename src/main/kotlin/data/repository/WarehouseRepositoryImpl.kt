@@ -13,6 +13,7 @@ import data.mapper.routes.toDomain
 import data.mapper.vehicles.toDomain
 import data.mapper.warehouses.toDomain
 import data.mapper.warehouses.toRaw
+import domain.exception.NetworkUnavailableException
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
@@ -72,7 +73,7 @@ class WarehouseRepositoryImpl(
 
             linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
 
-        }catch(e: Exception){
+        }catch(e: NetworkUnavailableException){
             println("Offline mode active: Fetching from CSV due to -> ${e.message}")
             val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
             val warehousesById = loadedWarehouses.associateBy { it.id }

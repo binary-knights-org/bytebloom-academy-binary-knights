@@ -22,31 +22,20 @@ data class Package(
         }
     }
 
-    companion object {
-        fun validatePackage(
-            id: String,
-            weight: Double,
-            priority: String
-        ): List<FieldViolation> {
-            val violations = mutableListOf<FieldViolation>()
-            violations.addAll(IdValidator.validate(id, PACKAGE_ID_PREFIX, "Package"))
-            if (weight <= MIN_WEIGHT) {
-                violations.add(FieldViolation("weight", "Weight must be greater than $MIN_WEIGHT."))
-            }
-            if (priority.isBlank()) {
-                violations.add(FieldViolation("priority", "Priority cannot be blank."))
-            }
-            return violations
+    private fun validatePackage(
+        id: String, weight: Double, priority: String
+    ): List<FieldViolation> {
+        val violations = mutableListOf<FieldViolation>()
+
+        violations.addAll(IdValidator.validate(id, PACKAGE_ID_PREFIX, entityName = "Package"))
+
+        if (weight <= MIN_WEIGHT) {
+            violations.add(FieldViolation("weight", message = "Weight must be greater than $MIN_WEIGHT."))
+        }
+        if (priority.isBlank()) {
+            violations.add(FieldViolation("priority", message = "Priority cannot be blank."))
         }
 
-        fun create(
-            id: String = "$PACKAGE_ID_PREFIX${UUID.randomUUID()}",
-            weight: Double,
-            priority: String,
-            originHub: Warehouse,
-            destinationHub: Warehouse
-        ): Result<Package> = runCatching {
-            Package(id, weight, priority, originHub, destinationHub)
-        }
+        return violations
     }
 }

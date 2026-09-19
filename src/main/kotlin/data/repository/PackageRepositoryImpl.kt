@@ -4,6 +4,7 @@ import data.local.datasource.CsvPackageDataSource
 import data.remote.datasource.RemotePackageDataSource
 import data.mapper.packages.toDomain
 import data.mapper.packages.toRaw
+import domain.exception.NetworkUnavailableException
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
@@ -44,7 +45,7 @@ class PackageRepositoryImpl(
             val remoteRawPackages = remoteDataSource.getRawPackages()
             remoteRawPackages.mapNotNull { it.toDomain(warehousesById) }
 
-        } catch (e: Exception) {
+        } catch (e: NetworkUnavailableException) {
             println("Offline mode active: Fetching from CSV due to -> ${e.message}")
 
             val localRawPackages = localDataSource.getAllPackages()
