@@ -3,13 +3,14 @@ package domain.model
 import domain.validator.IdValidator
 import domain.model.exception.InvalidCostPerKmException
 import domain.model.exception.InvalidMaxCapacityException
+import java.util.UUID
 
 private const val VEHICLE_ID_PREFIX = "TRK-"
 private const val MIN_CAPACITY_KG = 0.0
 private const val MIN_COST_PER_KM = 0.0
 
 data class Vehicle(
-    val id: String,
+    val id: String = "$VEHICLE_ID_PREFIX${UUID.randomUUID()}",
     val maxCapacityKg: Double,
     val costPerKm: Double,
     val currentHub: Warehouse
