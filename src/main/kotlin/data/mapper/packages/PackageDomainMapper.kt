@@ -12,7 +12,6 @@ fun PackageRaw.toDomain(
 
     return when {
         originWarehouse == null || destinationWarehouse == null -> null
-
         else -> Package(
             id = packageId,
             weight = weight,
@@ -23,11 +22,10 @@ fun PackageRaw.toDomain(
     }
 }
 
-fun Package.toRaw(): PackageRaw =
-    PackageRaw(
-        packageId = id,
-        weight = weight,
-        originHubId = originHub.id,
-        destinationHubId = destinationHub.id,
-        priority = priority
-    )
+fun Package.toRaw(): PackageRaw = PackageRaw(
+    packageId = id,
+    weight = weight,
+    originHubId = originHub.id,
+    destinationHubId = destinationHub.id,
+    priority = priority
+)

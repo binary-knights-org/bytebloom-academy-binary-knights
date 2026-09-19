@@ -12,7 +12,6 @@ fun VehicleRaw.toDomain(
 
     return when {
         currentWarehouse == null || vehicleId == null -> null
-
         else -> Vehicle(
             id = vehicleId,
             maxCapacityKg = maxCapacityKg,
