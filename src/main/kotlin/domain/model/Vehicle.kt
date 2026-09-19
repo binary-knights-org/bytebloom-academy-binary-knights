@@ -29,31 +29,18 @@ data class Vehicle(
         }
     }
 
-    companion object {
-        fun validateVehicle(
-            id: String,
-            maxCapacityKg: Double,
-            costPerKm: Double
-        ): List<FieldViolation> {
-            val violations = mutableListOf<FieldViolation>()
-            violations.addAll(IdValidator.validate(id, VEHICLE_ID_PREFIX, "Vehicle"))
-            if (maxCapacityKg <= MIN_CAPACITY_KG) {
-                violations.add(FieldViolation("maxCapacityKg", "Max capacity must be greater than $MIN_CAPACITY_KG."))
-            }
-            if (costPerKm <= MIN_COST_PER_KM) {
-                violations.add(FieldViolation("costPerKm", "Cost per km must be greater than $MIN_COST_PER_KM."))
-            }
-            return violations
+    private fun validateVehicle(
+        id: String, maxCapacityKg: Double, costPerKm: Double
+    ): List<FieldViolation> {
+        val violations = mutableListOf<FieldViolation>()
+        violations.addAll(IdValidator.validate(id, VEHICLE_ID_PREFIX, "Vehicle"))
+        if (maxCapacityKg <= MIN_CAPACITY_KG) {
+            violations.add(FieldViolation("maxCapacityKg", "Max capacity must be greater than $MIN_CAPACITY_KG."))
         }
-
-        fun create(
-            id: String = "$VEHICLE_ID_PREFIX${UUID.randomUUID()}",
-            maxCapacityKg: Double,
-            costPerKm: Double,
-            currentHub: Warehouse
-        ): Result<Vehicle> = runCatching {
-            Vehicle(id, maxCapacityKg, costPerKm, currentHub)
+        if (costPerKm <= MIN_COST_PER_KM) {
+            violations.add(FieldViolation("costPerKm", "Cost per km must be greater than $MIN_COST_PER_KM."))
         }
+        return violations
     }
 
     fun loadPackage(pkg: Package): Boolean {

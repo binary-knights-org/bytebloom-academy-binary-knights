@@ -23,31 +23,17 @@ data class Route(
         }
     }
 
-    companion object {
-        fun validateRoute(
-            id: String,
-            distanceKm: Double,
-            typicalDelayMin: Int
-        ): List<FieldViolation> {
-            val violations = mutableListOf<FieldViolation>()
-            violations.addAll(IdValidator.validate(id, ROUTE_ID_PREFIX, "Route"))
-            if (distanceKm <= MIN_DISTANCE_KM) {
-                violations.add(FieldViolation("distanceKm", "Distance must be greater than $MIN_DISTANCE_KM."))
-            }
-            if (typicalDelayMin < MIN_DELAY_MIN) {
-                violations.add(FieldViolation("typicalDelayMin", "Typical delay must be at least $MIN_DELAY_MIN."))
-            }
-            return violations
+    private fun validateRoute(
+        id: String, distanceKm: Double, typicalDelayMin: Int
+    ): List<FieldViolation> {
+        val violations = mutableListOf<FieldViolation>()
+        violations.addAll(IdValidator.validate(id, ROUTE_ID_PREFIX, "Route"))
+        if (distanceKm <= MIN_DISTANCE_KM) {
+            violations.add(FieldViolation("distanceKm", "Distance must be greater than $MIN_DISTANCE_KM."))
         }
-
-        fun create(
-            id: String = "$ROUTE_ID_PREFIX${UUID.randomUUID()}",
-            distanceKm: Double,
-            typicalDelayMin: Int,
-            originHub: Warehouse,
-            destinationHub: Warehouse
-        ): Result<Route> = runCatching {
-            Route(id, distanceKm, typicalDelayMin, originHub, destinationHub)
+        if (typicalDelayMin < MIN_DELAY_MIN) {
+            violations.add(FieldViolation("typicalDelayMin", "Typical delay must be at least $MIN_DELAY_MIN."))
         }
+        return violations
     }
 }

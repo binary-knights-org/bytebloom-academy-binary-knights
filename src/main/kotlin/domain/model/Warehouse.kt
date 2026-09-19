@@ -35,46 +35,29 @@ data class Warehouse(
         }
     }
 
-    companion object {
-        fun validateWarehouse(
-            id: String,
-            name: String,
-            regionalZone: String,
-            latitude: Double,
-            longitude: Double
-        ): List<FieldViolation> {
-            val violations = mutableListOf<FieldViolation>()
-            violations.addAll(IdValidator.validate(id, WAREHOUSE_ID_PREFIX, "Warehouse"))
+    fun validateWarehouse(
+        id: String, name: String, regionalZone: String, latitude: Double, longitude: Double
+    ): List<FieldViolation> {
+        val violations = mutableListOf<FieldViolation>()
+        violations.addAll(IdValidator.validate(id, WAREHOUSE_ID_PREFIX, "Warehouse"))
 
-            if (name.isBlank()) {
-                violations.add(FieldViolation("name", "Warehouse name cannot be blank."))
-            }
-            if (regionalZone.isBlank()) {
-                violations.add(FieldViolation("regionalZone", "Regional zone cannot be blank."))
-            }
-            if (latitude !in MIN_LATITUDE..MAX_LATITUDE) {
-                violations.add(FieldViolation("latitude", "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE."))
-            }
-            if (longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
-                violations.add(
-                    FieldViolation(
-                        "longitude",
-                        "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE."
-                    )
+        if (name.isBlank()) {
+            violations.add(FieldViolation("name", "Warehouse name cannot be blank."))
+        }
+        if (regionalZone.isBlank()) {
+            violations.add(FieldViolation("regionalZone", "Regional zone cannot be blank."))
+        }
+        if (latitude !in MIN_LATITUDE..MAX_LATITUDE) {
+            violations.add(FieldViolation("latitude", "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE."))
+        }
+        if (longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
+            violations.add(
+                FieldViolation(
+                    "longitude", "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE."
                 )
-            }
-            return violations
+            )
         }
-
-        fun create(
-            id: String = "$WAREHOUSE_ID_PREFIX${UUID.randomUUID()}",
-            name: String,
-            regionalZone: String,
-            latitude: Double,
-            longitude: Double
-        ): Result<Warehouse> = runCatching {
-            Warehouse(id, name, regionalZone, latitude, longitude)
-        }
+        return violations
     }
 
     fun addPackage(pkg: Package) {
