@@ -1,6 +1,6 @@
 package data.mapper.vehicles
 
-import data.dataholder.VehicleRaw
+import data.local.dataholder.VehicleRaw
 import data.remote.dto.vehicleDto.VehicleRequestDto
 
 fun VehicleRaw.toRequestDto(): VehicleRequestDto =

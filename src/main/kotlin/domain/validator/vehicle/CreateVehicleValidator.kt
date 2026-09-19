@@ -1,9 +1,9 @@
 package domain.validator.vehicle
 
 import domain.model.input.CreateVehicleInput
-import domain.exception.DomainValidationException
-import domain.exception.InvalidCostPerKmException
-import domain.exception.InvalidMaxCapacityException
+import domain.model.exception.DomainException
+import domain.model.exception.InvalidCostPerKmException
+import domain.model.exception.InvalidMaxCapacityException
 import domain.validator.ValidationResult
 
 private const val MIN_CAPACITY_KG = 0.0
@@ -13,7 +13,7 @@ class CreateVehicleValidator(
     private val idValidator: VehicleIdValidator
 ) {
     fun validate(input: CreateVehicleInput): ValidationResult<Unit> {
-        val errors = mutableListOf<DomainValidationException>()
+        val errors = mutableListOf<DomainException>()
 
         val idResult = idValidator.validate(input.id)
         if (idResult is ValidationResult.Failure) {

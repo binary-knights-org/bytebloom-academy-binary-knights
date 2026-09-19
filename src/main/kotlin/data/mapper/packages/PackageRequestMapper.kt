@@ -1,6 +1,6 @@
 package data.mapper.packages
 
-import data.dataholder.PackageRaw
+import data.local.dataholder.PackageRaw
 import data.remote.dto.packageDto.PackageRequestDto
 
 fun PackageRaw.toRequestDto(): PackageRequestDto =

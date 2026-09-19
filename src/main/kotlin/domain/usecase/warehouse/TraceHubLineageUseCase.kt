@@ -1,6 +1,6 @@
 package domain.usecase.warehouse
 
-import domain.tree.HubNode
+import domain.algorithm.tree.HubNode
 
 class TraceHubLineageUseCase {
 

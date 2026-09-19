@@ -7,9 +7,9 @@ import domain.model.Vehicle
 import domain.model.Warehouse
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
-import domain.ring.DeterministicHashingEngine
-import domain.ring.breakdown.BreakdownSimulationLogic
-import domain.ring.breakdown.VerificationReport
+import domain.algorithm.ring.DeterministicHashingEngine
+import domain.algorithm.ring.breakdown.BreakdownSimulationLogic
+import domain.algorithm.ring.breakdown.VerificationReport
 import domain.usecase.analytics.AnalyzeTreePerformanceUseCase
 import domain.usecase.analytics.CalculateNetworkResilienceScoreUseCase
 import domain.usecase.vehicle.DispatchVehicleUseCase

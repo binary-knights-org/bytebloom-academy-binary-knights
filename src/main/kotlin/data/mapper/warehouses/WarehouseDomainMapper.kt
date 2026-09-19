@@ -1,6 +1,6 @@
 package data.mapper.warehouses
 
-import data.dataholder.WarehouseRaw
+import data.local.dataholder.WarehouseRaw
 import domain.model.Warehouse
 
 fun WarehouseRaw.toDomain(): Warehouse =

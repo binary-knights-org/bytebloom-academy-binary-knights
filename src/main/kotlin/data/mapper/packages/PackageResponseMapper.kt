@@ -1,6 +1,6 @@
 package data.mapper.packages
 
-import data.dataholder.PackageRaw
+import data.local.dataholder.PackageRaw
 import data.remote.dto.packageDto.PackageResponseDto
 
 fun PackageResponseDto.toRaw(): PackageRaw =

@@ -1,10 +1,10 @@
 package domain.validator.routes
 
 import domain.model.input.CreateRouteInput
-import domain.exception.DomainValidationException
-import domain.exception.InvalidDelayException
-import domain.exception.InvalidDistanceException
-import domain.exception.SameOriginDestinationException
+import domain.model.exception.DomainException
+import domain.model.exception.InvalidDelayException
+import domain.model.exception.InvalidDistanceException
+import domain.model.exception.SameOriginDestinationException
 import domain.validator.ValidationResult
 
 private const val MIN_DISTANCE_KM = 0.0
@@ -14,7 +14,7 @@ class CreateRouteValidator(
     private val idValidator: RouteIdValidator
 ) {
     fun validate(input: CreateRouteInput): ValidationResult<Unit> {
-        val errors = mutableListOf<DomainValidationException>()
+        val errors = mutableListOf<DomainException>()
 
         val idResult = idValidator.validate(input.id)
         if (idResult is ValidationResult.Failure) {

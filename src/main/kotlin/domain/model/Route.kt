@@ -1,8 +1,8 @@
 package domain.model
 
 import domain.validator.IdValidator
-import domain.exception.InvalidDelayException
-import domain.exception.InvalidDistanceException
+import domain.model.exception.InvalidDelayException
+import domain.model.exception.InvalidDistanceException
 import java.util.UUID
 
 private const val ROUTE_ID_PREFIX = "RT-"

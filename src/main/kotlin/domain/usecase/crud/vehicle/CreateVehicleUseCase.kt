@@ -3,7 +3,7 @@ package domain.usecase.crud.vehicle
 import domain.model.Vehicle
 import domain.model.input.CreateVehicleInput
 import domain.repository.VehicleRepository
-import domain.exception.DatabaseOperationFailedException
+import domain.model.exception.DatabaseOperationFailedException
 import domain.validator.ValidationResult
 import domain.validator.vehicle.CreateVehicleValidator
 

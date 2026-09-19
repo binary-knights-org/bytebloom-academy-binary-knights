@@ -2,7 +2,7 @@ package domain.usecase.crud.vehicle
 
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
-import domain.exception.EntityNotFoundException
+import domain.model.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.vehicle.VehicleIdValidator
 

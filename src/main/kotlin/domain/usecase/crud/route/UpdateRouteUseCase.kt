@@ -3,10 +3,8 @@ package domain.usecase.crud.route
 import domain.model.Route
 import domain.model.input.UpdateRouteInput
 import domain.repository.RouteRepository
-import domain.exception.DatabaseOperationFailedException
-import domain.exception.EntityNotFoundException
-import domain.model.Package
-import domain.model.input.UpdatePackageInput
+import domain.model.exception.DatabaseOperationFailedException
+import domain.model.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.routes.UpdateRouteValidator
 

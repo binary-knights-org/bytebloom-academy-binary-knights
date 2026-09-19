@@ -1,9 +1,9 @@
 package domain.model
 
 import domain.algorithm.sorting.sortPackagesDescendingByWeight
-import domain.exception.BlankFieldException
 import domain.validator.IdValidator
-import domain.exception.InvalidCoordinateException
+import domain.model.exception.BlankFieldException
+import domain.model.exception.InvalidCoordinateException
 import java.util.UUID
 
 private const val WAREHOUSE_ID_PREFIX = "WH-"
@@ -53,23 +53,15 @@ data class Warehouse(
         }
     }
 
-    fun addPackage(pkg: Package) {
-        _cargoQueue.add(pkg)
-    }
+    fun addPackage(pkg: Package) { _cargoQueue.add(pkg) }
 
     fun removePackage(pkg: Package): Boolean = _cargoQueue.remove(pkg)
 
-    fun addRoute(route: Route) {
-        _outgoingRoutes.add(route)
-    }
+    fun addRoute(route: Route) { _outgoingRoutes.add(route) }
 
-    fun addVehicle(vehicle: Vehicle) {
-        _stationedVehicles.add(vehicle)
-    }
+    fun addVehicle(vehicle: Vehicle) { _stationedVehicles.add(vehicle) }
 
-    fun sortCargoQueueByWeightDescending() {
-        sortPackagesDescendingByWeight(_cargoQueue)
-    }
+    fun sortCargoQueueByWeightDescending() { sortPackagesDescendingByWeight(_cargoQueue) }
 
     fun restoreCargoQueue(packages: List<Package>) {
         _cargoQueue.clear()

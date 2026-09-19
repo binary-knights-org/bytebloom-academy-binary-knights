@@ -3,10 +3,8 @@ package domain.usecase.crud.packages
 import domain.model.Package
 import domain.model.input.UpdatePackageInput
 import domain.repository.PackageRepository
-import domain.exception.DatabaseOperationFailedException
-import domain.exception.EntityNotFoundException
-import domain.model.Warehouse
-import domain.model.input.UpdateWarehouseInput
+import domain.model.exception.DatabaseOperationFailedException
+import domain.model.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.packages.UpdatePackageValidator
 

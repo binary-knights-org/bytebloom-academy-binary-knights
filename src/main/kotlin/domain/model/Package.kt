@@ -1,7 +1,7 @@
 package domain.model
 
 import domain.validator.IdValidator
-import domain.exception.InvalidWeightException
+import domain.model.exception.InvalidWeightException
 import java.util.UUID
 
 private const val PACKAGE_ID_PREFIX = "PKG-"
