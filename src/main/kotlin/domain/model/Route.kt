@@ -3,13 +3,14 @@ package domain.model
 import domain.validator.IdValidator
 import domain.exception.InvalidDelayException
 import domain.exception.InvalidDistanceException
+import java.util.UUID
 
 private const val ROUTE_ID_PREFIX = "RT-"
 private const val MIN_DISTANCE_KM = 0.0
 private const val MIN_DELAY_MIN = 0
 
 data class Route(
-    val id: String,
+    val id: String = "$ROUTE_ID_PREFIX${UUID.randomUUID()}",
     val distanceKm: Double,
     val typicalDelayMin: Int,
     val originHub: Warehouse,
