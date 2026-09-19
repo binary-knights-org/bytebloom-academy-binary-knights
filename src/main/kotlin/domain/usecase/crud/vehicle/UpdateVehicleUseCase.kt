@@ -3,8 +3,8 @@ package domain.usecase.crud.vehicle
 import domain.model.Vehicle
 import domain.model.input.UpdateVehicleInput
 import domain.repository.VehicleRepository
-import domain.exception.DatabaseOperationFailedException
-import domain.exception.EntityNotFoundException
+import domain.model.exception.DatabaseOperationFailedException
+import domain.model.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.vehicle.UpdateVehicleValidator
 

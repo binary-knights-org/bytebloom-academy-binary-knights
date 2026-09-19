@@ -1,7 +1,7 @@
 package domain.usecase.crud.warehouse
 
 import domain.repository.WarehouseRepository
-import domain.exception.DatabaseOperationFailedException
+import domain.model.exception.DatabaseOperationFailedException
 import domain.validator.ValidationResult
 import domain.validator.warehouse.WarehouseIdValidator
 

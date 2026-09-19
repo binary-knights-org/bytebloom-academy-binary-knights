@@ -1,10 +1,10 @@
 package domain.validator.packages
 
 import domain.model.input.UpdatePackageInput
-import domain.exception.DomainValidationException
-import domain.exception.InvalidWeightException
-import domain.exception.NoUpdateFieldsException
-import domain.exception.SameOriginDestinationException
+import domain.model.exception.DomainException
+import domain.model.exception.InvalidWeightException
+import domain.model.exception.NoUpdateFieldsException
+import domain.model.exception.SameOriginDestinationException
 import domain.validator.ValidationResult
 
 private const val MIN_WEIGHT = 0.0
@@ -13,7 +13,7 @@ class UpdatePackageValidator(
     private val idValidator: PackageIdValidator
 ) {
     fun validate(input: UpdatePackageInput): ValidationResult<Unit> {
-        val errors = mutableListOf<DomainValidationException>()
+        val errors = mutableListOf<DomainException>()
 
         val idResult = idValidator.validate(input.id)
         if (idResult is ValidationResult.Failure) {

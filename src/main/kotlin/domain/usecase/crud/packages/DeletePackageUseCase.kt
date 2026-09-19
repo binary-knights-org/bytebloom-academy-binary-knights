@@ -1,7 +1,7 @@
 package domain.usecase.crud.packages
 
 import domain.repository.PackageRepository
-import domain.exception.DatabaseOperationFailedException
+import domain.model.exception.DatabaseOperationFailedException
 import domain.validator.ValidationResult
 import domain.validator.packages.PackageIdValidator
 

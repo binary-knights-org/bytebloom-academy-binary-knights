@@ -1,8 +1,8 @@
 package domain.model
 
 import domain.validator.IdValidator
-import domain.exception.InvalidCostPerKmException
-import domain.exception.InvalidMaxCapacityException
+import domain.model.exception.InvalidCostPerKmException
+import domain.model.exception.InvalidMaxCapacityException
 
 private const val VEHICLE_ID_PREFIX = "TRK-"
 private const val MIN_CAPACITY_KG = 0.0

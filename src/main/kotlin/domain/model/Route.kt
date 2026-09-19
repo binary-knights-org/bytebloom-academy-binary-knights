@@ -1,8 +1,8 @@
 package domain.model
 
 import domain.validator.IdValidator
-import domain.exception.InvalidDelayException
-import domain.exception.InvalidDistanceException
+import domain.model.exception.InvalidDelayException
+import domain.model.exception.InvalidDistanceException
 
 private const val ROUTE_ID_PREFIX = "RT-"
 private const val MIN_DISTANCE_KM = 0.0

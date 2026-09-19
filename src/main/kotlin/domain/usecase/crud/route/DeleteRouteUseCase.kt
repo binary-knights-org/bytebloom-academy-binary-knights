@@ -1,7 +1,7 @@
 package domain.usecase.crud.route
 
 import domain.repository.RouteRepository
-import domain.exception.DatabaseOperationFailedException
+import domain.model.exception.DatabaseOperationFailedException
 import domain.validator.ValidationResult
 import domain.validator.routes.RouteIdValidator
 

@@ -1,9 +1,9 @@
 package domain.model
 
 import domain.algorithm.sorting.sortPackagesDescendingByWeight
-import domain.exception.BlankFieldException
+import domain.model.exception.BlankFieldException
 import domain.validator.IdValidator
-import domain.exception.InvalidCoordinateException
+import domain.model.exception.InvalidCoordinateException
 
 private const val WAREHOUSE_ID_PREFIX = "WH-"
 private const val MIN_LATITUDE = -90.0

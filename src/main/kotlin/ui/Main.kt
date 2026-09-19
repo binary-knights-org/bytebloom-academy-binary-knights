@@ -1,5 +1,10 @@
 package ui
 
+import data.local.csv.CsvFileHandler
+import data.local.csv.CsvPackageDataSourceImpl
+import data.local.csv.CsvRouteDataSourceImpl
+import data.local.csv.CsvVehicleDataSourceImpl
+import data.local.csv.CsvWarehouseDataSourceImpl
 import data.repository.PackageRepositoryImpl
 import data.repository.RouteRepositoryImpl
 import data.repository.VehicleRepositoryImpl
@@ -17,24 +22,51 @@ import domain.usecase.shipment.FindPackagesForConsolidationUseCase
 import domain.usecase.vehicle.FindSuitableVehicleUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 import data.remote.client.SupabaseHttpClient
-import data.remote.supabase.SupabaseWarehouseDataSource
-import data.remote.supabase.SupabasePackageDataSource
-import data.remote.supabase.SupabaseRouteDataSource
-import data.remote.supabase.SupabaseVehicleDataSource
+import data.remote.supabase.SupabaseWarehouseDataSourceImpl
+import data.remote.supabase.SupabasePackageDataSourceImpl
+import data.remote.supabase.SupabaseRouteDataSourceImpl
+import data.remote.supabase.SupabaseVehicleDataSourceImpl
+import data.repository.LocalDataSources
+import data.repository.RemoteDataSources
 import kotlinx.coroutines.runBlocking
 
 
 fun main() = runBlocking {
    printSystemHeader()
-   val warehouseDataSource = SupabaseWarehouseDataSource(SupabaseHttpClient)
-   val packageDataSource = SupabasePackageDataSource(SupabaseHttpClient)
-   val vehicleDataSource = SupabaseVehicleDataSource(SupabaseHttpClient)
-   val routeDataSource = SupabaseRouteDataSource(SupabaseHttpClient)
-   val warehouseRepository =
-       WarehouseRepositoryImpl(warehouseDataSource, packageDataSource, vehicleDataSource, routeDataSource)
-   val packageRepository = PackageRepositoryImpl(packageDataSource, warehouseRepository)
-   val vehicleRepository = VehicleRepositoryImpl(vehicleDataSource, warehouseRepository)
-   val routeRepository = RouteRepositoryImpl(routeDataSource, warehouseRepository)
+   val warehouseDataSource = SupabaseWarehouseDataSourceImpl(SupabaseHttpClient)
+   val packageDataSource = SupabasePackageDataSourceImpl(SupabaseHttpClient)
+   val vehicleDataSource = SupabaseVehicleDataSourceImpl(SupabaseHttpClient)
+   val routeDataSource = SupabaseRouteDataSourceImpl(SupabaseHttpClient)
+
+    val warehouseCsvHandler = CsvFileHandler("src/main/resources/warehouses.csv")
+    val packageCsvHandler = CsvFileHandler("src/main/resources/packages.csv")
+    val vehicleCsvHandler = CsvFileHandler("src/main/resources/fleet.csv")
+    val routeCsvHandler = CsvFileHandler("src/main/resources/routes.csv")
+
+    val localWarehouseDataSource = CsvWarehouseDataSourceImpl(warehouseCsvHandler)
+    val localPackageDataSource = CsvPackageDataSourceImpl(packageCsvHandler)
+    val localVehicleDataSource = CsvVehicleDataSourceImpl(vehicleCsvHandler)
+    val localRouteDataSource = CsvRouteDataSourceImpl(routeCsvHandler)
+
+    val remoteSources = RemoteDataSources(
+        warehouseDataSource,
+        packageDataSource,
+        vehicleDataSource,
+        routeDataSource
+    )
+
+    val localSources = LocalDataSources(
+        localWarehouseDataSource,
+        localPackageDataSource,
+        localVehicleDataSource,
+        localRouteDataSource
+    )
+
+    val warehouseRepository = WarehouseRepositoryImpl(remoteSources, localSources,)
+   val packageRepository = PackageRepositoryImpl(packageDataSource,localPackageDataSource , warehouseRepository)
+   val vehicleRepository = VehicleRepositoryImpl(vehicleDataSource,localVehicleDataSource , warehouseRepository)
+   val routeRepository = RouteRepositoryImpl(routeDataSource,localRouteDataSource , warehouseRepository)
+
    printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
    val warehouses = buildDomainGraph(warehouseRepository)
    val findPackagesForConsolidationUseCase = FindPackagesForConsolidationUseCase(packageRepository)

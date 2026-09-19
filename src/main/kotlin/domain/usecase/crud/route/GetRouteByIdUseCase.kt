@@ -2,7 +2,7 @@ package domain.usecase.crud.route
 
 import domain.model.Route
 import domain.repository.RouteRepository
-import domain.exception.EntityNotFoundException
+import domain.model.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.routes.RouteIdValidator
 

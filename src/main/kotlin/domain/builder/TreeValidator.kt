@@ -1,6 +1,6 @@
 package domain.builder
 
-import domain.tree.HubNode
+import domain.algorithm.tree.HubNode
 
 class TreeValidator {
 

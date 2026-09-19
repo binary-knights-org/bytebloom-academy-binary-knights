@@ -2,7 +2,7 @@ package domain.usecase.crud.warehouse
 
 import domain.model.Warehouse
 import domain.repository.WarehouseRepository
-import domain.exception.EntityNotFoundException
+import domain.model.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.warehouse.WarehouseIdValidator
 

@@ -3,7 +3,7 @@ package domain.usecase.crud.packages
 import domain.model.Package
 import domain.model.input.CreatePackageInput
 import domain.repository.PackageRepository
-import domain.exception.DatabaseOperationFailedException
+import domain.model.exception.DatabaseOperationFailedException
 import domain.validator.ValidationResult
 import domain.validator.packages.CreatePackageValidator
 

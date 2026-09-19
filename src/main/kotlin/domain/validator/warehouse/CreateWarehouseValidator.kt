@@ -1,9 +1,9 @@
 package domain.validator.warehouse
 
 import domain.model.input.CreateWarehouseInput
-import domain.exception.BlankFieldException
-import domain.exception.DomainValidationException
-import domain.exception.InvalidCoordinateException
+import domain.model.exception.BlankFieldException
+import domain.model.exception.DomainException
+import domain.model.exception.InvalidCoordinateException
 import domain.validator.ValidationResult
 
 private const val MIN_LATITUDE = -90.0
@@ -15,7 +15,7 @@ class CreateWarehouseValidator(
     private val idValidator: WarehouseIdValidator
 ) {
     fun validate(input: CreateWarehouseInput): ValidationResult<Unit> {
-        val errors = mutableListOf<DomainValidationException>()
+        val errors = mutableListOf<DomainException>()
 
         val idResult = idValidator.validate(input.id)
         if (idResult is ValidationResult.Failure) {

@@ -2,7 +2,7 @@ package domain.usecase.crud.packages
 
 import domain.model.Package
 import domain.repository.PackageRepository
-import domain.exception.EntityNotFoundException
+import domain.model.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.packages.PackageIdValidator
 
