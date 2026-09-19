@@ -4,6 +4,7 @@ import domain.algorithm.sorting.sortPackagesDescendingByWeight
 import domain.exception.BlankFieldException
 import domain.validator.IdValidator
 import domain.exception.InvalidCoordinateException
+import java.util.UUID
 
 private const val WAREHOUSE_ID_PREFIX = "WH-"
 private const val MIN_LATITUDE = -90.0
@@ -12,7 +13,7 @@ private const val MIN_LONGITUDE = -180.0
 private const val MAX_LONGITUDE = 180.0
 
 data class Warehouse(
-    val id: String,
+    val id: String = "$WAREHOUSE_ID_PREFIX${UUID.randomUUID()}",
     val name: String,
     val regionalZone: String,
     val latitude: Double,
@@ -52,15 +53,23 @@ data class Warehouse(
         }
     }
 
-    fun addPackage(pkg: Package) { _cargoQueue.add(pkg) }
+    fun addPackage(pkg: Package) {
+        _cargoQueue.add(pkg)
+    }
 
     fun removePackage(pkg: Package): Boolean = _cargoQueue.remove(pkg)
 
-    fun addRoute(route: Route) { _outgoingRoutes.add(route) }
+    fun addRoute(route: Route) {
+        _outgoingRoutes.add(route)
+    }
 
-    fun addVehicle(vehicle: Vehicle) { _stationedVehicles.add(vehicle) }
+    fun addVehicle(vehicle: Vehicle) {
+        _stationedVehicles.add(vehicle)
+    }
 
-    fun sortCargoQueueByWeightDescending() { sortPackagesDescendingByWeight(_cargoQueue) }
+    fun sortCargoQueueByWeightDescending() {
+        sortPackagesDescendingByWeight(_cargoQueue)
+    }
 
     fun restoreCargoQueue(packages: List<Package>) {
         _cargoQueue.clear()
