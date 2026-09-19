@@ -1,10 +1,7 @@
 package domain.validator.warehouse
 
 import domain.model.input.UpdateWarehouseInput
-import domain.model.exception.BlankFieldException
-import domain.model.exception.DomainException
-import domain.model.exception.InvalidCoordinateException
-import domain.model.exception.NoUpdateFieldsException
+import domain.validator.ValidationResultBuilder
 import domain.validator.ValidationResult
 
 private const val MIN_LATITUDE = -90.0
@@ -15,39 +12,41 @@ private const val MAX_LONGITUDE = 180.0
 class UpdateWarehouseValidator(
     private val idValidator: WarehouseIdValidator
 ) {
-    fun validate(input: UpdateWarehouseInput): ValidationResult<Unit> {
-        val errors = mutableListOf<DomainException>()
+    fun validate(input: UpdateWarehouseInput): ValidationResult {
+        val builder = ValidationResultBuilder()
 
         val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Failure) {
-            errors += idResult.errors
+        if (idResult is ValidationResult.Invalid) {
+            builder.addViolations(idResult.violations)
         }
 
         if (hasNoUpdates(input)) {
-            errors += NoUpdateFieldsException("name, regionalZone, latitude, longitude")
+            builder.addViolation("updateFields",
+                "At least one field (name, regionalZone, latitude, longitude) " +
+                        "must be provided for update.")
         }
 
         input.name?.let {
-            if (it.isBlank()) errors += BlankFieldException("Warehouse name")
+            builder.check(it.isNotBlank(), "name",
+                "Warehouse name cannot be blank.")
         }
 
         input.regionalZone?.let {
-            if (it.isBlank()) errors += BlankFieldException("Regional zone")
+            builder.check(it.isNotBlank(), "regionalZone",
+                "Regional zone cannot be blank.")
         }
 
         input.latitude?.let { lat ->
-            if (lat !in MIN_LATITUDE..MAX_LATITUDE) {
-                errors += InvalidCoordinateException("Latitude", MIN_LATITUDE, MAX_LATITUDE)
-            }
+            builder.check(lat in MIN_LATITUDE..MAX_LATITUDE, "latitude",
+                "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE.")
         }
 
         input.longitude?.let { lon ->
-            if (lon !in MIN_LONGITUDE..MAX_LONGITUDE) {
-                errors += InvalidCoordinateException("Longitude", MIN_LONGITUDE, MAX_LONGITUDE)
-            }
+            builder.check(lon in MIN_LONGITUDE..MAX_LONGITUDE, "longitude",
+                "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE.")
         }
 
-        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+        return builder.build()
     }
 
     private fun hasNoUpdates(input: UpdateWarehouseInput): Boolean {

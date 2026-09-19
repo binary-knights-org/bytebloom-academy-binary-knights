@@ -1,40 +1,67 @@
 package domain.usecase.crud.route
 
+import domain.exception.DatabaseConflictException
+import domain.exception.EntityValidationException
+import domain.exception.ResourceNotFoundException
 import domain.model.Route
 import domain.model.input.UpdateRouteInput
 import domain.repository.RouteRepository
-import domain.model.exception.DatabaseOperationFailedException
-import domain.model.exception.EntityNotFoundException
-import domain.validator.ValidationResult
 import domain.validator.routes.UpdateRouteValidator
 
 class UpdateRouteUseCase(
-    private val routeRepository: RouteRepository, private val validator: UpdateRouteValidator
+    private val routeRepository: RouteRepository,
+    private val validator: UpdateRouteValidator
 ) {
-    suspend operator fun invoke(input: UpdateRouteInput): ValidationResult<Route> {
-        val validationResult = validator.validate(input)
-        if (validationResult is ValidationResult.Failure) {
-            return validationResult
+    suspend operator fun invoke(input: UpdateRouteInput): Result<Route> {
+        val validation = validator.validate(input)
+        if (validation.isInvalid) {
+            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
         }
 
-        return executeUpdate(input)
+        return runCatching { routeRepository.getById(input.id) }.fold(
+            onSuccess = { existing ->
+                if (existing == null) {
+                    Result.failure(ResourceNotFoundException("Route with ID '${input.id}' was not found."))
+                } else {
+                    executeUpdate(existing, input)
+                }
+            },
+            onFailure = { error ->
+                Result.failure(
+                    DatabaseConflictException(
+                        "Failed to retrieve route for update: ${error.message}", error
+                    )
+                )
+            }
+        )
     }
 
-    private suspend fun executeUpdate(input: UpdateRouteInput): ValidationResult<Route> {
-        val existingRoute = routeRepository.getById(input.id) ?: return ValidationResult.Failure(
-            listOf(EntityNotFoundException("Route", input.id))
+    private suspend fun executeUpdate(existing: Route, input: UpdateRouteInput): Result<Route> {
+        return runCatching {
+            existing.copy(
+                distanceKm = input.distanceKm ?: existing.distanceKm,
+                typicalDelayMin = input.typicalDelayMin ?: existing.typicalDelayMin,
+                originHub = input.originHub ?: existing.originHub,
+                destinationHub = input.destinationHub ?: existing.destinationHub
+            )
+        }.fold(
+            onSuccess = { updatedRoute ->
+                runCatching { routeRepository.update(updatedRoute) }.fold(
+                    onSuccess = { isUpdated ->
+                        if (isUpdated) {
+                            Result.success(updatedRoute)
+                        } else {
+                            Result.failure(DatabaseConflictException("Failed to update route in database."))
+                        }
+                    },
+                    onFailure = { error ->
+                        Result.failure(DatabaseConflictException("Failed to update route: ${error.message}", error))
+                    }
+                )
+            },
+            onFailure = { error ->
+                Result.failure(error)
+            }
         )
-
-        val updatedRoute = existingRoute.copy(
-            distanceKm = input.distanceKm ?: existingRoute.distanceKm,
-            typicalDelayMin = input.typicalDelayMin ?: existingRoute.typicalDelayMin,
-            originHub = input.originHub ?: existingRoute.originHub,
-            destinationHub = input.destinationHub ?: existingRoute.destinationHub
-        )
-
-        val isUpdated = routeRepository.update(updatedRoute)
-
-        return if (isUpdated) ValidationResult.Success(updatedRoute)
-        else ValidationResult.Failure(listOf(DatabaseOperationFailedException("update", "route")))
     }
 }

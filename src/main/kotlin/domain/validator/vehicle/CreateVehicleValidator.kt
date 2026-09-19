@@ -1,9 +1,7 @@
 package domain.validator.vehicle
 
 import domain.model.input.CreateVehicleInput
-import domain.model.exception.DomainException
-import domain.model.exception.InvalidCostPerKmException
-import domain.model.exception.InvalidMaxCapacityException
+import domain.validator.ValidationResultBuilder
 import domain.validator.ValidationResult
 
 private const val MIN_CAPACITY_KG = 0.0
@@ -12,22 +10,25 @@ private const val MIN_COST_PER_KM = 0.0
 class CreateVehicleValidator(
     private val idValidator: VehicleIdValidator
 ) {
-    fun validate(input: CreateVehicleInput): ValidationResult<Unit> {
-        val errors = mutableListOf<DomainException>()
+    fun validate(input: CreateVehicleInput): ValidationResult {
+        val builder = ValidationResultBuilder()
 
         val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Failure) {
-            errors += idResult.errors
+        if (idResult is ValidationResult.Invalid) {
+            builder.addViolations(idResult.violations)
         }
 
-        if (input.maxCapacityKg <= MIN_CAPACITY_KG) {
-            errors += InvalidMaxCapacityException(MIN_CAPACITY_KG)
-        }
+        builder.check(
+            input.maxCapacityKg > MIN_CAPACITY_KG,
+            "maxCapacityKg",
+            "Max capacity must be greater than $MIN_CAPACITY_KG."
+        )
+        builder.check(
+            input.costPerKm > MIN_COST_PER_KM,
+            "costPerKm",
+            "Cost per km must be greater than $MIN_COST_PER_KM."
+        )
 
-        if (input.costPerKm <= MIN_COST_PER_KM) {
-            errors += InvalidCostPerKmException(MIN_COST_PER_KM)
-        }
-
-        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+        return builder.build()
     }
 }

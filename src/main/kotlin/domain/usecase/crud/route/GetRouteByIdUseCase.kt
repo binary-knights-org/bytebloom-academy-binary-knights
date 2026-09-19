@@ -1,26 +1,37 @@
 package domain.usecase.crud.route
 
+import domain.exception.DatabaseConflictException
+import domain.exception.EntityValidationException
+import domain.exception.ResourceNotFoundException
 import domain.model.Route
 import domain.repository.RouteRepository
-import domain.model.exception.EntityNotFoundException
-import domain.validator.ValidationResult
 import domain.validator.routes.RouteIdValidator
 
 class GetRouteByIdUseCase(
     private val routeRepository: RouteRepository,
     private val idValidator: RouteIdValidator
 ) {
-    suspend operator fun invoke(id: String): ValidationResult<Route> {
-        val validationResult = idValidator.validate(id)
-        if (validationResult is ValidationResult.Failure) {
-            return validationResult
+    suspend operator fun invoke(id: String): Result<Route> {
+        val validation = idValidator.validate(id)
+        if (validation.isInvalid) {
+            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
         }
 
-        val route = routeRepository.getById(id)
-        return if (route != null) {
-            ValidationResult.Success(route)
-        } else {
-            ValidationResult.Failure(listOf(EntityNotFoundException("Route", id)))
-        }
+        return runCatching { routeRepository.getById(id) }.fold(
+            onSuccess = { route ->
+                if (route != null) {
+                    Result.success(route)
+                } else {
+                    Result.failure(ResourceNotFoundException("Route with ID '$id' was not found."))
+                }
+            },
+            onFailure = { error ->
+                Result.failure(
+                    DatabaseConflictException(
+                        "Failed to fetch route with ID '$id': ${error.message}", error
+                    )
+                )
+            }
+        )
     }
 }

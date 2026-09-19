@@ -1,8 +1,8 @@
 package domain.model
 
+import domain.exception.EntityValidationException
+import domain.validator.FieldViolation
 import domain.validator.IdValidator
-import domain.model.exception.InvalidCostPerKmException
-import domain.model.exception.InvalidMaxCapacityException
 import java.util.UUID
 
 private const val VEHICLE_ID_PREFIX = "TRK-"
@@ -23,22 +23,37 @@ data class Vehicle(
         get() = mutableLoadedCargo.sumOf { it.weight }
 
     init {
-        validateId()
-        validateCapacity()
-        validateCost()
+        val violations = validateVehicle(id, maxCapacityKg, costPerKm)
+        if (violations.isNotEmpty()) {
+            throw EntityValidationException(violations)
+        }
     }
 
-    private fun validateId() {
-        val errors = IdValidator.validate(id, VEHICLE_ID_PREFIX, "Vehicle")
-        if (errors.isNotEmpty()) throw errors.first()
-    }
+    companion object {
+        fun validateVehicle(
+            id: String,
+            maxCapacityKg: Double,
+            costPerKm: Double
+        ): List<FieldViolation> {
+            val violations = mutableListOf<FieldViolation>()
+            violations.addAll(IdValidator.validate(id, VEHICLE_ID_PREFIX, "Vehicle"))
+            if (maxCapacityKg <= MIN_CAPACITY_KG) {
+                violations.add(FieldViolation("maxCapacityKg", "Max capacity must be greater than $MIN_CAPACITY_KG."))
+            }
+            if (costPerKm <= MIN_COST_PER_KM) {
+                violations.add(FieldViolation("costPerKm", "Cost per km must be greater than $MIN_COST_PER_KM."))
+            }
+            return violations
+        }
 
-    private fun validateCapacity() {
-        if (maxCapacityKg <= MIN_CAPACITY_KG) throw InvalidMaxCapacityException(MIN_CAPACITY_KG)
-    }
-
-    private fun validateCost() {
-        if (costPerKm <= MIN_COST_PER_KM) throw InvalidCostPerKmException(MIN_COST_PER_KM)
+        fun create(
+            id: String = "$VEHICLE_ID_PREFIX${UUID.randomUUID()}",
+            maxCapacityKg: Double,
+            costPerKm: Double,
+            currentHub: Warehouse
+        ): Result<Vehicle> = runCatching {
+            Vehicle(id, maxCapacityKg, costPerKm, currentHub)
+        }
     }
 
     fun loadPackage(pkg: Package): Boolean {

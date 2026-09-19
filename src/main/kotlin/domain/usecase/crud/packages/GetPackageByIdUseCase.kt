@@ -1,26 +1,37 @@
 package domain.usecase.crud.packages
 
+import domain.exception.DatabaseConflictException
+import domain.exception.EntityValidationException
+import domain.exception.ResourceNotFoundException
 import domain.model.Package
 import domain.repository.PackageRepository
-import domain.model.exception.EntityNotFoundException
-import domain.validator.ValidationResult
 import domain.validator.packages.PackageIdValidator
 
 class GetPackageByIdUseCase(
     private val packageRepository: PackageRepository,
     private val idValidator: PackageIdValidator
 ) {
-    suspend operator fun invoke(id: String): ValidationResult<Package> {
-        val validationResult = idValidator.validate(id)
-        if (validationResult is ValidationResult.Failure) {
-            return validationResult
+    suspend operator fun invoke(id: String): Result<Package> {
+        val validation = idValidator.validate(id)
+        if (validation.isInvalid) {
+            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
         }
 
-        val pkg = packageRepository.getById(id)
-        return if (pkg != null) {
-            ValidationResult.Success(pkg)
-        } else {
-            ValidationResult.Failure(listOf(EntityNotFoundException("Package", id)))
-        }
+        return runCatching { packageRepository.getById(id) }.fold(
+            onSuccess = { pkg ->
+                if (pkg != null) {
+                    Result.success(pkg)
+                } else {
+                    Result.failure(ResourceNotFoundException("Package with ID '$id' was not found."))
+                }
+            },
+            onFailure = { error ->
+                Result.failure(
+                    DatabaseConflictException(
+                        "Failed to fetch package with ID '$id': ${error.message}", error
+                    )
+                )
+            }
+        )
     }
 }
