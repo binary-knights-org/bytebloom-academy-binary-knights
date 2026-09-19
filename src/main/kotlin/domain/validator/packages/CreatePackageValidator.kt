@@ -1,38 +1,32 @@
 package domain.validator.packages
 
-import domain.model.Package
-import domain.validator.FieldError
+import domain.model.input.CreatePackageInput
+import domain.exception.DomainValidationException
+import domain.exception.InvalidWeightException
+import domain.exception.SameOriginDestinationException
 import domain.validator.ValidationResult
+
+private const val MIN_WEIGHT = 0.0
 
 class CreatePackageValidator(
     private val idValidator: PackageIdValidator
 ) {
-    fun validate(pkg: Package): ValidationResult {
-        val errors = mutableListOf<FieldError>()
+    fun validate(input: CreatePackageInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
 
-        val idResult = idValidator.validate(pkg.id)
-
-        if (idResult is ValidationResult.Failure)
-            errors.addAll(idResult.errors)
-
-        if (!Package.isValidWeight(pkg.weight)) {
-            errors.add(
-                FieldError(
-                    "weight",
-                    "Weight must be greater than ${Package.MIN_WEIGHT}."
-                )
-            )
+        val idResult = idValidator.validate(input.id)
+        if (idResult is ValidationResult.Failure) {
+            errors += idResult.errors
         }
 
-        if (!Package.isValidPriority(pkg.priority)) {
-            errors.add(
-                FieldError(
-                    "priority",
-                    "Priority must be one of: ${Package.ALLOWED_PRIORITIES.joinToString(", ")}."
-                )
-            )
+        if (input.weight <= MIN_WEIGHT) {
+            errors += InvalidWeightException(MIN_WEIGHT)
         }
 
-        return if (errors.isEmpty()) ValidationResult.Success else ValidationResult.Failure(errors)
+        if (input.originHub.id == input.destinationHub.id) {
+            errors += SameOriginDestinationException()
+        }
+
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
     }
 }

@@ -1,42 +1,42 @@
 package domain.usecase.crud.route
 
-import domain.exception.EntityValidationException
 import domain.model.Route
 import domain.model.input.UpdateRouteInput
 import domain.repository.RouteRepository
+import domain.exception.DatabaseOperationFailedException
+import domain.exception.EntityNotFoundException
+import domain.model.Package
+import domain.model.input.UpdatePackageInput
 import domain.validator.ValidationResult
-import domain.validator.routes.RouteIdValidator
 import domain.validator.routes.UpdateRouteValidator
 
 class UpdateRouteUseCase(
-    private val routeRepository: RouteRepository,
-    private val idValidator: RouteIdValidator,
-    private val validator: UpdateRouteValidator
+    private val routeRepository: RouteRepository, private val validator: UpdateRouteValidator
 ) {
-    suspend operator fun invoke(input: UpdateRouteInput): Boolean {
-        validateInput(input)
+    suspend operator fun invoke(input: UpdateRouteInput): ValidationResult<Route> {
+        val validationResult = validator.validate(input)
+        if (validationResult is ValidationResult.Failure) {
+            return validationResult
+        }
 
-        val existingRoute = routeRepository.getById(input.id)
-            ?: throw EntityValidationException("Route with ID '${input.id}' was not found.")
+        return executeUpdate(input)
+    }
 
-        val updatedRoute = Route.create(
-            id = existingRoute.id,
+    private suspend fun executeUpdate(input: UpdateRouteInput): ValidationResult<Route> {
+        val existingRoute = routeRepository.getById(input.id) ?: return ValidationResult.Failure(
+            listOf(EntityNotFoundException("Route", input.id))
+        )
+
+        val updatedRoute = existingRoute.copy(
             distanceKm = input.distanceKm ?: existingRoute.distanceKm,
             typicalDelayMin = input.typicalDelayMin ?: existingRoute.typicalDelayMin,
             originHub = input.originHub ?: existingRoute.originHub,
             destinationHub = input.destinationHub ?: existingRoute.destinationHub
         )
 
-        return routeRepository.update(updatedRoute)
-    }
+        val isUpdated = routeRepository.update(updatedRoute)
 
-    private fun validateInput(input: UpdateRouteInput) {
-        if (idValidator.validate(input.id) is ValidationResult.Failure) {
-            throw EntityValidationException("Cannot update route: invalid route ID.")
-        }
-
-        if (validator.validate(input) is ValidationResult.Failure) {
-            throw EntityValidationException("Cannot update route: invalid route data.")
-        }
+        return if (isUpdated) ValidationResult.Success(updatedRoute)
+        else ValidationResult.Failure(listOf(DatabaseOperationFailedException("update", "route")))
     }
 }

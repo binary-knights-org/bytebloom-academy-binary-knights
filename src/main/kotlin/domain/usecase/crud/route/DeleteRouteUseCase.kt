@@ -1,7 +1,7 @@
 package domain.usecase.crud.route
 
-import domain.exception.EntityValidationException
 import domain.repository.RouteRepository
+import domain.exception.DatabaseOperationFailedException
 import domain.validator.ValidationResult
 import domain.validator.routes.RouteIdValidator
 
@@ -9,15 +9,17 @@ class DeleteRouteUseCase(
     private val routeRepository: RouteRepository,
     private val idValidator: RouteIdValidator
 ) {
-    suspend operator fun invoke(id: String): Boolean {
-        val validation = idValidator.validate(id)
-
-        if (validation is ValidationResult.Failure) {
-            throw EntityValidationException(
-                "Cannot delete route: invalid route ID."
-            )
+    suspend operator fun invoke(id: String): ValidationResult<Unit> {
+        val validationResult = idValidator.validate(id)
+        if (validationResult is ValidationResult.Failure) {
+            return validationResult
         }
 
-        return routeRepository.delete(id)
+        val isDeleted = routeRepository.delete(id)
+        return if (isDeleted) {
+            ValidationResult.Success(Unit)
+        } else {
+            ValidationResult.Failure(listOf(DatabaseOperationFailedException("delete", "route")))
+        }
     }
 }

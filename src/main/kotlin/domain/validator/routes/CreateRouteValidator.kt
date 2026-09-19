@@ -1,62 +1,38 @@
 package domain.validator.routes
 
-import domain.model.Route
-import domain.validator.FieldError
+import domain.model.input.CreateRouteInput
+import domain.exception.DomainValidationException
+import domain.exception.InvalidDelayException
+import domain.exception.InvalidDistanceException
+import domain.exception.SameOriginDestinationException
 import domain.validator.ValidationResult
+
+private const val MIN_DISTANCE_KM = 0.0
+private const val MIN_DELAY_MIN = 0
 
 class CreateRouteValidator(
     private val idValidator: RouteIdValidator
 ) {
+    fun validate(input: CreateRouteInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
 
-    fun validate(route: Route): ValidationResult {
-        val errors = mutableListOf<FieldError>()
-
-        val idResult = idValidator.validate(route.id)
-
+        val idResult = idValidator.validate(input.id)
         if (idResult is ValidationResult.Failure) {
-            errors.addAll(idResult.errors)
+            errors += idResult.errors
         }
 
-        if (!Route.isValidDistance(route.distanceKm)) {
-            errors.add(
-                FieldError(
-                    "distanceKm",
-                    "Distance must be greater than ${Route.MIN_DISTANCE_KM}."
-                )
-            )
+        if (input.distanceKm <= MIN_DISTANCE_KM) {
+            errors += InvalidDistanceException(MIN_DISTANCE_KM)
         }
 
-        if (!Route.isValidDelay(route.typicalDelayMin)) {
-            errors.add(
-                FieldError(
-                    "typicalDelayMin",
-                    "Typical delay must not be negative."
-                )
-            )
+        if (input.typicalDelayMin < MIN_DELAY_MIN) {
+            errors += InvalidDelayException(MIN_DELAY_MIN)
         }
 
-        if (route.originHub.id.isBlank()) {
-            errors.add(
-                FieldError(
-                    "originHubId",
-                    "Hub ID must not be blank."
-                )
-            )
+        if (input.originHub.id == input.destinationHub.id) {
+            errors += SameOriginDestinationException()
         }
 
-        if (route.destinationHub.id.isBlank()) {
-            errors.add(
-                FieldError(
-                    "destinationHubId",
-                    "Hub ID must not be blank."
-                )
-            )
-        }
-
-        return if (errors.isEmpty()) {
-            ValidationResult.Success
-        } else {
-            ValidationResult.Failure(errors)
-        }
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
     }
 }

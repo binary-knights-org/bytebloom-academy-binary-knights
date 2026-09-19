@@ -1,57 +1,48 @@
 package domain.validator.vehicle
 
-import domain.model.Vehicle
 import domain.model.input.UpdateVehicleInput
-import domain.model.input.UpdateWarehouseInput
-import domain.validator.FieldError
+import domain.exception.DomainValidationException
+import domain.exception.InvalidCostPerKmException
+import domain.exception.InvalidMaxCapacityException
+import domain.exception.NoUpdateFieldsException
 import domain.validator.ValidationResult
 
-class UpdateVehicleValidator {
+private const val MIN_CAPACITY_KG = 0.0
+private const val MIN_COST_PER_KM = 0.0
 
-    fun validate(
-        input: UpdateVehicleInput
-    ): ValidationResult {
-        val errors = mutableListOf<FieldError>()
+class UpdateVehicleValidator(
+    private val idValidator: VehicleIdValidator
+) {
+    fun validate(input: UpdateVehicleInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
 
-        if (hasNoFieldsToUpdate(input)) {
-            errors.add(
-                FieldError(
-                    "update", "At least one field must be provided for update."
-                )
-            )
+        val idResult = idValidator.validate(input.id)
+        if (idResult is ValidationResult.Failure) {
+            errors += idResult.errors
         }
 
-        input.maxCapacityKg?.let {
-            if (!Vehicle.isValidCapacity(it)){
-                errors.add(
-                    FieldError(
-                        "maxCapacityKg", " Max Capacity Kg  must not be negative."
-                    )
-                )
+        if (hasNoUpdates(input)) {
+            errors += NoUpdateFieldsException("maxCapacityKg, costPerKm, currentHub")
+        }
+
+        input.maxCapacityKg?.let { capacity ->
+            if (capacity <= MIN_CAPACITY_KG) {
+                errors += InvalidMaxCapacityException(MIN_CAPACITY_KG)
             }
         }
 
-        input.costPerKm?.let {
-            if(!Vehicle.isValidCostPerKm(it)){
-                errors.add(
-                    FieldError(
-                        "costPerKm", " Cost Per Km  must not be negative."
-                    )
-                )
+        input.costPerKm?.let { cost ->
+            if (cost <= MIN_COST_PER_KM) {
+                errors += InvalidCostPerKmException(MIN_COST_PER_KM)
             }
         }
 
-        return if (errors.isEmpty()){
-            ValidationResult.Success
-        } else {
-            ValidationResult.Failure(errors)
-        }
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+    }
+
+    private fun hasNoUpdates(input: UpdateVehicleInput): Boolean {
+        return input.maxCapacityKg == null &&
+                input.costPerKm == null &&
+                input.currentHub == null
     }
 }
-    private fun hasNoFieldsToUpdate(input: UpdateVehicleInput): Boolean =
-        listOfNotNull(
-            input.costPerKm,
-            input.maxCapacityKg,
-            input.currentHub,
-        ).isEmpty()
-

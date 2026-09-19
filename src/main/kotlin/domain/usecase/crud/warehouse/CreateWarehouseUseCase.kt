@@ -1,8 +1,9 @@
 package domain.usecase.crud.warehouse
 
-import domain.exception.EntityValidationException
 import domain.model.Warehouse
+import domain.model.input.CreateWarehouseInput
 import domain.repository.WarehouseRepository
+import domain.exception.DatabaseOperationFailedException
 import domain.validator.ValidationResult
 import domain.validator.warehouse.CreateWarehouseValidator
 
@@ -10,11 +11,26 @@ class CreateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
     private val validator: CreateWarehouseValidator
 ) {
-    suspend operator fun invoke(warehouse: Warehouse): Boolean {
-        if (validator.validate(warehouse) is ValidationResult.Failure) {
-            throw EntityValidationException("Cannot create warehouse: invalid warehouse data.")
+    suspend operator fun invoke(input: CreateWarehouseInput): ValidationResult<Warehouse> {
+        val validationResult = validator.validate(input)
+        if (validationResult is ValidationResult.Failure) {
+            return validationResult
         }
 
-        return warehouseRepository.create(warehouse)
+        val warehouse = Warehouse(
+            id = input.id,
+            name = input.name,
+            regionalZone = input.regionalZone,
+            latitude = input.latitude,
+            longitude = input.longitude
+        )
+
+        val isCreated = warehouseRepository.create(warehouse)
+
+        return if (isCreated) {
+            ValidationResult.Success(warehouse)
+        } else {
+            ValidationResult.Failure(listOf(DatabaseOperationFailedException("create", "warehouse")))
+        }
     }
 }

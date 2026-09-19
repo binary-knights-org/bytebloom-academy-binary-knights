@@ -1,8 +1,8 @@
 package domain.usecase.crud.packages
 
-import domain.exception.EntityValidationException
 import domain.model.Package
 import domain.repository.PackageRepository
+import domain.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.packages.PackageIdValidator
 
@@ -10,15 +10,17 @@ class GetPackageByIdUseCase(
     private val packageRepository: PackageRepository,
     private val idValidator: PackageIdValidator
 ) {
-    suspend operator fun invoke(id: String): Package? {
-        val validation = idValidator.validate(id)
-
-        if (validation is ValidationResult.Failure) {
-            throw EntityValidationException(
-                "Cannot get package: invalid package ID."
-            )
+    suspend operator fun invoke(id: String): ValidationResult<Package> {
+        val validationResult = idValidator.validate(id)
+        if (validationResult is ValidationResult.Failure) {
+            return validationResult
         }
 
-        return packageRepository.getById(id)
+        val pkg = packageRepository.getById(id)
+        return if (pkg != null) {
+            ValidationResult.Success(pkg)
+        } else {
+            ValidationResult.Failure(listOf(EntityNotFoundException("Package", id)))
+        }
     }
 }

@@ -1,8 +1,8 @@
 package domain.usecase.crud.route
 
-import domain.exception.EntityValidationException
 import domain.model.Route
 import domain.repository.RouteRepository
+import domain.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.routes.RouteIdValidator
 
@@ -10,15 +10,17 @@ class GetRouteByIdUseCase(
     private val routeRepository: RouteRepository,
     private val idValidator: RouteIdValidator
 ) {
-    suspend operator fun invoke(id: String): Route? {
-        val validation = idValidator.validate(id)
-
-        if (validation is ValidationResult.Failure) {
-            throw EntityValidationException(
-                "Cannot get route: invalid route ID."
-            )
+    suspend operator fun invoke(id: String): ValidationResult<Route> {
+        val validationResult = idValidator.validate(id)
+        if (validationResult is ValidationResult.Failure) {
+            return validationResult
         }
 
-        return routeRepository.getById(id)
+        val route = routeRepository.getById(id)
+        return if (route != null) {
+            ValidationResult.Success(route)
+        } else {
+            ValidationResult.Failure(listOf(EntityNotFoundException("Route", id)))
+        }
     }
 }

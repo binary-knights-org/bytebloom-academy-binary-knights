@@ -12,7 +12,7 @@ fun RouteRaw.toDomain(
 
     return when {
         originWarehouse == null || destinationWarehouse == null -> null
-        else -> Route.create(
+        else -> Route(
             id = routeId,
             distanceKm = distanceKm,
             typicalDelayMin = typicalDelayMin,

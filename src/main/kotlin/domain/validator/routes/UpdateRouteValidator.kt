@@ -1,79 +1,56 @@
 package domain.validator.routes
 
-import domain.model.Route
-import domain.model.Warehouse
 import domain.model.input.UpdateRouteInput
-import domain.validator.FieldError
+import domain.exception.DomainValidationException
+import domain.exception.InvalidDelayException
+import domain.exception.InvalidDistanceException
+import domain.exception.NoUpdateFieldsException
+import domain.exception.SameOriginDestinationException
 import domain.validator.ValidationResult
 
-class UpdateRouteValidator {
+private const val MIN_DISTANCE_KM = 0.0
+private const val MIN_DELAY_MIN = 0
 
-    fun validate(
-        input: UpdateRouteInput
-    ): ValidationResult {
+class UpdateRouteValidator(
+    private val idValidator: RouteIdValidator
+) {
+    fun validate(input: UpdateRouteInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
 
-        val errors = mutableListOf<FieldError>()
-
-        if (hasNoFieldsToUpdate(input)) {
-            errors.add(
-                FieldError(
-                    "update", "At least one field must be provided for update."
-                )
-            )
+        val idResult = idValidator.validate(input.id)
+        if (idResult is ValidationResult.Failure) {
+            errors += idResult.errors
         }
 
-        input.distanceKm?.let {
-            if (!Route.isValidDistance(it)) {
-                errors.add(
-                    FieldError(
-                        "distanceKm", "Distance must be greater than ${Route.MIN_DISTANCE_KM}."
-                    )
-                )
+        if (hasNoUpdates(input)) {
+            errors += NoUpdateFieldsException("distanceKm, typicalDelayMin, originHub, destinationHub")
+        }
+
+        input.distanceKm?.let { distance ->
+            if (distance <= MIN_DISTANCE_KM) {
+                errors += InvalidDistanceException(MIN_DISTANCE_KM)
             }
         }
 
-        input.typicalDelayMin?.let {
-            if (!Route.isValidDelay(it)) {
-                errors.add(
-                    FieldError(
-                        "typicalDelayMin", "Typical delay must not be negative."
-                    )
-                )
+        input.typicalDelayMin?.let { delay ->
+            if (delay < MIN_DELAY_MIN) {
+                errors += InvalidDelayException(MIN_DELAY_MIN)
             }
         }
 
-        input.originHub?.let {
-            if (it.id.isBlank()) {
-                errors.add(
-                    FieldError(
-                        "originHubId", "Hub ID must not be blank."
-                    )
-                )
-            }
+        val origin = input.originHub
+        val destination = input.destinationHub
+        if (origin != null && destination != null && origin.id == destination.id) {
+            errors += SameOriginDestinationException()
         }
 
-        input.destinationHub?.let {
-            if (it.id.isBlank()) {
-                errors.add(
-                    FieldError(
-                        "destinationHubId", "Hub ID must not be blank."
-                    )
-                )
-            }
-        }
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+    }
 
-        return if (errors.isEmpty()) {
-            ValidationResult.Success
-        } else {
-            ValidationResult.Failure(errors)
-        }
+    private fun hasNoUpdates(input: UpdateRouteInput): Boolean {
+        return input.distanceKm == null &&
+                input.typicalDelayMin == null &&
+                input.originHub == null &&
+                input.destinationHub == null
     }
 }
-    private fun hasNoFieldsToUpdate(input: UpdateRouteInput): Boolean =
-        listOfNotNull(
-            input.distanceKm,
-            input.typicalDelayMin,
-            input.originHub,
-            input.destinationHub,
-        ).isEmpty()
-

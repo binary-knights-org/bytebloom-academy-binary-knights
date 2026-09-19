@@ -1,62 +1,37 @@
 package domain.validator.warehouse
 
-import domain.model.Warehouse
-import domain.validator.FieldError
+import domain.model.input.CreateWarehouseInput
+import domain.exception.BlankFieldException
+import domain.exception.DomainValidationException
+import domain.exception.InvalidCoordinateException
 import domain.validator.ValidationResult
 
-class CreateWarehouseValidator (
+private const val MIN_LATITUDE = -90.0
+private const val MAX_LATITUDE = 90.0
+private const val MIN_LONGITUDE = -180.0
+private const val MAX_LONGITUDE = 180.0
+
+class CreateWarehouseValidator(
     private val idValidator: WarehouseIdValidator
 ) {
-    fun validate(warehouse: Warehouse): ValidationResult {
-        val errors = mutableListOf<FieldError>()
+    fun validate(input: CreateWarehouseInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
 
-        val idResult = idValidator.validate(warehouse.id)
-
+        val idResult = idValidator.validate(input.id)
         if (idResult is ValidationResult.Failure) {
-
-            errors.addAll(idResult.errors)
+            errors += idResult.errors
         }
 
-        if (warehouse.name.isBlank()) {
-            errors.add(
-                FieldError(
-                    "hub name",
-                    "Hub name must not be blank."
-                )
-            )
+        if (input.name.isBlank()) errors += BlankFieldException("Warehouse name")
+        if (input.regionalZone.isBlank()) errors += BlankFieldException("Regional zone")
+
+        if (input.latitude !in MIN_LATITUDE..MAX_LATITUDE) {
+            errors += InvalidCoordinateException("Latitude", MIN_LATITUDE, MAX_LATITUDE)
+        }
+        if (input.longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
+            errors += InvalidCoordinateException("Longitude", MIN_LONGITUDE, MAX_LONGITUDE)
         }
 
-        if (warehouse.regionalZone.isBlank()){
-            errors.add(
-                FieldError(
-                    "Regional zone",
-                    " Regional zone must not be blank "
-                )
-            )
-        }
-
-        if (!Warehouse.isValidlongitude(warehouse.longitude)){
-            errors.add(
-                FieldError(
-                    "longitude",
-                    "Longitude must be between -180 and 180"
-                )
-            )
-        }
-
-        if (!Warehouse.isValidLatitude(warehouse.latitude)){
-            errors.add(
-                FieldError(
-                    "latitude",
-                    "Latitude must be between -90 and 90 "
-                )
-            )
-        }
-
-        return if (errors.isEmpty()) {
-            ValidationResult.Success
-        } else  {
-            ValidationResult.Failure(errors)
-        }
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
     }
 }

@@ -7,25 +7,25 @@ import domain.model.Warehouse
 fun PackageRaw.toDomain(
     warehousesById: Map<String, Warehouse>
 ): Package? {
-    val originWarehouse = warehousesById[originHubId] ?: return null
-    val destinationWarehouse = warehousesById[destinationHubId] ?: return null
+    val originWarehouse = warehousesById[originHubId]
+    val destinationWarehouse = warehousesById[destinationHubId]
 
-    return runCatching {
-        Package.create(
+    return when {
+        originWarehouse == null || destinationWarehouse == null -> null
+        else -> Package(
             id = packageId,
             weight = weight,
             priority = priority,
             originHub = originWarehouse,
             destinationHub = destinationWarehouse
         )
-    }.getOrNull()
+    }
 }
 
-fun Package.toRaw(): PackageRaw =
-    PackageRaw(
-        packageId = id,
-        weight = weight,
-        originHubId = originHub.id,
-        destinationHubId = destinationHub.id,
-        priority = priority
-    )
+fun Package.toRaw(): PackageRaw = PackageRaw(
+    packageId = id,
+    weight = weight,
+    originHubId = originHub.id,
+    destinationHubId = destinationHub.id,
+    priority = priority
+)

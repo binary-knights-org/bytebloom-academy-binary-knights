@@ -1,75 +1,59 @@
 package domain.validator.warehouse
 
-import domain.model.Warehouse
 import domain.model.input.UpdateWarehouseInput
-import domain.validator.FieldError
+import domain.exception.BlankFieldException
+import domain.exception.DomainValidationException
+import domain.exception.InvalidCoordinateException
+import domain.exception.NoUpdateFieldsException
 import domain.validator.ValidationResult
 
-class UpdateWarehouseValidator {
-    fun validate(
-        input: UpdateWarehouseInput
-    ): ValidationResult {
-        val errors = mutableListOf<FieldError>()
+private const val MIN_LATITUDE = -90.0
+private const val MAX_LATITUDE = 90.0
+private const val MIN_LONGITUDE = -180.0
+private const val MAX_LONGITUDE = 180.0
 
-        if (hasNoFieldsToUpdate(input)) {
-            errors.add(
-                FieldError(
-                    "update", "At least one field must be provided for update."
-                )
-            )
+class UpdateWarehouseValidator(
+    private val idValidator: WarehouseIdValidator
+) {
+    fun validate(input: UpdateWarehouseInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
+
+        val idResult = idValidator.validate(input.id)
+        if (idResult is ValidationResult.Failure) {
+            errors += idResult.errors
+        }
+
+        if (hasNoUpdates(input)) {
+            errors += NoUpdateFieldsException("name, regionalZone, latitude, longitude")
         }
 
         input.name?.let {
-            if (!Warehouse.isValidName(it)){
-                errors.add(
-                    FieldError(
-                        "hub name", "Warehouse name must not be blank"
-                    )
-                )
-            }
+            if (it.isBlank()) errors += BlankFieldException("Warehouse name")
         }
 
         input.regionalZone?.let {
-            if(!Warehouse.isValidRegionalZone(it)){
-                errors.add(
-                    FieldError(
-                        "regionalZone", "Regional zone must not be blank"
-                    )
-                )
+            if (it.isBlank()) errors += BlankFieldException("Regional zone")
+        }
+
+        input.latitude?.let { lat ->
+            if (lat !in MIN_LATITUDE..MAX_LATITUDE) {
+                errors += InvalidCoordinateException("Latitude", MIN_LATITUDE, MAX_LATITUDE)
             }
         }
 
-
-        input.latitude?.let {
-            if (!Warehouse.isValidLatitude(it)){
-                errors.add(
-                    FieldError(
-                        "Latitude", "Latitude must be between -90 and 90"
-                    )
-                )
+        input.longitude?.let { lon ->
+            if (lon !in MIN_LONGITUDE..MAX_LONGITUDE) {
+                errors += InvalidCoordinateException("Longitude", MIN_LONGITUDE, MAX_LONGITUDE)
             }
         }
 
-        input.longitude?.let {
-            if(!Warehouse.isValidlongitude(it)){
-                errors.add(
-                    FieldError(
-                        "Longitude", "Longitude must be between -180 and 180"
-                    )
-                )
-            }
-        }
-        return if (errors.isEmpty()){
-            ValidationResult.Success
-        } else {
-            ValidationResult.Failure(errors)
-        }
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+    }
+
+    private fun hasNoUpdates(input: UpdateWarehouseInput): Boolean {
+        return input.name == null &&
+                input.regionalZone == null &&
+                input.latitude == null &&
+                input.longitude == null
     }
 }
-    private fun hasNoFieldsToUpdate(input: UpdateWarehouseInput): Boolean =
-        listOfNotNull(
-            input.regionalZone,
-            input.latitude,
-            input.longitude,
-            input.name,
-        ).isEmpty()

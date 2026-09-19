@@ -1,54 +1,33 @@
 package domain.validator.vehicle
 
-import domain.model.Vehicle
+import domain.model.input.CreateVehicleInput
+import domain.exception.DomainValidationException
+import domain.exception.InvalidCostPerKmException
+import domain.exception.InvalidMaxCapacityException
 import domain.validator.ValidationResult
-import domain.validator.FieldError
 
+private const val MIN_CAPACITY_KG = 0.0
+private const val MIN_COST_PER_KM = 0.0
 
 class CreateVehicleValidator(
     private val idValidator: VehicleIdValidator
 ) {
+    fun validate(input: CreateVehicleInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
 
-    fun validate(vehicle: Vehicle): ValidationResult {
-        val errors = mutableListOf<FieldError>()
-
-        val idResult = idValidator.validate(vehicle.id)
-
+        val idResult = idValidator.validate(input.id)
         if (idResult is ValidationResult.Failure) {
-            errors.addAll(idResult.errors)
+            errors += idResult.errors
         }
 
-        if (!Vehicle.isValidCapacity(vehicle.maxCapacityKg)){
-            errors.add(
-                FieldError(
-                    "Max Capacity",
-                    "Capacity of ${vehicle.maxCapacityKg} is invalid"
-                )
-            )
-        }
-        if (!Vehicle.isValidCostPerKm(vehicle.costPerKm)){
-            errors.add(
-                FieldError(
-                    "Cost Per Km",
-                    " cost per km of ${vehicle.costPerKm} is invalid "
-                )
-            )
+        if (input.maxCapacityKg <= MIN_CAPACITY_KG) {
+            errors += InvalidMaxCapacityException(MIN_CAPACITY_KG)
         }
 
-        if (vehicle.currentHub.id.isBlank()) {
-            errors.add(
-                FieldError(
-                    "currentHubId",
-                    "Hub ID must not be blank."
-                )
-            )
+        if (input.costPerKm <= MIN_COST_PER_KM) {
+            errors += InvalidCostPerKmException(MIN_COST_PER_KM)
         }
 
-
-        return if (errors.isEmpty()) {
-            ValidationResult.Success
-        } else  {
-            ValidationResult.Failure(errors)
-        }
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
     }
 }

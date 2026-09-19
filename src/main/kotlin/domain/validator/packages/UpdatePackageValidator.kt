@@ -1,55 +1,48 @@
 package domain.validator.packages
 
 import domain.model.input.UpdatePackageInput
-import domain.model.Package
-import domain.model.Warehouse
-import domain.validator.FieldError
+import domain.exception.DomainValidationException
+import domain.exception.InvalidWeightException
+import domain.exception.NoUpdateFieldsException
+import domain.exception.SameOriginDestinationException
 import domain.validator.ValidationResult
 
-class UpdatePackageValidator {
+private const val MIN_WEIGHT = 0.0
 
-    fun validate(
-        input: UpdatePackageInput,
-    ): ValidationResult {
-        val errors = mutableListOf<FieldError>()
+class UpdatePackageValidator(
+    private val idValidator: PackageIdValidator
+) {
+    fun validate(input: UpdatePackageInput): ValidationResult<Unit> {
+        val errors = mutableListOf<DomainValidationException>()
 
-        if (hasNoFieldsToUpdate(input)) {
-            errors.add(
-                FieldError(
-                    "update", "At least one target property must be populated for update."
-                )
-            )
+        val idResult = idValidator.validate(input.id)
+        if (idResult is ValidationResult.Failure) {
+            errors += idResult.errors
         }
 
-        input.weight?.let {
-            if (!Package.isValidWeight(it)) {
-                errors.add(
-                    FieldError(
-                        "weight", "Weight must be greater than ${Package.MIN_WEIGHT}."
-                    )
-                )
+        if (hasNoUpdates(input)) {
+            errors += NoUpdateFieldsException("weight, priority, originHub, destinationHub")
+        }
+
+        input.weight?.let { weight ->
+            if (weight <= MIN_WEIGHT) {
+                errors += InvalidWeightException(MIN_WEIGHT)
             }
         }
 
-        input.priority?.let {
-            if (!Package.isValidPriority(it)) {
-                errors.add(
-                    FieldError(
-                        "priority",
-                        "Priority must be one of: ${Package.ALLOWED_PRIORITIES.joinToString(", ")}."
-                    )
-                )
-            }
+        val origin = input.originHub
+        val destination = input.destinationHub
+        if (origin != null && destination != null && origin.id == destination.id) {
+            errors += SameOriginDestinationException()
         }
 
-        return if (errors.isEmpty()) ValidationResult.Success else ValidationResult.Failure(errors)
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+    }
+
+    private fun hasNoUpdates(input: UpdatePackageInput): Boolean {
+        return input.weight == null &&
+                input.priority == null &&
+                input.originHub == null &&
+                input.destinationHub == null
     }
 }
-    private fun hasNoFieldsToUpdate(input: UpdatePackageInput): Boolean =
-        listOfNotNull(
-            input.weight,
-            input.priority,
-            input.originHub,
-            input.destinationHub,
-        ).isEmpty()
-

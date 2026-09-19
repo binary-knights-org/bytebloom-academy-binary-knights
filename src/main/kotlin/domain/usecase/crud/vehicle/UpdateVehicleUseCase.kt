@@ -1,41 +1,39 @@
 package domain.usecase.crud.vehicle
 
-import domain.exception.EntityValidationException
 import domain.model.Vehicle
 import domain.model.input.UpdateVehicleInput
 import domain.repository.VehicleRepository
+import domain.exception.DatabaseOperationFailedException
+import domain.exception.EntityNotFoundException
 import domain.validator.ValidationResult
 import domain.validator.vehicle.UpdateVehicleValidator
-import domain.validator.vehicle.VehicleIdValidator
 
 class UpdateVehicleUseCase(
-    private val vehicleRepository: VehicleRepository,
-    private val idValidator: VehicleIdValidator,
-    private val validator: UpdateVehicleValidator
+    private val vehicleRepository: VehicleRepository, private val validator: UpdateVehicleValidator
 ) {
-    suspend operator fun invoke(input: UpdateVehicleInput): Boolean {
-        validateInput(input)
+    suspend operator fun invoke(input: UpdateVehicleInput): ValidationResult<Vehicle> {
+        val validationResult = validator.validate(input)
+        if (validationResult is ValidationResult.Failure) {
+            return validationResult
+        }
 
-        val existing = vehicleRepository.getById(input.id)
-            ?: throw EntityValidationException("Vehicle with ID '${input.id}' was not found.")
-
-        val updated = Vehicle.create(
-            id = existing.id,
-            maxCapacityKg = input.maxCapacityKg ?: existing.maxCapacityKg,
-            costPerKm = input.costPerKm ?: existing.costPerKm,
-            currentHub = input.currentHub ?: existing.currentHub
-        )
-
-        return vehicleRepository.update(updated)
+        return executeUpdate(input)
     }
 
-    private fun validateInput(input: UpdateVehicleInput) {
-        if (idValidator.validate(input.id) is ValidationResult.Failure) {
-            throw EntityValidationException("Cannot update vehicle: invalid vehicle ID.")
-        }
+    private suspend fun executeUpdate(input: UpdateVehicleInput): ValidationResult<Vehicle> {
+        val existingVehicle = vehicleRepository.getById(input.id) ?: return ValidationResult.Failure(
+            listOf(EntityNotFoundException("Vehicle", input.id))
+        )
 
-        if (validator.validate(input) is ValidationResult.Failure) {
-            throw EntityValidationException("Cannot update vehicle: invalid vehicle data.")
-        }
+        val updatedVehicle = existingVehicle.copy(
+            maxCapacityKg = input.maxCapacityKg ?: existingVehicle.maxCapacityKg,
+            costPerKm = input.costPerKm ?: existingVehicle.costPerKm,
+            currentHub = input.currentHub ?: existingVehicle.currentHub
+        )
+
+        val isUpdated = vehicleRepository.update(updatedVehicle)
+
+        return if (isUpdated) ValidationResult.Success(updatedVehicle)
+        else ValidationResult.Failure(listOf(DatabaseOperationFailedException("update", "vehicle")))
     }
 }

@@ -1,23 +1,14 @@
 package domain.validator.packages
 
-import domain.model.Package
-import domain.validator.FieldError
+import domain.validator.IdValidator
 import domain.validator.ValidationResult
+
+private const val PACKAGE_ID_PREFIX = "PKG-"
 
 class PackageIdValidator {
 
-    fun validate(id: String): ValidationResult {
-        return if (Package.isValidId(id)) {
-            ValidationResult.Success
-        } else {
-            ValidationResult.Failure(
-                listOf(
-                    FieldError(
-                        "id",
-                        "Package ID must start with '${Package.ID_PREFIX}' or be a valid UUID."
-                    )
-                )
-            )
-        }
+    fun validate(id: String): ValidationResult<Unit> {
+        val errors = IdValidator.validate(id, PACKAGE_ID_PREFIX, "Package")
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
     }
 }

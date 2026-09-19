@@ -14,9 +14,10 @@ class ReroutePackageUseCase(
         val newDestination = findWarehouse(newDestinationId)
         val oldDestination = packageToReroute.destinationHub
 
+        val reroutedPackage = packageToReroute.copy(destinationHub = newDestination)
+
         oldDestination.removePackage(packageToReroute)
-        packageToReroute.destinationHub = newDestination
-        newDestination.addPackage(packageToReroute)
+        newDestination.addPackage(reroutedPackage)
     }
 
     private suspend  fun findPackage(packageId: String): Package {

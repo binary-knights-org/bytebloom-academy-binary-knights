@@ -1,54 +1,29 @@
 package domain.model
 
-import domain.exception.EntityValidationException
-import java.util.UUID
+import domain.validator.IdValidator
+import domain.exception.InvalidWeightException
 
-class Package private constructor(
-     val id: String,
-     val weight: Double,
-     val priority: String,
-     val originHub: Warehouse,
-     var destinationHub: Warehouse
+private const val PACKAGE_ID_PREFIX = "PKG-"
+private const val MIN_WEIGHT = 0.0
+
+data class Package(
+    val id: String,
+    val weight: Double,
+    val priority: String,
+    val originHub: Warehouse,
+    val destinationHub: Warehouse
 ) {
-     companion object {
-          const val ID_PREFIX = "PKG-"
-          const val MIN_WEIGHT = 0.0
-          val ALLOWED_PRIORITIES = setOf("URGENT", "STANDARD", "LOW")
+    init {
+        validateId()
+        validateWeight()
+    }
 
-          fun isValidId(id: String): Boolean {
-               if (id.isBlank()) return false
-               val hasValidPrefix = id.startsWith(ID_PREFIX)
-               val isUuid = runCatching { UUID.fromString(id) }.isSuccess
-               return hasValidPrefix || isUuid
-          }
+    private fun validateId() {
+        val errors = IdValidator.validate(id, PACKAGE_ID_PREFIX, "Package")
+        if (errors.isNotEmpty()) throw errors.first()
+    }
 
-          fun isValidWeight(weight: Double): Boolean = weight > MIN_WEIGHT
-          fun isValidPriority(priority: String): Boolean = priority.uppercase() in ALLOWED_PRIORITIES
-
-          fun create(
-               id: String,
-               weight: Double,
-               priority: String,
-               originHub: Warehouse,
-               destinationHub: Warehouse
-          ): Package {
-               val validationError = when {
-                    !isValidId(id) ->
-                         "Invalid Package ID format (Must start with PKG- or be a valid UUID)."
-
-                    !isValidWeight(weight) ->
-                         "Weight must be greater than $MIN_WEIGHT."
-
-                    !isValidPriority(priority) ->
-                         "Invalid priority value."
-
-                    else -> null
-               }
-
-               if (validationError != null) {
-                    throw EntityValidationException(validationError)
-               }
-               return Package(id, weight, priority.uppercase(), originHub, destinationHub)
-          }
-     }
+    private fun validateWeight() {
+        if (weight <= MIN_WEIGHT) throw InvalidWeightException(MIN_WEIGHT)
+    }
 }

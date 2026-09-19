@@ -1,23 +1,14 @@
 package domain.validator.routes
 
-import domain.model.Route
-import domain.validator.FieldError
+import domain.validator.IdValidator
 import domain.validator.ValidationResult
+
+private const val ROUTE_ID_PREFIX = "RT-"
 
 class RouteIdValidator {
 
-    fun validate(id: String): ValidationResult {
-        return if (Route.isValidId(id)) {
-            ValidationResult.Success
-        } else {
-            ValidationResult.Failure(
-                listOf(
-                    FieldError(
-                        "id",
-                        "Route ID must start with '${Route.ID_PREFIX}' or be a valid UUID."
-                    )
-                )
-            )
-        }
+    fun validate(id: String): ValidationResult<Unit> {
+        val errors = IdValidator.validate(id, ROUTE_ID_PREFIX, "Route")
+        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
     }
 }
