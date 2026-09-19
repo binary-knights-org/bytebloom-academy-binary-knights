@@ -1,13 +1,18 @@
 package data.remote.supabase
 
 import data.local.dataholder.WarehouseRaw
+import data.mapper.routes.toRaw
 import data.remote.datasource.RemoteWarehouseDataSource
 import data.mapper.warehouses.toRaw
 import data.mapper.warehouses.toRequestDto
 import data.remote.client.SupabaseHttpClient
+import data.remote.dto.routeDto.RouteResponseDto
 import data.remote.dto.warehouseDto.WarehouseResponseDto
+import domain.exception.NetworkUnavailableException
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
+import io.ktor.util.network.UnresolvedAddressException
+import io.ktor.utils.io.errors.IOException
 
 private const val WAREHOUSES_TABLE = "warehouses"
 
@@ -16,9 +21,21 @@ class SupabaseWarehouseDataSourceImpl(
 ) : RemoteWarehouseDataSource {
 
     override suspend fun getRawWarehouses(): List<WarehouseRaw> {
-        val response = httpClient.get(WAREHOUSES_TABLE)
-        val dtos: List<WarehouseResponseDto> = response.body()
-        return dtos.map { it.toRaw() }
+        return try {
+            val response = httpClient.get(WAREHOUSES_TABLE)
+            val dtos: List<WarehouseResponseDto> = response.body()
+            dtos.map { it.toRaw() }
+        } catch (e: UnresolvedAddressException) {
+            throw NetworkUnavailableException(
+                message = e.message ?: "Network unreachable - Falling back to CSV",
+                cause = e
+            )
+        } catch (e: IOException) {
+            throw NetworkUnavailableException(
+                message = e.message ?: "IO Network Error - Falling back to CSV",
+                cause = e
+            )
+        }
     }
 
     override suspend fun createRawWarehouse(warehouse: WarehouseRaw): Boolean {
