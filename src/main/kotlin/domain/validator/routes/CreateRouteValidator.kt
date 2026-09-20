@@ -1,39 +1,44 @@
 package domain.validator.routes
 
 import domain.model.input.CreateRouteInput
-import domain.validator.ValidationResultBuilder
+import domain.validator.FieldViolation
 import domain.validator.ValidationResult
+import domain.validator.toValidationResult
 
 private const val MIN_DISTANCE_KM = 0.0
 private const val MIN_DELAY_MIN = 0
 
 class CreateRouteValidator(
-    private val idValidator: RouteIdValidator
 ) {
     fun validate(input: CreateRouteInput): ValidationResult {
-        val builder = ValidationResultBuilder()
+        val violations = mutableListOf<FieldViolation>()
 
-        val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Invalid) {
-            builder.addViolations(idResult.violations)
+        if (input.distanceKm < MIN_DISTANCE_KM)
+           {  violations.add(
+               FieldViolation(
+                   CreateRouteInput::distanceKm.name,
+                   "Distance must be greater than $MIN_DISTANCE_KM."
+               )
+           )
         }
 
-        builder.check(
-            input.distanceKm > MIN_DISTANCE_KM,
-            "distanceKm",
-            "Distance must be greater than $MIN_DISTANCE_KM."
-        )
-        builder.check(
-            input.typicalDelayMin >= MIN_DELAY_MIN,
-            "typicalDelayMin",
-            "Typical delay must be at least $MIN_DELAY_MIN."
-        )
-        builder.check(
-            input.originHub.id != input.destinationHub.id,
-            "destinationHub",
-            "Destination hub must be different from origin hub."
-        )
+        if (input.typicalDelayMin <= MIN_DELAY_MIN)
+            {  violations.add(
+                FieldViolation(
+                    CreateRouteInput::typicalDelayMin.name,
+                    "Typical delay must be at least $MIN_DELAY_MIN."
+                )
+            )
+        }
 
-        return builder.build()
+        if (input.originHub.id == input.destinationHub.id)
+            {  violations.add(
+                FieldViolation(
+                    CreateRouteInput::destinationHub.name,
+                    "Destination hub must be different from origin hub."
+                )
+            )
+        }
+        return violations.toValidationResult()
     }
 }

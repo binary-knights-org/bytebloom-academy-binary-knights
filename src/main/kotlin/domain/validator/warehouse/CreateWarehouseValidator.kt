@@ -1,8 +1,9 @@
 package domain.validator.warehouse
 
 import domain.model.input.CreateWarehouseInput
-import domain.validator.ValidationResultBuilder
+import domain.validator.FieldViolation
 import domain.validator.ValidationResult
+import domain.validator.toValidationResult
 
 private const val MIN_LATITUDE = -90.0
 private const val MAX_LATITUDE = 90.0
@@ -10,37 +11,44 @@ private const val MIN_LONGITUDE = -180.0
 private const val MAX_LONGITUDE = 180.0
 
 class CreateWarehouseValidator(
-    private val idValidator: WarehouseIdValidator
+
 ) {
     fun validate(input: CreateWarehouseInput): ValidationResult {
-        val builder = ValidationResultBuilder()
+        val violations = mutableListOf<FieldViolation>()
 
-        val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Invalid) {
-            builder.addViolations(idResult.violations)
+        if (input.name.isBlank()){
+            violations.add(
+                FieldViolation(
+                    CreateWarehouseInput::name.name,
+                    "Warehouse name must not be blank."
+                )
+            )
         }
 
-        builder.check(
-            input.name.isNotBlank(),
-            "name",
-            "Warehouse name cannot be blank."
+        if (input.regionalZone.isBlank()) violations.add(
+            FieldViolation(
+                CreateWarehouseInput::regionalZone.name,
+                "Warehouse regional zone must not be blank."
+            )
         )
-        builder.check(
-            input.regionalZone.isNotBlank(),
-            "regionalZone",
-            "Regional zone cannot be blank."
-        )
-        builder.check(
-            input.latitude in MIN_LATITUDE..MAX_LATITUDE,
-            "latitude",
-            "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE."
-        )
-        builder.check(
-            input.longitude in MIN_LONGITUDE..MAX_LONGITUDE,
-            "longitude",
-            "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE."
-        )
+        if (input.latitude !in MIN_LATITUDE..MAX_LATITUDE){
+            violations.add(
+                FieldViolation(
+                    CreateWarehouseInput::latitude.name,
+                    "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE."
+                )
+            )
+        }
 
-        return builder.build()
+        if (input.longitude !in MIN_LONGITUDE..MAX_LONGITUDE){
+            violations.add(
+                FieldViolation(
+                    CreateWarehouseInput::longitude.name,
+                    "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE."
+                )
+            )
+        }
+
+        return violations.toValidationResult()
     }
 }
