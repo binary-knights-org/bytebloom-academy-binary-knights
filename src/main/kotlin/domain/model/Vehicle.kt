@@ -1,8 +1,8 @@
 package domain.model
 
 import domain.exception.EntityValidationException
+import domain.model.input.CreateVehicleInput
 import domain.validator.FieldViolation
-import domain.validator.IdValidator
 import java.util.UUID
 
 private const val VEHICLE_ID_PREFIX = "TRK-"
@@ -23,22 +23,21 @@ data class Vehicle(
         get() = mutableLoadedCargo.sumOf { it.weight }
 
     init {
-        val violations = validateVehicle(id, maxCapacityKg, costPerKm)
+        val violations = validateVehicle( maxCapacityKg, costPerKm)
         if (violations.isNotEmpty()) {
             throw EntityValidationException(violations)
         }
     }
 
     private fun validateVehicle(
-        id: String, maxCapacityKg: Double, costPerKm: Double
+         maxCapacityKg: Double, costPerKm: Double
     ): List<FieldViolation> {
         val violations = mutableListOf<FieldViolation>()
-        violations.addAll(IdValidator.validate(id, VEHICLE_ID_PREFIX, "Vehicle"))
         if (maxCapacityKg <= MIN_CAPACITY_KG) {
-            violations.add(FieldViolation("maxCapacityKg", "Max capacity must be greater than $MIN_CAPACITY_KG."))
+            violations.add(FieldViolation(CreateVehicleInput::maxCapacityKg.name, "Max capacity must be greater than $MIN_CAPACITY_KG."))
         }
         if (costPerKm <= MIN_COST_PER_KM) {
-            violations.add(FieldViolation("costPerKm", "Cost per km must be greater than $MIN_COST_PER_KM."))
+            violations.add(FieldViolation(CreateVehicleInput::costPerKm.name, "Cost per km must be greater than $MIN_COST_PER_KM."))
         }
         return violations
     }

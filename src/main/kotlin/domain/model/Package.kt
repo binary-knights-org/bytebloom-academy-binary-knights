@@ -1,8 +1,9 @@
 package domain.model
 
 import domain.exception.EntityValidationException
+import domain.model.input.CreatePackageInput
 import domain.validator.FieldViolation
-import domain.validator.IdValidator
+
 import java.util.UUID
 
 private const val PACKAGE_ID_PREFIX = "PKG-"
@@ -16,24 +17,22 @@ data class Package(
     val destinationHub: Warehouse
 ) {
     init {
-        val violations = validatePackage(id, weight, priority)
+        val violations = validatePackage( weight, priority)
         if (violations.isNotEmpty()) {
             throw EntityValidationException(violations)
         }
     }
 
     private fun validatePackage(
-        id: String, weight: Double, priority: String
+         weight: Double, priority: String
     ): List<FieldViolation> {
         val violations = mutableListOf<FieldViolation>()
 
-        violations.addAll(IdValidator.validate(id, PACKAGE_ID_PREFIX, entityName = "Package"))
-
         if (weight <= MIN_WEIGHT) {
-            violations.add(FieldViolation("weight", message = "Weight must be greater than $MIN_WEIGHT."))
+            violations.add(FieldViolation(CreatePackageInput::weight.name, message = "Weight must be greater than $MIN_WEIGHT."))
         }
         if (priority.isBlank()) {
-            violations.add(FieldViolation("priority", message = "Priority cannot be blank."))
+            violations.add(FieldViolation(CreatePackageInput::priority.name, message = "Priority cannot be blank."))
         }
 
         return violations

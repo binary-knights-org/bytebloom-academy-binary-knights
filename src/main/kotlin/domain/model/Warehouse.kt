@@ -2,8 +2,8 @@ package domain.model
 
 import domain.algorithm.sorting.sortPackagesDescendingByWeight
 import domain.exception.EntityValidationException
+import domain.model.input.CreateWarehouseInput
 import domain.validator.FieldViolation
-import domain.validator.IdValidator
 import java.util.UUID
 
 private const val WAREHOUSE_ID_PREFIX = "WH-"
@@ -29,31 +29,30 @@ data class Warehouse(
     val stationedVehicles: List<Vehicle> = _stationedVehicles
 
     init {
-        val violations = validateWarehouse(id, name, regionalZone, latitude, longitude)
+        val violations = validateWarehouse(name, regionalZone, latitude, longitude)
         if (violations.isNotEmpty()) {
             throw EntityValidationException(violations)
         }
     }
 
     fun validateWarehouse(
-        id: String, name: String, regionalZone: String, latitude: Double, longitude: Double
+         name: String, regionalZone: String, latitude: Double, longitude: Double
     ): List<FieldViolation> {
         val violations = mutableListOf<FieldViolation>()
-        violations.addAll(IdValidator.validate(id, WAREHOUSE_ID_PREFIX, "Warehouse"))
 
         if (name.isBlank()) {
-            violations.add(FieldViolation("name", "Warehouse name cannot be blank."))
+            violations.add(FieldViolation(CreateWarehouseInput::name.name, "Warehouse name cannot be blank."))
         }
         if (regionalZone.isBlank()) {
-            violations.add(FieldViolation("regionalZone", "Regional zone cannot be blank."))
+            violations.add(FieldViolation(CreateWarehouseInput::regionalZone.name, "Regional zone cannot be blank."))
         }
         if (latitude !in MIN_LATITUDE..MAX_LATITUDE) {
-            violations.add(FieldViolation("latitude", "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE."))
+            violations.add(FieldViolation(CreateWarehouseInput::latitude.name, "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE."))
         }
         if (longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
             violations.add(
                 FieldViolation(
-                    "longitude", "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE."
+                    CreateWarehouseInput::longitude.name, "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE."
                 )
             )
         }
