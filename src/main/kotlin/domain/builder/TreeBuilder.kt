@@ -1,7 +1,7 @@
 package domain.builder
 
 import domain.model.Warehouse
-import domain.tree.HubNode
+import domain.algorithm.tree.HubNode
 
 class TreeBuilder {
 

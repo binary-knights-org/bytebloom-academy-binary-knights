@@ -6,9 +6,8 @@ import domain.validator.ValidationResult
 private const val ROUTE_ID_PREFIX = "RT-"
 
 class RouteIdValidator {
-
-    fun validate(id: String): ValidationResult<Unit> {
-        val errors = IdValidator.validate(id, ROUTE_ID_PREFIX, "Route")
-        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+    fun validate(id: String): ValidationResult {
+        val violations = IdValidator.validate(id, ROUTE_ID_PREFIX, "Route")
+        return if (violations.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(violations)
     }
 }

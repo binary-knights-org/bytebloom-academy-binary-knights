@@ -6,8 +6,8 @@ import domain.validator.ValidationResult
 private const val WAREHOUSE_ID_PREFIX = "WH-"
 
 class WarehouseIdValidator {
-    fun validate(id: String): ValidationResult<Unit> {
-        val errors = IdValidator.validate(id, WAREHOUSE_ID_PREFIX, "Warehouse")
-        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+    fun validate(id: String): ValidationResult {
+        val violations = IdValidator.validate(id, WAREHOUSE_ID_PREFIX, "Warehouse")
+        return if (violations.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(violations)
     }
 }

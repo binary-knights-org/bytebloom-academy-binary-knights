@@ -1,6 +1,6 @@
 package data.mapper.warehouses
 
-import data.dataholder.WarehouseRaw
+import data.local.dataholder.WarehouseRaw
 import data.remote.dto.warehouseDto.WarehouseRequestDto
 
 fun WarehouseRaw.toRequestDto(): WarehouseRequestDto =

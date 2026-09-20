@@ -1,7 +1,7 @@
 package domain.usecase.analytics
 
-import domain.tree.BalancedTree
-import domain.tree.UnbalancedBST
+import domain.algorithm.tree.BalancedTree
+import domain.algorithm.tree.UnbalancedBST
 import domain.util.PackageDataGenerator
 
 

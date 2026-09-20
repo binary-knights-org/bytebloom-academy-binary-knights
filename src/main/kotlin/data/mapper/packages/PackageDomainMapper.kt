@@ -1,6 +1,6 @@
 package data.mapper.packages
 
-import data.dataholder.PackageRaw
+import data.local.dataholder.PackageRaw
 import domain.model.Package
 import domain.model.Warehouse
 

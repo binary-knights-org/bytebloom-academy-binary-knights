@@ -1,10 +1,7 @@
 package domain.validator.routes
 
 import domain.model.input.CreateRouteInput
-import domain.exception.DomainValidationException
-import domain.exception.InvalidDelayException
-import domain.exception.InvalidDistanceException
-import domain.exception.SameOriginDestinationException
+import domain.validator.ValidationResultBuilder
 import domain.validator.ValidationResult
 
 private const val MIN_DISTANCE_KM = 0.0
@@ -13,26 +10,30 @@ private const val MIN_DELAY_MIN = 0
 class CreateRouteValidator(
     private val idValidator: RouteIdValidator
 ) {
-    fun validate(input: CreateRouteInput): ValidationResult<Unit> {
-        val errors = mutableListOf<DomainValidationException>()
+    fun validate(input: CreateRouteInput): ValidationResult {
+        val builder = ValidationResultBuilder()
 
         val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Failure) {
-            errors += idResult.errors
+        if (idResult is ValidationResult.Invalid) {
+            builder.addViolations(idResult.violations)
         }
 
-        if (input.distanceKm <= MIN_DISTANCE_KM) {
-            errors += InvalidDistanceException(MIN_DISTANCE_KM)
-        }
+        builder.check(
+            input.distanceKm > MIN_DISTANCE_KM,
+            "distanceKm",
+            "Distance must be greater than $MIN_DISTANCE_KM."
+        )
+        builder.check(
+            input.typicalDelayMin >= MIN_DELAY_MIN,
+            "typicalDelayMin",
+            "Typical delay must be at least $MIN_DELAY_MIN."
+        )
+        builder.check(
+            input.originHub.id != input.destinationHub.id,
+            "destinationHub",
+            "Destination hub must be different from origin hub."
+        )
 
-        if (input.typicalDelayMin < MIN_DELAY_MIN) {
-            errors += InvalidDelayException(MIN_DELAY_MIN)
-        }
-
-        if (input.originHub.id == input.destinationHub.id) {
-            errors += SameOriginDestinationException()
-        }
-
-        return if (errors.isEmpty()) ValidationResult.Success(Unit) else ValidationResult.Failure(errors)
+        return builder.build()
     }
 }

@@ -1,6 +1,6 @@
 package data.mapper.routes
 
-import data.dataholder.RouteRaw
+import data.local.dataholder.RouteRaw
 import domain.model.Route
 import domain.model.Warehouse
 

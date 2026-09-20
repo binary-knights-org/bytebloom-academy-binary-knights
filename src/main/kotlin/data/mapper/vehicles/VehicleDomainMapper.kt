@@ -1,6 +1,6 @@
 package data.mapper.vehicles
 
-import data.dataholder.VehicleRaw
+import data.local.dataholder.VehicleRaw
 import domain.model.Vehicle
 import domain.model.Warehouse
 
