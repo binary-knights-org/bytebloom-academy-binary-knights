@@ -1,4 +1,4 @@
-package domain.usecase.crud.routes
+package domain.usecase.crud.route
 
 import domain.model.Route
 import domain.model.input.CreateRouteInput

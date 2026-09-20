@@ -8,9 +8,8 @@ import domain.validator.toValidationResult
 private const val MIN_CAPACITY_KG = 0.0
 private const val MIN_COST_PER_KM = 0.0
 
-class CreateVehicleValidator(
-
-) {
+class CreateVehicleValidator
+ {
     fun validate(input: CreateVehicleInput): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 

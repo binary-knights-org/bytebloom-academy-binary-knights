@@ -7,8 +7,8 @@ import domain.validator.toValidationResult
 
 private const val MIN_WEIGHT = 0.0
 
-class CreatePackageValidator(
-) {
+class CreatePackageValidator
+ {
     fun validate(input: CreatePackageInput): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 

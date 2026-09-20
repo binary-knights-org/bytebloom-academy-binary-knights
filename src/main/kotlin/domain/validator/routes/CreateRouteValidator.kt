@@ -8,8 +8,8 @@ import domain.validator.toValidationResult
 private const val MIN_DISTANCE_KM = 0.0
 private const val MIN_DELAY_MIN = 0
 
-class CreateRouteValidator(
-) {
+class CreateRouteValidator
+{
     fun validate(input: CreateRouteInput): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 

@@ -10,9 +10,8 @@ private const val MAX_LATITUDE = 90.0
 private const val MIN_LONGITUDE = -180.0
 private const val MAX_LONGITUDE = 180.0
 
-class CreateWarehouseValidator(
-
-) {
+class CreateWarehouseValidator
+{
     fun validate(input: CreateWarehouseInput): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 

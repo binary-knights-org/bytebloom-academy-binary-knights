@@ -1,4 +1,4 @@
-package domain.usecase.crud.routes
+package domain.usecase.crud.route
 
 import domain.exception.ResourceNotFoundException
 import domain.model.input.UpdateRouteInput
