@@ -1,47 +1,70 @@
 package domain.validator.routes
 
 import domain.model.input.UpdateRouteInput
-import domain.validator.ValidationResultBuilder
+import domain.validator.FieldViolation
 import domain.validator.ValidationResult
+import domain.validator.toValidationResult
 
 private const val MIN_DISTANCE_KM = 0.0
 private const val MIN_DELAY_MIN = 0
 
-class UpdateRouteValidator(
-    private val idValidator: RouteIdValidator
-) {
-    fun validate(input: UpdateRouteInput): ValidationResult {
-        val builder = ValidationResultBuilder()
+class UpdateRouteValidator {
 
-        val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Invalid) {
-            builder.addViolations(idResult.violations)
+    fun validate(input: UpdateRouteInput): ValidationResult {
+        val violations = mutableListOf<FieldViolation>()
+
+        if (input.id.isBlank()) {
+            violations.add(
+                FieldViolation(
+                    field = UpdateRouteInput::id.name,
+                    message = "Route ID must not be blank."
+                )
+            )
         }
 
         if (hasNoUpdates(input)) {
-            builder.addViolation("updateFields",
-                "At least one field (distanceKm, typicalDelayMin, originHub, destinationHub)" +
-                        " must be provided for update.")
+            violations.add(
+                FieldViolation(
+                    field = UpdateRouteInput::id.name,
+                    message = "At least one field (distanceKm, typicalDelayMin, originHub, destinationHub) must be provided for update."
+                )
+            )
         }
 
         input.distanceKm?.let { distance ->
-            builder.check(distance > MIN_DISTANCE_KM, "distanceKm",
-                "Distance must be greater than $MIN_DISTANCE_KM.")
+            if (distance <= MIN_DISTANCE_KM) {
+                violations.add(
+                    FieldViolation(
+                        field = UpdateRouteInput::distanceKm.name,
+                        message = "Distance must be greater than $MIN_DISTANCE_KM."
+                    )
+                )
+            }
         }
 
         input.typicalDelayMin?.let { delay ->
-            builder.check(delay >= MIN_DELAY_MIN, "typicalDelayMin",
-                "Typical delay must be at least $MIN_DELAY_MIN.")
+            if (delay < MIN_DELAY_MIN) {
+                violations.add(
+                    FieldViolation(
+                        field = UpdateRouteInput::typicalDelayMin.name,
+                        message = "Typical delay must be at least $MIN_DELAY_MIN."
+                    )
+                )
+            }
         }
 
         val origin = input.originHub
         val destination = input.destinationHub
-        if (origin != null && destination != null) {
-            builder.check(origin.id != destination.id, "destinationHub",
-                "Destination hub must be different from origin hub.")
+        if (origin != null && destination != null && origin.id == destination.id) {
+            violations.add(
+                FieldViolation(
+                    field = UpdateRouteInput::destinationHub.name,
+                    message = "Destination hub must be different from origin hub."
+                )
+            )
         }
 
-        return builder.build()
+        return violations.toValidationResult()
     }
 
     private fun hasNoUpdates(input: UpdateRouteInput): Boolean {

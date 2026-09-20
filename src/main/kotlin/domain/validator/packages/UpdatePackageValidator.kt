@@ -1,57 +1,69 @@
 package domain.validator.packages
 
 import domain.model.input.UpdatePackageInput
-import domain.validator.ValidationResultBuilder
+import domain.validator.FieldViolation
 import domain.validator.ValidationResult
+import domain.validator.toValidationResult
 
 private const val MIN_WEIGHT = 0.0
 
-class UpdatePackageValidator(
-    private val idValidator: PackageIdValidator
-) {
-    fun validate(input: UpdatePackageInput): ValidationResult {
-        val builder = ValidationResultBuilder()
+class UpdatePackageValidator {
 
-        val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Invalid) {
-            builder.addViolations(idResult.violations)
+    fun validate(input: UpdatePackageInput): ValidationResult {
+        val violations = mutableListOf<FieldViolation>()
+
+        if (input.id.isBlank()) {
+            violations.add(
+                FieldViolation(
+                    field = UpdatePackageInput::id.name,
+                    message = "Package ID must not be blank."
+                )
+            )
         }
 
         if (hasNoUpdates(input)) {
-            builder.addViolation(
-                "updateFields",
-                "At least one field (weight, priority, originHub, destinationHub)" +
-                        " must be provided for update."
+            violations.add(
+                FieldViolation(
+                    field = UpdatePackageInput::id.name,
+                    message = "At least one field (weight, priority, originHub, destinationHub) must be provided for update."
+                )
             )
         }
 
         input.weight?.let { weight ->
-            builder.check(
-                weight > MIN_WEIGHT,
-                "weight",
-                "Weight must be greater than $MIN_WEIGHT."
-            )
+            if (weight <= MIN_WEIGHT) {
+                violations.add(
+                    FieldViolation(
+                        field = UpdatePackageInput::weight.name,
+                        message = "Weight must be greater than $MIN_WEIGHT."
+                    )
+                )
+            }
         }
 
         input.priority?.let { priority ->
-            builder.check(
-                priority.isNotBlank(),
-                "priority",
-                "Priority cannot be blank."
-            )
+            if (priority.isBlank()) {
+                violations.add(
+                    FieldViolation(
+                        field = UpdatePackageInput::priority.name,
+                        message = "Priority cannot be blank."
+                    )
+                )
+            }
         }
 
         val origin = input.originHub
         val destination = input.destinationHub
-        if (origin != null && destination != null) {
-            builder.check(
-                origin.id != destination.id,
-                "destinationHub",
-                "Destination hub must be different from origin hub."
+        if (origin != null && destination != null && origin.id == destination.id) {
+            violations.add(
+                FieldViolation(
+                    field = UpdatePackageInput::destinationHub.name,
+                    message = "Destination hub must be different from origin hub."
+                )
             )
         }
 
-        return builder.build()
+        return violations.toValidationResult()
     }
 
     private fun hasNoUpdates(input: UpdatePackageInput): Boolean {
