@@ -5,17 +5,11 @@ import domain.exception.EntityValidationException
 import domain.exception.ResourceNotFoundException
 import domain.model.Package
 import domain.repository.PackageRepository
-import domain.validator.packages.PackageIdValidator
 
 class GetPackageByIdUseCase(
     private val packageRepository: PackageRepository,
-    private val idValidator: PackageIdValidator
 ) {
     suspend operator fun invoke(id: String): Result<Package> {
-        val validation = idValidator.validate(id)
-        if (validation.isInvalid) {
-            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
-        }
 
         return runCatching { packageRepository.getById(id) }.fold(
             onSuccess = { pkg ->
