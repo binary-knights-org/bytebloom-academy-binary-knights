@@ -32,7 +32,7 @@ class GreedyFleetDispatcher {
             val newlyCoveredZones = bestVehicle.coveredZones.filter { it in uncoveredZones }.toSet()
 
             if (newlyCoveredZones.isEmpty()) {
-                return selectedVehicles
+                break
             }
 
             selectedVehicles.add(bestVehicle)
