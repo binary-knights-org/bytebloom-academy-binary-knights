@@ -61,14 +61,14 @@ fun main() = runBlocking {
         localVehicleDataSource,
         localRouteDataSource
     )
-
-    val warehouseRepository = WarehouseRepositoryImpl(remoteSources, localSources,)
+   val warehouseRepository = WarehouseRepositoryImpl(remoteSources, localSources,)
    val packageRepository = PackageRepositoryImpl(packageDataSource,localPackageDataSource , warehouseRepository)
    val vehicleRepository = VehicleRepositoryImpl(vehicleDataSource,localVehicleDataSource , warehouseRepository)
    val routeRepository = RouteRepositoryImpl(routeDataSource,localRouteDataSource , warehouseRepository)
 
    printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
    val warehouses = buildDomainGraph(warehouseRepository)
+   val vehicles = vehicleRepository.getAll()
    val findPackagesForConsolidationUseCase = FindPackagesForConsolidationUseCase(packageRepository)
    val findSuitableVehicleUseCase = FindSuitableVehicleUseCase(vehicleRepository)
    val assignPackagesToVehicleUseCase = AssignPackagesToVehicleUseCase(findPackagesForConsolidationUseCase,
@@ -78,7 +78,7 @@ fun main() = runBlocking {
    val findBidirectionalRouteUseCase = FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
    val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
    runCargoDemos(packageRepository, warehouses)
-    runPackageConsolidationDemo(assignPackagesToVehicleUseCase)
+   runPackageConsolidationDemo(assignPackagesToVehicleUseCase)
    runPricingAndDecoratorDemos(warehouses, calculatePricingUseCase)
    runBreakdownSimulationDemo()
    runRoutingAndComparisonDemos(
@@ -86,6 +86,8 @@ fun main() = runBlocking {
        findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase
    )
    runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
+    runGreedyFleetDemo(vehicles)
+    runInvalidInputDemo()
    printSystemFooter()
 }
 
