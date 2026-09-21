@@ -1,11 +1,13 @@
 package domain.usecase.crud.vehicle
 
-import domain.exception.DatabaseConflictException
-import domain.exception.EntityValidationException
-import domain.exception.ResourceNotFoundException
+import domain.model.exception.OperationFailedException
+import data.exception.translateDataError
+import domain.model.exception.EntityValidationException
+import domain.model.exception.ResourceNotFoundException
 import domain.model.Vehicle
 import domain.model.input.UpdateVehicleInput
 import domain.repository.VehicleRepository
+import domain.validator.ValidationResult
 import domain.validator.vehicle.UpdateVehicleValidator
 
 class UpdateVehicleUseCase(
@@ -14,22 +16,19 @@ class UpdateVehicleUseCase(
 ) {
     suspend operator fun invoke(input: UpdateVehicleInput): Result<Vehicle> {
         val validation = validator.validate(input)
-        if (validation.isInvalid) {
-            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
-        }
+        if (validation is ValidationResult.Invalid)
+            return Result.failure(EntityValidationException(validation.violations))
 
         return runCatching { vehicleRepository.getById(input.id) }.fold(
             onSuccess = { existing ->
                 if (existing == null) {
-                    Result.failure(ResourceNotFoundException("Vehicle with ID '${input.id}' was not found."))
+                    Result.failure(ResourceNotFoundException())
                 } else {
                     executeUpdate(existing, input)
                 }
             },
             onFailure = { error ->
-                Result.failure(
-                    DatabaseConflictException(
-                        "Failed to retrieve vehicle for update: ${error.message}", error))
+                Result.failure(translateDataError(error, "retrieve", "vehicle"))
             }
         )
     }
@@ -48,11 +47,11 @@ class UpdateVehicleUseCase(
                         if (isUpdated) {
                             Result.success(updatedVehicle)
                         } else {
-                            Result.failure(DatabaseConflictException("Failed to update vehicle in database."))
+                            Result.failure(OperationFailedException())
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(DatabaseConflictException("Failed to update vehicle: ${error.message}", error))
+                        Result.failure(translateDataError(error, "update", "vehicle"))
                     }
                 )
             },

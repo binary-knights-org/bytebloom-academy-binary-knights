@@ -6,6 +6,7 @@ import domain.model.Warehouse
 import domain.algorithm.ring.ClockwiseRouter
 import domain.algorithm.ring.DeterministicHashingEngine
 import domain.algorithm.ring.PackageAssignmentRing
+import domain.model.Priority
 import domain.model.RegionalZone
 
 class BreakdownSimulationLogic {
@@ -19,14 +20,14 @@ class BreakdownSimulationLogic {
         }
     }
 
-    private fun createPackages(hub: Warehouse, count: Int): List<Package> {
+    private fun createPackages(originHub: Warehouse, destinationHub: Warehouse, count: Int): List<Package> {
         return List(count) { index ->
             Package(
                 id = "PKG-%03d".format(index + 1),
                 weight = DEFAULT_WEIGHT,
                 priority = DEFAULT_PRIORITY,
-                originHub = hub,
-                destinationHub = hub
+                originHub = originHub,
+                destinationHub = destinationHub,
             )
         }
     }
@@ -45,8 +46,7 @@ class BreakdownSimulationLogic {
         val ringMap = ring.getRingMap()
         return packages.associateWith { pkg ->
             val slot = DeterministicHashingEngine.calculateSlot(pkg)
-            ClockwiseRouter.findResponsibleVehicle(ringMap, slot)
-                ?: error("No active vehicle available for slot $slot")
+            ClockwiseRouter.findResponsibleVehicle(ringMap, slot) ?: error("No active vehicle available for slot $slot")
         }
     }
 
@@ -99,9 +99,10 @@ class BreakdownSimulationLogic {
     }
 
     fun runSimulation(): SimulationResult {
-        val hub = Warehouse("WH-HUB", "Central Hub", RegionalZone.CENTRAL, HUB_LAT, HUB_LNG)
-        val ring = setupRing(hub)
-        val packages = createPackages(hub, PACKAGE_COUNT)
+        val originHub = Warehouse("WH-HUB-A", "Central Hub", RegionalZone.CENTRAL, HUB_LAT, HUB_LNG)
+        val destinationHub = Warehouse("WH-HUB-B", "Destination Hub", RegionalZone.NORTH, HUB_LAT + 1, HUB_LNG + 1)
+        val ring = setupRing(originHub)
+        val packages = createPackages(originHub, destinationHub, PACKAGE_COUNT)
 
         val context = buildBreakdownContext(ring, TARGET_BROKEN_SLOT)
         val assignmentsBefore = performAssignment(ring, packages)
@@ -123,7 +124,7 @@ class BreakdownSimulationLogic {
         const val SLOT_D = 90
 
         const val DEFAULT_WEIGHT = 10.0
-        const val DEFAULT_PRIORITY = "STANDARD"
+        val DEFAULT_PRIORITY = Priority.STANDARD
         const val DEFAULT_CAPACITY = 1000.0
         const val DEFAULT_SPEED = 2.0
 

@@ -1,47 +1,31 @@
 package domain.validator.routes
 
 import domain.model.input.UpdateRouteInput
-import domain.validator.ValidationResultBuilder
 import domain.validator.ValidationResult
 
-private const val MIN_DISTANCE_KM = 0.0
-private const val MIN_DELAY_MIN = 0
+class UpdateRouteValidator {
+    fun validate(input: UpdateRouteInput): ValidationResult<RouteValidationError> {
+        val violations = buildList {
+            if (hasNoUpdates(input)) {
+                add(RouteValidationError.NoUpdateFields)
+            }
 
-class UpdateRouteValidator(
-    private val idValidator: RouteIdValidator
-) {
-    fun validate(input: UpdateRouteInput): ValidationResult {
-        val builder = ValidationResultBuilder()
+            input.distanceKm?.let { distance ->
+                if (distance <= MIN_DISTANCE_KM) add(RouteValidationError.InvalidDistance)
+            }
 
-        val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Invalid) {
-            builder.addViolations(idResult.violations)
+            input.typicalDelayMin?.let { delay ->
+                if (delay < MIN_DELAY_MIN) add(RouteValidationError.NegativeDelay)
+            }
+
+            val origin = input.originHub
+            val destination = input.destinationHub
+            if (origin != null && destination != null && origin.id == destination.id) {
+                add(RouteValidationError.SameOriginAndDestination)
+            }
         }
 
-        if (hasNoUpdates(input)) {
-            builder.addViolation("updateFields",
-                "At least one field (distanceKm, typicalDelayMin, originHub, destinationHub)" +
-                        " must be provided for update.")
-        }
-
-        input.distanceKm?.let { distance ->
-            builder.check(distance > MIN_DISTANCE_KM, "distanceKm",
-                "Distance must be greater than $MIN_DISTANCE_KM.")
-        }
-
-        input.typicalDelayMin?.let { delay ->
-            builder.check(delay >= MIN_DELAY_MIN, "typicalDelayMin",
-                "Typical delay must be at least $MIN_DELAY_MIN.")
-        }
-
-        val origin = input.originHub
-        val destination = input.destinationHub
-        if (origin != null && destination != null) {
-            builder.check(origin.id != destination.id, "destinationHub",
-                "Destination hub must be different from origin hub.")
-        }
-
-        return builder.build()
+        return if (violations.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(violations)
     }
 
     private fun hasNoUpdates(input: UpdateRouteInput): Boolean {
@@ -49,5 +33,10 @@ class UpdateRouteValidator(
                 input.typicalDelayMin == null &&
                 input.originHub == null &&
                 input.destinationHub == null
+    }
+
+    companion object{
+        const val MIN_DISTANCE_KM = 0.0
+        const val MIN_DELAY_MIN = 0
     }
 }

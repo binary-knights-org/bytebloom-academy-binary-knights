@@ -1,49 +1,10 @@
 package domain.validator
 
-data class FieldViolation(
-    val field: String,
-    val message: String
-)
+sealed interface ValidationResult<out E> {
 
-sealed class ValidationResult {
-    data object Valid : ValidationResult()
+    data object Valid : ValidationResult<Nothing>
 
-    data class Invalid(val violations: List<FieldViolation>) : ValidationResult() {
-        constructor(field: String, message: String) : this(listOf(FieldViolation(field, message)))
-    }
-
-    val isValid: Boolean get() = this is Valid
-
-    val isInvalid: Boolean get() = this is Invalid
-
-    fun errorsOrNull(): List<FieldViolation>? = (this as? Invalid)?.violations
-}
-
-class ValidationResultBuilder {
-    private val violations = mutableListOf<FieldViolation>()
-
-    fun addViolation(field: String, message: String): ValidationResultBuilder {
-        violations.add(FieldViolation(field, message))
-        return this
-    }
-
-    fun addViolations(newViolations: List<FieldViolation>): ValidationResultBuilder {
-        violations.addAll(newViolations)
-        return this
-    }
-
-    fun check(condition: Boolean, field: String, message: String): ValidationResultBuilder {
-        if (!condition) {
-            violations.add(FieldViolation(field, message))
-        }
-        return this
-    }
-
-    fun build(): ValidationResult {
-        return if (violations.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(violations)
-        }
-    }
+    data class Invalid<E>(
+        val violations: List<E>
+    ) : ValidationResult<E>
 }

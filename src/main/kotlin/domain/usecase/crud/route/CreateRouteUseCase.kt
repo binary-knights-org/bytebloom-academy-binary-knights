@@ -1,10 +1,12 @@
 package domain.usecase.crud.route
 
-import domain.exception.DatabaseConflictException
-import domain.exception.EntityValidationException
+import domain.model.exception.OperationFailedException
+import data.exception.translateDataError
+import domain.model.exception.EntityValidationException
 import domain.model.Route
 import domain.model.input.CreateRouteInput
 import domain.repository.RouteRepository
+import domain.validator.ValidationResult
 import domain.validator.routes.CreateRouteValidator
 
 class CreateRouteUseCase(
@@ -13,9 +15,8 @@ class CreateRouteUseCase(
 ) {
     suspend operator fun invoke(input: CreateRouteInput): Result<Route> {
         val validation = validator.validate(input)
-        if (validation.isInvalid) {
-            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
-        }
+        if (validation is ValidationResult.Invalid)
+            return Result.failure(EntityValidationException(validation.violations))
 
         return runCatching {
             Route(
@@ -32,11 +33,11 @@ class CreateRouteUseCase(
                         if (isCreated) {
                             Result.success(route)
                         } else {
-                            Result.failure(DatabaseConflictException("Failed to create route in database."))
+                            Result.failure(OperationFailedException())
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(DatabaseConflictException("Failed to create route: ${error.message}", error))
+                        Result.failure(translateDataError(error, "create", "route"))
                     }
                 )
             },

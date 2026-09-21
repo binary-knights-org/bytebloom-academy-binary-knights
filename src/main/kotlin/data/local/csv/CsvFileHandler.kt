@@ -1,8 +1,11 @@
 package data.local.csv
 
+import data.exception.CsvEmptyLineException
+import data.exception.CsvFileCreationException
+import data.exception.CsvFileNotFoundException
+import data.exception.CsvReadException
+import data.exception.CsvWriteException
 import java.io.File
-import java.io.IOException
-import java.io.FileNotFoundException
 
 class CsvFileHandler(
     private val filePath: String,
@@ -11,7 +14,7 @@ class CsvFileHandler(
     private val file = File(filePath)
 
     init {
-        try {
+        runCatching {
             if (!file.exists()) {
                 file.parentFile?.mkdirs()
                 val created = file.createNewFile()
@@ -19,24 +22,22 @@ class CsvFileHandler(
                     throw CsvFileCreationException(filePath)
                 }
             }
-        } catch (e: IOException) {
-            throw CsvFileCreationException(filePath, e)
-        } catch (e: SecurityException) {
+        }.getOrElse { e ->
             throw CsvFileCreationException(filePath, e)
         }
     }
 
     fun readLines(): List<String> {
-        if (!file.exists()) throw CsvFileNotFoundException(filePath) // Throw 1
+        if (!file.exists()) throw CsvFileNotFoundException(filePath)
 
-        return try {
+        return runCatching {
             val lines = file.readLines()
             if (lines.size > headerLinesToSkip) {
                 lines.drop(headerLinesToSkip)
             } else {
                 emptyList()
             }
-        } catch (e: IOException) {
+        }.getOrElse { e ->
             throw CsvReadException(e)
         }
     }
@@ -44,9 +45,9 @@ class CsvFileHandler(
     fun appendLine(line: String) {
         validateBeforeAppend(line)
 
-        try {
+        runCatching {
             file.appendText("$line\n")
-        } catch (e: IOException) {
+        }.getOrElse { e ->
             throw CsvWriteException(e)
         }
     }
@@ -61,11 +62,11 @@ class CsvFileHandler(
 
         validateBeforeAppend(lines)
 
-        try {
+        runCatching {
             val validLines = lines.filter { it.isNotBlank() }
             val content = validLines.joinToString(separator = "\n", postfix = "\n")
             file.appendText(content)
-        } catch (e: IOException) {
+        }.getOrElse { e ->
             throw CsvWriteException(e)
         }
     }
@@ -80,9 +81,9 @@ class CsvFileHandler(
     fun clearFile() {
         if (!file.exists()) throw CsvFileNotFoundException(filePath)
 
-        try {
+        runCatching {
             file.writeText("")
-        } catch (e: IOException) {
+        }.getOrElse { e ->
             throw CsvWriteException(e)
         }
     }
@@ -90,12 +91,13 @@ class CsvFileHandler(
     fun splitFields(line: String, delimiter: String = ","): List<String> {
         return line.split(delimiter).map { it.trim() }
     }
+
     fun rewriteLines(lines: List<String>) {
         if (!file.exists()) {
             throw CsvFileNotFoundException(filePath)
         }
 
-        try {
+        runCatching {
             val header = file.readLines().take(headerLinesToSkip)
             val validLines = lines.filter { it.isNotBlank() }
 
@@ -105,7 +107,7 @@ class CsvFileHandler(
             )
 
             file.writeText(content)
-        } catch (e: IOException) {
+        }.getOrElse { e ->
             throw CsvWriteException(e)
         }
     }

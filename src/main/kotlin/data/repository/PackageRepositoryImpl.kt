@@ -1,10 +1,10 @@
 package data.repository
 
+import data.exception.NetworkUnavailableException
 import data.local.datasource.CsvPackageDataSource
 import data.remote.datasource.RemotePackageDataSource
 import data.mapper.packages.toDomain
 import data.mapper.packages.toRaw
-import domain.exception.NetworkUnavailableException
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
@@ -41,15 +41,15 @@ class PackageRepositoryImpl(
     private suspend fun fetchPackagesFromSource(): List<Package> {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
 
-        return try {
-            val remoteRawPackages = remoteDataSource.getRawPackages()
-            remoteRawPackages.mapNotNull { it.toDomain(warehousesById) }
-
-        } catch (e: NetworkUnavailableException) {
-            println("Offline mode active: Fetching from CSV due to -> ${e.message}")
-
-            val localRawPackages = localDataSource.getAllPackages()
-            localRawPackages.mapNotNull { it.toDomain(warehousesById) }
+        return runCatching {
+            remoteDataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
+        }.getOrElse { e ->
+            if (e is NetworkUnavailableException) {
+                println("Offline mode active: Fetching from CSV due to -> ${e.message}")
+                localDataSource.getAllPackages().mapNotNull { it.toDomain(warehousesById) }
+            } else {
+                throw e
+            }
         }
     }
 }

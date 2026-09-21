@@ -1,14 +1,13 @@
 package data.remote.supabase
 
+import data.exception.DataException
+import data.exception.NetworkUnavailableException
 import data.local.dataholder.WarehouseRaw
-import data.mapper.routes.toRaw
 import data.remote.datasource.RemoteWarehouseDataSource
 import data.mapper.warehouses.toRaw
 import data.mapper.warehouses.toRequestDto
 import data.remote.client.SupabaseHttpClient
-import data.remote.dto.routeDto.RouteResponseDto
 import data.remote.dto.warehouseDto.WarehouseResponseDto
-import domain.exception.NetworkUnavailableException
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import io.ktor.util.network.UnresolvedAddressException
@@ -20,46 +19,65 @@ class SupabaseWarehouseDataSourceImpl(
     private val httpClient: SupabaseHttpClient
 ) : RemoteWarehouseDataSource {
 
-    override suspend fun getRawWarehouses(): List<WarehouseRaw> {
-        return try {
-            val response = httpClient.get(WAREHOUSES_TABLE)
-            val dtos: List<WarehouseResponseDto> = response.body()
-            dtos.map { it.toRaw() }
-        } catch (e: UnresolvedAddressException) {
-            throw NetworkUnavailableException(
-                message = e.message ?: "Network unreachable - Falling back to CSV",
-                cause = e
+    override suspend fun getRawWarehouses(): List<WarehouseRaw> = runCatching {
+        val response = httpClient.get(WAREHOUSES_TABLE)
+        val dtos: List<WarehouseResponseDto> = response.body()
+        dtos.map { it.toRaw() }
+    }.getOrElse { e ->
+        when (e) {
+            is UnresolvedAddressException -> throw NetworkUnavailableException(
+                e.message ?: DataException.NETWORK_UNREACHABLE_FETCH
             )
-        } catch (e: IOException) {
-            throw NetworkUnavailableException(
-                message = e.message ?: "IO Network Error - Falling back to CSV",
-                cause = e
-            )
+
+            is IOException -> throw NetworkUnavailableException(e.message ?: DataException.NETWORK_IO_ERROR_FETCH)
+            else -> throw e
         }
     }
 
-    override suspend fun createRawWarehouse(warehouse: WarehouseRaw): Boolean {
-        val response = httpClient.post(
-            table = WAREHOUSES_TABLE,
-            body = warehouse.toRequestDto()
-        )
-        return response.status.isSuccess()
+    override suspend fun createRawWarehouse(warehouse: WarehouseRaw): Boolean = runCatching {
+        val response = httpClient.post(table = WAREHOUSES_TABLE, body = warehouse.toRequestDto())
+        response.status.isSuccess()
+    }.getOrElse { e ->
+        when (e) {
+            is UnresolvedAddressException -> throw NetworkUnavailableException(
+                e.message ?: DataException.NETWORK_UNREACHABLE_CREATE
+            )
+
+            is IOException -> throw NetworkUnavailableException(e.message ?: DataException.NETWORK_IO_ERROR_CREATE)
+            else -> throw e
+        }
     }
 
-    override suspend fun updateRawWarehouse(id: String, warehouse: WarehouseRaw): Boolean {
+    override suspend fun updateRawWarehouse(id: String, warehouse: WarehouseRaw): Boolean = runCatching {
         val response = httpClient.patch(
             table = WAREHOUSES_TABLE,
             id = id,
-            body = warehouse.toRequestDto()
+            body = warehouse.toRequestDto(),
+            primaryKey = "warehouse_id"
         )
-        return response.status.isSuccess()
+        response.status.isSuccess()
+    }.getOrElse { e ->
+        when (e) {
+            is UnresolvedAddressException -> throw NetworkUnavailableException(
+                e.message ?: DataException.NETWORK_UNREACHABLE_UPDATE
+            )
+
+            is IOException -> throw NetworkUnavailableException(e.message ?: DataException.NETWORK_IO_ERROR_UPDATE)
+            else -> throw e
+        }
     }
 
-    override suspend fun deleteRawWarehouse(id: String): Boolean {
-        val response = httpClient.delete(
-            table = WAREHOUSES_TABLE,
-            id = id
-        )
-        return response.status.isSuccess()
+    override suspend fun deleteRawWarehouse(id: String): Boolean = runCatching {
+        val response = httpClient.delete(table = WAREHOUSES_TABLE, id = id, primaryKey = "warehouse_id")
+        response.status.isSuccess()
+    }.getOrElse { e ->
+        when (e) {
+            is UnresolvedAddressException -> throw NetworkUnavailableException(
+                e.message ?: DataException.NETWORK_UNREACHABLE_DELETE
+            )
+
+            is IOException -> throw NetworkUnavailableException(e.message ?: DataException.NETWORK_IO_ERROR_DELETE)
+            else -> throw e
+        }
     }
 }

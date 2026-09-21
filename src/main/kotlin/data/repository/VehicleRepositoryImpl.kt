@@ -4,8 +4,9 @@ import data.local.datasource.CsvVehicleDataSource
 import data.remote.datasource.RemoteVehicleDataSource
 import data.mapper.vehicles.toDomain
 import data.mapper.vehicles.toRaw
-import domain.exception.NetworkUnavailableException
-import domain.model.Route
+import data.exception.NetworkUnavailableException
+import data.mapper.packages.toDomain
+import domain.model.Package
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
@@ -42,15 +43,15 @@ class VehicleRepositoryImpl(
     private suspend fun fetchVehiclesFromSource(): List<Vehicle> {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
 
-        return try {
-            val remoteRawVehicles = remoteDataSource.getRawVehicles()
-            remoteRawVehicles.mapNotNull { it.toDomain(warehousesById) }
-
-        } catch (e: NetworkUnavailableException) {
-            println("Offline mode active: Fetching from CSV due to -> ${e.message}")
-
-            val localRawVehicle = localDataSource.getAllVehicles()
-            localRawVehicle.mapNotNull { it.toDomain(warehousesById) }
+        return runCatching {
+            remoteDataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
+        }.getOrElse { e ->
+            if (e is NetworkUnavailableException) {
+                println("Offline mode active: Fetching from CSV due to -> ${e.message}")
+                localDataSource.getAllVehicles().mapNotNull { it.toDomain(warehousesById) }
+            } else {
+                throw e
+            }
         }
     }
 }

@@ -1,36 +1,24 @@
 package domain.usecase.crud.route
 
-import domain.exception.DatabaseConflictException
-import domain.exception.EntityValidationException
-import domain.exception.ResourceNotFoundException
+import data.exception.translateDataError
+import domain.model.exception.ResourceNotFoundException
 import domain.model.Route
 import domain.repository.RouteRepository
-import domain.validator.routes.RouteIdValidator
 
 class GetRouteByIdUseCase(
-    private val routeRepository: RouteRepository,
-    private val idValidator: RouteIdValidator
+    private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(id: String): Result<Route> {
-        val validation = idValidator.validate(id)
-        if (validation.isInvalid) {
-            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
-        }
-
         return runCatching { routeRepository.getById(id) }.fold(
             onSuccess = { route ->
                 if (route != null) {
                     Result.success(route)
                 } else {
-                    Result.failure(ResourceNotFoundException("Route with ID '$id' was not found."))
+                    Result.failure(ResourceNotFoundException())
                 }
             },
             onFailure = { error ->
-                Result.failure(
-                    DatabaseConflictException(
-                        "Failed to fetch route with ID '$id': ${error.message}", error
-                    )
-                )
+                Result.failure(translateDataError(error, "fetch", "route"))
             }
         )
     }

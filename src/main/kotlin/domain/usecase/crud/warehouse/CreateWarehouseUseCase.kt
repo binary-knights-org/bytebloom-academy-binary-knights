@@ -1,10 +1,12 @@
 package domain.usecase.crud.warehouse
 
-import domain.exception.DatabaseConflictException
-import domain.exception.EntityValidationException
+import domain.model.exception.OperationFailedException
+import data.exception.translateDataError
+import domain.model.exception.EntityValidationException
 import domain.model.Warehouse
 import domain.model.input.CreateWarehouseInput
 import domain.repository.WarehouseRepository
+import domain.validator.ValidationResult
 import domain.validator.warehouse.CreateWarehouseValidator
 import domain.model.RegionalZone
 
@@ -14,9 +16,8 @@ class CreateWarehouseUseCase(
 ) {
     suspend operator fun invoke(input: CreateWarehouseInput): Result<Warehouse> {
         val validation = validator.validate(input)
-        if (validation.isInvalid) {
-            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
-        }
+        if (validation is ValidationResult.Invalid)
+            return Result.failure(EntityValidationException(validation.violations))
 
         return runCatching {
             Warehouse(
@@ -34,13 +35,11 @@ class CreateWarehouseUseCase(
                             if (isCreated) {
                                 Result.success(warehouse)
                             } else {
-                                Result.failure(DatabaseConflictException("Failed to create warehouse in database."))
+                                Result.failure(OperationFailedException())
                             }
                         },
                         onFailure = { error ->
-                            Result.failure(
-                                DatabaseConflictException(
-                                    "Failed to create warehouse: ${error.message}", error))
+                            Result.failure(translateDataError(error, "create", "warehouse"))
                         }
                     )
             },

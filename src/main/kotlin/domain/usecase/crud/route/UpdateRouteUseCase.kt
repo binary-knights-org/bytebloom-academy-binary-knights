@@ -1,11 +1,13 @@
 package domain.usecase.crud.route
 
-import domain.exception.DatabaseConflictException
-import domain.exception.EntityValidationException
-import domain.exception.ResourceNotFoundException
+import domain.model.exception.OperationFailedException
+import data.exception.translateDataError
+import domain.model.exception.EntityValidationException
+import domain.model.exception.ResourceNotFoundException
 import domain.model.Route
 import domain.model.input.UpdateRouteInput
 import domain.repository.RouteRepository
+import domain.validator.ValidationResult
 import domain.validator.routes.UpdateRouteValidator
 
 class UpdateRouteUseCase(
@@ -14,24 +16,19 @@ class UpdateRouteUseCase(
 ) {
     suspend operator fun invoke(input: UpdateRouteInput): Result<Route> {
         val validation = validator.validate(input)
-        if (validation.isInvalid) {
-            return Result.failure(EntityValidationException(validation.errorsOrNull().orEmpty()))
-        }
+        if (validation is ValidationResult.Invalid)
+            return Result.failure(EntityValidationException(validation.violations))
 
         return runCatching { routeRepository.getById(input.id) }.fold(
             onSuccess = { existing ->
                 if (existing == null) {
-                    Result.failure(ResourceNotFoundException("Route with ID '${input.id}' was not found."))
+                    Result.failure(ResourceNotFoundException())
                 } else {
                     executeUpdate(existing, input)
                 }
             },
             onFailure = { error ->
-                Result.failure(
-                    DatabaseConflictException(
-                        "Failed to retrieve route for update: ${error.message}", error
-                    )
-                )
+                Result.failure(translateDataError(error, "retrieve", "route"))
             }
         )
     }
@@ -51,11 +48,11 @@ class UpdateRouteUseCase(
                         if (isUpdated) {
                             Result.success(updatedRoute)
                         } else {
-                            Result.failure(DatabaseConflictException("Failed to update route in database."))
+                            Result.failure(OperationFailedException())
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(DatabaseConflictException("Failed to update route: ${error.message}", error))
+                        Result.failure(translateDataError(error, "update", "route"))
                     }
                 )
             },

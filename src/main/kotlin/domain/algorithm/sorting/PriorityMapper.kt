@@ -1,20 +1,15 @@
 package domain.algorithm.sorting
 
-
-private const val PRIORITY_URGENT_TEXT = "URGENT"
-private const val PRIORITY_STANDARD_TEXT = "STANDARD"
-private const val PRIORITY_LOW_TEXT = "LOW"
+import domain.model.Priority
 
 private const val RANK_URGENT = 3
 private const val RANK_STANDARD = 2
 private const val RANK_LOW = 1
-private const val RANK_DEFAULT = 1
 
-fun getPriorityRank(priority: String): Int {
-    return when (priority.uppercase()) {
-        PRIORITY_URGENT_TEXT -> RANK_URGENT
-        PRIORITY_STANDARD_TEXT -> RANK_STANDARD
-        PRIORITY_LOW_TEXT -> RANK_LOW
-        else -> RANK_DEFAULT
+fun getPriorityRank(priority: Priority): Int {
+    return when (priority) {
+        Priority.URGENT -> RANK_URGENT
+        Priority.STANDARD -> RANK_STANDARD
+        Priority.LOW -> RANK_LOW
     }
 }

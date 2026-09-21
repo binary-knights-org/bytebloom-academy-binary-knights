@@ -1,52 +1,27 @@
 package domain.validator.warehouse
 
 import domain.model.input.UpdateWarehouseInput
-import domain.validator.ValidationResultBuilder
 import domain.validator.ValidationResult
 
-private const val MIN_LATITUDE = -90.0
-private const val MAX_LATITUDE = 90.0
-private const val MIN_LONGITUDE = -180.0
-private const val MAX_LONGITUDE = 180.0
+class UpdateWarehouseValidator {
+    fun validate(input: UpdateWarehouseInput): ValidationResult<WarehouseValidationError> {
+        val violations = buildList {
+            if (hasNoUpdates(input)) {
+                add(WarehouseValidationError.NoUpdateFields)
+            }
 
-class UpdateWarehouseValidator(
-    private val idValidator: WarehouseIdValidator
-) {
-    fun validate(input: UpdateWarehouseInput): ValidationResult {
-        val builder = ValidationResultBuilder()
+            input.name?.let { if (it.isBlank()) add(WarehouseValidationError.BlankName) }
+            input.regionalZone?.let { if (it.isBlank()) add(WarehouseValidationError.BlankRegionalZone) }
 
-        val idResult = idValidator.validate(input.id)
-        if (idResult is ValidationResult.Invalid) {
-            builder.addViolations(idResult.violations)
+            input.latitude?.let { lat ->
+                if (lat !in MIN_LATITUDE..MAX_LATITUDE) add(WarehouseValidationError.InvalidLatitude)
+            }
+            input.longitude?.let { lon ->
+                if (lon !in MIN_LONGITUDE..MAX_LONGITUDE) add(WarehouseValidationError.InvalidLongitude)
+            }
         }
 
-        if (hasNoUpdates(input)) {
-            builder.addViolation("updateFields",
-                "At least one field (name, regionalZone, latitude, longitude) " +
-                        "must be provided for update.")
-        }
-
-        input.name?.let {
-            builder.check(it.isNotBlank(), "name",
-                "Warehouse name cannot be blank.")
-        }
-
-        input.regionalZone?.let {
-            builder.check(it.isNotBlank(), "regionalZone",
-                "Regional zone cannot be blank.")
-        }
-
-        input.latitude?.let { lat ->
-            builder.check(lat in MIN_LATITUDE..MAX_LATITUDE, "latitude",
-                "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE.")
-        }
-
-        input.longitude?.let { lon ->
-            builder.check(lon in MIN_LONGITUDE..MAX_LONGITUDE, "longitude",
-                "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE.")
-        }
-
-        return builder.build()
+        return if (violations.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(violations)
     }
 
     private fun hasNoUpdates(input: UpdateWarehouseInput): Boolean {
@@ -54,5 +29,12 @@ class UpdateWarehouseValidator(
                 input.regionalZone == null &&
                 input.latitude == null &&
                 input.longitude == null
+    }
+
+    companion object {
+        const val MIN_LATITUDE = -90.0
+        const val MAX_LATITUDE = 90.0
+        const val MIN_LONGITUDE = -180.0
+        const val MAX_LONGITUDE = 180.0
     }
 }
