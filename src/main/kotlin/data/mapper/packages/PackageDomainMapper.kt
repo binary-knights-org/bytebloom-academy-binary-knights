@@ -2,7 +2,9 @@ package data.mapper.packages
 
 import data.local.dataholder.PackageRaw
 import domain.model.Package
+import domain.model.Priority
 import domain.model.Warehouse
+import domain.model.toPriority
 
 fun PackageRaw.toDomain(
     warehousesById: Map<String, Warehouse>
@@ -15,7 +17,7 @@ fun PackageRaw.toDomain(
         else -> Package(
             id = packageId,
             weight = weight,
-            priority = priority,
+            priority = priority.toPriority(),
             originHub = originWarehouse,
             destinationHub = destinationWarehouse
         )
@@ -27,5 +29,5 @@ fun Package.toRaw(): PackageRaw = PackageRaw(
     weight = weight,
     originHubId = originHub.id,
     destinationHubId = destinationHub.id,
-    priority = priority
+    priority = priority.name
 )
