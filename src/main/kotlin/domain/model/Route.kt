@@ -1,42 +1,42 @@
 package domain.model
 
-import domain.exception.EntityValidationException
-import domain.model.input.CreateRouteInput
-import domain.validator.FieldViolation
-import java.util.UUID
-
-private const val ROUTE_ID_PREFIX = "RT-"
-private const val MIN_DISTANCE_KM = 0.0
-private const val MIN_DELAY_MIN = 0
+import domain.model.exception.InvalidRouteDelayException
+import domain.model.exception.InvalidRouteDistanceException
+import domain.model.exception.SameOriginAndDestinationException
+import kotlin.uuid.Uuid
 
 data class Route(
-    val id: String = "$ROUTE_ID_PREFIX${UUID.randomUUID()}",
+    val id: String = "$ROUTE_ID_PREFIX${Uuid.random()}",
     val distanceKm: Double,
     val typicalDelayMin: Int,
     val originHub: Warehouse,
     val destinationHub: Warehouse
 ) {
     init {
-        val violations = validateRoute( distanceKm, typicalDelayMin)
-        if (violations.isNotEmpty()) {
-            throw EntityValidationException(violations)
+        validateDistance()
+        validateDelay()
+        validateHubs()
+    }
+
+    private fun validateDistance() {
+        if (distanceKm <= 0.0) {
+            throw InvalidRouteDistanceException()
         }
     }
 
-    private fun validateRoute(
-         distanceKm: Double, typicalDelayMin: Int
-    ): List<FieldViolation> {
-        val violations = mutableListOf<FieldViolation>()
+    private fun validateDelay() {
+        if (typicalDelayMin < 0) {
+            throw InvalidRouteDelayException()
+        }
+    }
 
-        if (distanceKm <= MIN_DISTANCE_KM) {
-            violations.add(FieldViolation(CreateRouteInput::distanceKm.name, "Distance must be greater than $MIN_DISTANCE_KM."))
-        }
-        if (typicalDelayMin < MIN_DELAY_MIN) {
-            violations.add(FieldViolation(CreateRouteInput::typicalDelayMin.name, "Typical delay must be at least $MIN_DELAY_MIN."))
-        }
+    private fun validateHubs() {
         if (originHub.id == destinationHub.id) {
-            violations.add(FieldViolation(CreateRouteInput::destinationHub.name, "Origin and destination hubs cannot be the same."))
+            throw SameOriginAndDestinationException()
         }
-        return violations
+    }
+
+    companion object{
+        const val ROUTE_ID_PREFIX = "RT-"
     }
 }
