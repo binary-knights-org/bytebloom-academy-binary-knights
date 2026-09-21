@@ -9,7 +9,7 @@ import kotlin.uuid.Uuid
 data class Warehouse(
     val id: String = "$WAREHOUSE_ID_PREFIX${Uuid.random()}",
     val name: String,
-    val regionalZone: String,
+    val regionalZone: RegionalZone,
     val latitude: Double,
     val longitude: Double
 ) {

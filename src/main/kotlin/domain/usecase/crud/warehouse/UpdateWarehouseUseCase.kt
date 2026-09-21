@@ -9,6 +9,7 @@ import domain.model.input.UpdateWarehouseInput
 import domain.repository.WarehouseRepository
 import domain.validator.ValidationResult
 import domain.validator.warehouse.UpdateWarehouseValidator
+import domain.model.RegionalZone
 
 class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -37,7 +38,8 @@ class UpdateWarehouseUseCase(
         return runCatching {
             existing.copy(
                 name = input.name ?: existing.name,
-                regionalZone = input.regionalZone ?: existing.regionalZone,
+                regionalZone = input.regionalZone?.let { RegionalZone.valueOf(it.trim().uppercase()) }
+                    ?: existing.regionalZone,
                 latitude = input.latitude ?: existing.latitude,
                 longitude = input.longitude ?: existing.longitude
             )
