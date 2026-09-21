@@ -1,45 +1,27 @@
 package domain.validator.packages
 
 import domain.model.input.CreatePackageInput
-import domain.validator.FieldViolation
 import domain.validator.ValidationResult
-import domain.validator.toValidationResult
 
-private const val MIN_WEIGHT = 0.0
+class CreatePackageValidator {
 
-class CreatePackageValidator
- {
-    fun validate(input: CreatePackageInput): ValidationResult {
-        val violations = mutableListOf<FieldViolation>()
+    fun validate(
+        input: CreatePackageInput
+    ): ValidationResult<PackageValidationError> {
 
-        if (input.weight <= MIN_WEIGHT) {
-            violations.add(
-                FieldViolation(
-                    CreatePackageInput::weight.name,
-                    message = "Weight must be greater than $MIN_WEIGHT."
-                )
-            )
+        val violations = buildList {
+
+            if (input.weight <= MIN_WEIGHT)
+                add(PackageValidationError.InvalidWeight)
+
+            if (input.originHub.id == input.destinationHub.id)
+                add(PackageValidationError.SameOriginAndDestination)
         }
 
-        if ( input.priority.isBlank()) {
-            violations.add(
-                FieldViolation(
-                    CreatePackageInput::priority.name,
-                    message ="Priority cannot be blank."
+        return if (violations.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(violations)
+    }
 
-                )
-            )
-        }
-
-        if ( input.originHub.id == input.destinationHub.id){
-            violations.add(
-                FieldViolation(
-                    CreatePackageInput::destinationHub.name,
-                    message ="Destination hub must be different from origin hub."
-                )
-            )
-        }
-
-        return violations.toValidationResult()
+    companion object {
+        const val MIN_WEIGHT = 0.0
     }
 }
