@@ -1,24 +1,41 @@
 package domain.model
 
 import domain.algorithm.sorting.sortPackagesDescendingByWeight
-import domain.exception.EntityValidationException
-import domain.model.input.CreateWarehouseInput
-import domain.validator.FieldViolation
-import java.util.UUID
-
-private const val WAREHOUSE_ID_PREFIX = "WH-"
-private const val MIN_LATITUDE = -90.0
-private const val MAX_LATITUDE = 90.0
-private const val MIN_LONGITUDE = -180.0
-private const val MAX_LONGITUDE = 180.0
+import domain.model.exception.InvalidLatitudeException
+import domain.model.exception.InvalidLongitudeException
+import domain.model.exception.InvalidWarehouseTextException
+import kotlin.uuid.Uuid
 
 data class Warehouse(
-    val id: String = "$WAREHOUSE_ID_PREFIX${UUID.randomUUID()}",
+    val id: String = "$WAREHOUSE_ID_PREFIX${Uuid.random()}",
     val name: String,
     val regionalZone: String,
     val latitude: Double,
     val longitude: Double
 ) {
+
+    init {
+        validateTextInputs()
+        validateCoordinates()
+    }
+
+    private fun validateTextInputs() {
+        if (name.isBlank()) {
+            throw InvalidWarehouseTextException()
+        }
+        if (regionalZone.isBlank()) {
+            throw InvalidWarehouseTextException()
+        }
+    }
+
+    private fun validateCoordinates() {
+        if (latitude !in MIN_LATITUDE..MAX_LATITUDE) {
+            throw InvalidLatitudeException()
+        }
+        if (longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
+            throw InvalidLongitudeException()
+        }
+    }
 
     private val _cargoQueue = mutableListOf<Package>()
     private val _outgoingRoutes = mutableListOf<Route>()
@@ -27,37 +44,6 @@ data class Warehouse(
     val cargoQueue: List<Package> = _cargoQueue
     val outgoingRoutes: List<Route> = _outgoingRoutes
     val stationedVehicles: List<Vehicle> = _stationedVehicles
-
-    init {
-        val violations = validateWarehouse(name, regionalZone, latitude, longitude)
-        if (violations.isNotEmpty()) {
-            throw EntityValidationException(violations)
-        }
-    }
-
-    fun validateWarehouse(
-         name: String, regionalZone: String, latitude: Double, longitude: Double
-    ): List<FieldViolation> {
-        val violations = mutableListOf<FieldViolation>()
-
-        if (name.isBlank()) {
-            violations.add(FieldViolation(CreateWarehouseInput::name.name, "Warehouse name cannot be blank."))
-        }
-        if (regionalZone.isBlank()) {
-            violations.add(FieldViolation(CreateWarehouseInput::regionalZone.name, "Regional zone cannot be blank."))
-        }
-        if (latitude !in MIN_LATITUDE..MAX_LATITUDE) {
-            violations.add(FieldViolation(CreateWarehouseInput::latitude.name, "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE."))
-        }
-        if (longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
-            violations.add(
-                FieldViolation(
-                    CreateWarehouseInput::longitude.name, "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE."
-                )
-            )
-        }
-        return violations
-    }
 
     fun addPackage(pkg: Package) {
         _cargoQueue.add(pkg)
@@ -80,5 +66,13 @@ data class Warehouse(
     fun restoreCargoQueue(packages: List<Package>) {
         _cargoQueue.clear()
         _cargoQueue.addAll(packages)
+    }
+
+    companion object {
+        const val WAREHOUSE_ID_PREFIX = "WH-"
+        const val MIN_LATITUDE = -90.0
+        const val MAX_LATITUDE = 90.0
+        const val MIN_LONGITUDE = -180.0
+        const val MAX_LONGITUDE = 180.0
     }
 }
