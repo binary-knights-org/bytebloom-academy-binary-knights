@@ -1,13 +1,12 @@
 package domain.usecase.crud.packages
 
-import domain.exception.DatabaseConflictException
-import domain.exception.EntityValidationException
-import domain.exception.ResourceNotFoundException
+import domain.model.exception.ResourceNotFoundException
+import data.exception.translateDataError
 import domain.model.Package
 import domain.repository.PackageRepository
 
 class GetPackageByIdUseCase(
-    private val packageRepository: PackageRepository,
+    private val packageRepository: PackageRepository
 ) {
     suspend operator fun invoke(id: String): Result<Package> {
 
@@ -16,16 +15,10 @@ class GetPackageByIdUseCase(
                 if (pkg != null) {
                     Result.success(pkg)
                 } else {
-                    Result.failure(ResourceNotFoundException("Package with ID '$id' was not found."))
+                    Result.failure(ResourceNotFoundException())
                 }
             },
-            onFailure = { error ->
-                Result.failure(
-                    DatabaseConflictException(
-                        "Failed to fetch package with ID '$id': ${error.message}", error
-                    )
-                )
-            }
+            onFailure = { error -> Result.failure(translateDataError(error, "fetch", "package")) }
         )
     }
 }
