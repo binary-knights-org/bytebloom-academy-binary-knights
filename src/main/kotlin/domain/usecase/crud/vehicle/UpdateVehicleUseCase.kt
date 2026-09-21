@@ -1,6 +1,10 @@
 package domain.usecase.crud.vehicle
 
-import domain.exception.ResourceNotFoundException
+import domain.model.exception.OperationFailedException
+import data.exception.translateDataError
+import domain.model.exception.EntityValidationException
+import domain.model.exception.ResourceNotFoundException
+import domain.model.Vehicle
 import domain.model.input.UpdateVehicleInput
 import domain.repository.VehicleRepository
 import domain.validator.ValidationResult
@@ -10,21 +14,50 @@ class UpdateVehicleUseCase(
     private val vehicleRepository: VehicleRepository,
     private val validator: UpdateVehicleValidator
 ) {
-    suspend operator fun invoke(input: UpdateVehicleInput): ValidationResult {
+    suspend operator fun invoke(input: UpdateVehicleInput): Result<Vehicle> {
         val validation = validator.validate(input)
-        if (validation.isInvalid) return validation
+        if (validation is ValidationResult.Invalid)
+            return Result.failure(EntityValidationException(validation.violations))
 
-        val existingVehicle = vehicleRepository.getById(input.id)
-            ?: throw ResourceNotFoundException("Vehicle with ID '${input.id}' was not found.")
-
-        val updatedVehicle = existingVehicle.copy(
-            maxCapacityKg = input.maxCapacityKg ?: existingVehicle.maxCapacityKg,
-            costPerKm = input.costPerKm ?: existingVehicle.costPerKm,
-            currentHub = input.currentHub ?: existingVehicle.currentHub
+        return runCatching { vehicleRepository.getById(input.id) }.fold(
+            onSuccess = { existing ->
+                if (existing == null) {
+                    Result.failure(ResourceNotFoundException())
+                } else {
+                    executeUpdate(existing, input)
+                }
+            },
+            onFailure = { error ->
+                Result.failure(translateDataError(error, "retrieve", "vehicle"))
+            }
         )
+    }
 
-        vehicleRepository.update(updatedVehicle)
-
-        return ValidationResult.Valid
+    private suspend fun executeUpdate(existing: Vehicle, input: UpdateVehicleInput): Result<Vehicle> {
+        return runCatching {
+            existing.copy(
+                maxCapacityKg = input.maxCapacityKg ?: existing.maxCapacityKg,
+                costPerKm = input.costPerKm ?: existing.costPerKm,
+                currentHub = input.currentHub ?: existing.currentHub
+            )
+        }.fold(
+            onSuccess = { updatedVehicle ->
+                runCatching { vehicleRepository.update(updatedVehicle) }.fold(
+                    onSuccess = { isUpdated ->
+                        if (isUpdated) {
+                            Result.success(updatedVehicle)
+                        } else {
+                            Result.failure(OperationFailedException())
+                        }
+                    },
+                    onFailure = { error ->
+                        Result.failure(translateDataError(error, "update", "vehicle"))
+                    }
+                )
+            },
+            onFailure = { error ->
+                Result.failure(error)
+            }
+        )
     }
 }
