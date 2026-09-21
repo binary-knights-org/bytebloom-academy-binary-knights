@@ -13,7 +13,7 @@ import data.mapper.routes.toDomain
 import data.mapper.vehicles.toDomain
 import data.mapper.warehouses.toDomain
 import data.mapper.warehouses.toRaw
-import domain.exception.NetworkUnavailableException
+import data.exception.NetworkUnavailableException
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
@@ -63,7 +63,7 @@ class WarehouseRepositoryImpl(
         }
 
     private suspend fun fetchAndLinkWarehouses(): List<Warehouse> {
-        return try {
+        return runCatching {
             val loadedWarehouses = remoteSources.warehouse.getRawWarehouses().map { it.toDomain() }
             val warehousesById = loadedWarehouses.associateBy { it.id }
 
@@ -72,17 +72,21 @@ class WarehouseRepositoryImpl(
             val routes = remoteSources.route.getRawRoutes().mapNotNull { it.toDomain(warehousesById) }
 
             linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
+        }.getOrElse { e ->
+            if (e is NetworkUnavailableException) {
+                println("Offline mode active: Fetching from CSV due to -> ${e.message}")
 
-        }catch(e: NetworkUnavailableException){
-            println("Offline mode active: Fetching from CSV due to -> ${e.message}")
-            val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
-            val warehousesById = loadedWarehouses.associateBy { it.id }
+                val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
+                val warehousesById = loadedWarehouses.associateBy { it.id }
 
-            val packages = localSources.packageSource.getAllPackages().mapNotNull { it.toDomain(warehousesById) }
-            val vehicles = localSources.vehicle.getAllVehicles().mapNotNull { it.toDomain(warehousesById) }
-            val routes = localSources.route.getAllRoutes().mapNotNull { it.toDomain(warehousesById) }
+                val packages = localSources.packageSource.getAllPackages().mapNotNull { it.toDomain(warehousesById) }
+                val vehicles = localSources.vehicle.getAllVehicles().mapNotNull { it.toDomain(warehousesById) }
+                val routes = localSources.route.getAllRoutes().mapNotNull { it.toDomain(warehousesById) }
 
-            linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
+                linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
+            } else {
+                throw e
+            }
         }
     }
 
