@@ -5,6 +5,7 @@ import data.local.datasource.CsvPackageDataSource
 import data.remote.datasource.RemotePackageDataSource
 import data.mapper.packages.toDomain
 import data.mapper.packages.toRaw
+import data.utils.retryWithBackoff
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
@@ -24,24 +25,30 @@ class PackageRepositoryImpl(
         getAll().find { it.id == id }
 
     override suspend fun create(item: Package): Boolean =
-        remoteDataSource.createRawPackage(item.toRaw()).also { isSuccess ->
-            if (isSuccess) packages = null
-        }
+        retryWithBackoff { remoteDataSource.createRawPackage(item.toRaw()) }
+            .getOrDefault(false)
+            .also { isSuccess ->
+                if (isSuccess) packages = null
+            }
 
     override suspend fun update(item: Package): Boolean =
-        remoteDataSource.updateRawPackage(item.id, item.toRaw()).also { isSuccess ->
-            if (isSuccess) packages = null
-        }
+        retryWithBackoff { remoteDataSource.updateRawPackage(item.id, item.toRaw()) }
+            .getOrDefault(false)
+            .also { isSuccess ->
+                if (isSuccess) packages = null
+            }
 
     override suspend fun delete(id: String): Boolean =
-        remoteDataSource.deleteRawPackage(id).also { isSuccess ->
-            if (isSuccess) packages = null
-        }
+        retryWithBackoff { remoteDataSource.deleteRawPackage(id) }
+            .getOrDefault(false)
+            .also { isSuccess ->
+                if (isSuccess) packages = null
+            }
 
     private suspend fun fetchPackagesFromSource(): List<Package> {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
 
-        return runCatching {
+        return retryWithBackoff {
             remoteDataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
         }.getOrElse { e ->
             if (e is NetworkUnavailableException) {

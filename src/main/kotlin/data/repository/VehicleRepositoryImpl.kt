@@ -6,6 +6,7 @@ import data.mapper.vehicles.toDomain
 import data.mapper.vehicles.toRaw
 import data.exception.NetworkUnavailableException
 import data.mapper.packages.toDomain
+import data.utils.retryWithBackoff
 import domain.model.Package
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
@@ -26,24 +27,30 @@ class VehicleRepositoryImpl(
         getAll().find { it.id == id }
 
     override suspend fun create(item: Vehicle): Boolean =
-        remoteDataSource.createRawVehicle(item.toRaw()).also { isSuccess ->
-            if (isSuccess) vehicles = null
-        }
+        retryWithBackoff { remoteDataSource.createRawVehicle(item.toRaw()) }
+            .getOrDefault(false)
+            .also { isSuccess ->
+                if (isSuccess) vehicles = null
+            }
 
     override suspend fun update(item: Vehicle): Boolean =
-        remoteDataSource.updateRawVehicle(item.id, item.toRaw()).also { isSuccess ->
-            if (isSuccess) vehicles = null
-        }
+        retryWithBackoff { remoteDataSource.updateRawVehicle(item.id, item.toRaw()) }
+            .getOrDefault(false)
+            .also { isSuccess ->
+                if (isSuccess) vehicles = null
+            }
 
     override suspend fun delete(id: String): Boolean =
-        remoteDataSource.deleteRawVehicle(id).also { isSuccess ->
-            if (isSuccess) vehicles = null
-        }
+        retryWithBackoff { remoteDataSource.deleteRawVehicle(id) }
+            .getOrDefault(false)
+            .also { isSuccess ->
+                if (isSuccess) vehicles = null
+            }
 
     private suspend fun fetchVehiclesFromSource(): List<Vehicle> {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
 
-        return runCatching {
+        return retryWithBackoff {
             remoteDataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
         }.getOrElse { e ->
             if (e is NetworkUnavailableException) {
