@@ -21,6 +21,7 @@ suspend fun <T> retryWithBackoff(
 ): Result<T> {
 
     var delayMs = initialDelayMs
+    var finalResult: Result<T>? = null
 
     repeat(maxRetries + 1) { attemptIndex ->
 
@@ -29,19 +30,22 @@ suspend fun <T> retryWithBackoff(
 
         if (result.isSuccess) {
             println("[Retry] Success on attempt $attempt")
-            return result
+            finalResult = result
+            return@repeat
         }
 
         val error = result.exceptionOrNull()!!
 
         if (!isRetryable(error)) {
             println("[Retry] Non-retryable error: ${error::class.simpleName}")
-            return Result.failure(error)
+            finalResult = Result.failure(error)
+            return@repeat
         }
 
         if (attemptIndex == maxRetries) {
             println("[Retry] Failed after $attempt attempts")
-            return Result.failure(error)
+            finalResult = Result.failure(error)
+            return@repeat
         }
 
         println(
@@ -53,5 +57,8 @@ suspend fun <T> retryWithBackoff(
         delayMs = (delayMs * factor).toLong()
     }
 
-    return Result.failure(IllegalStateException("Unexpected state"))
+    return finalResult
+        ?: Result.failure(
+            IllegalStateException("Unexpected state")
+        )
 }
