@@ -23,9 +23,6 @@ data class Warehouse(
         if (name.isBlank()) {
             throw InvalidWarehouseTextException()
         }
-        if (regionalZone.isBlank()) {
-            throw InvalidWarehouseTextException()
-        }
     }
 
     private fun validateCoordinates() {

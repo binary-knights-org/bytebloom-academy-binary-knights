@@ -100,7 +100,7 @@ class BreakdownSimulationLogic {
 
     fun runSimulation(): SimulationResult {
         val originHub = Warehouse("WH-HUB-A", "Central Hub", RegionalZone.CENTRAL, HUB_LAT, HUB_LNG)
-        val destinationHub = Warehouse("WH-HUB-B", "Destination Hub", "N/A", HUB_LAT + 1, HUB_LNG + 1)
+        val destinationHub = Warehouse("WH-HUB-B", "Destination Hub", RegionalZone.NORTH, HUB_LAT + 1, HUB_LNG + 1)
         val ring = setupRing(originHub)
         val packages = createPackages(originHub, destinationHub, PACKAGE_COUNT)
 
