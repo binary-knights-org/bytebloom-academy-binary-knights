@@ -1,14 +1,16 @@
 package domain.model.input
 
 import domain.model.Warehouse
-import java.util.UUID
-
-private const val PACKAGE_ID_PREFIX = "PKG-"
+import kotlin.uuid.Uuid
 
 data class CreatePackageInput(
-    val id: String = "$PACKAGE_ID_PREFIX${UUID.randomUUID()}",
+    val id: String = "$PACKAGE_ID_PREFIX${Uuid.random()}",
     val weight: Double,
     val priority: String,
     val originHub: Warehouse,
     val destinationHub: Warehouse
-)
+) {
+    companion object {
+        const val PACKAGE_ID_PREFIX = "PKG-"
+    }
+}
