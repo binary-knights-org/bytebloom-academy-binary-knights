@@ -6,6 +6,7 @@ import domain.model.Warehouse
 import domain.algorithm.ring.ClockwiseRouter
 import domain.algorithm.ring.DeterministicHashingEngine
 import domain.algorithm.ring.PackageAssignmentRing
+import domain.model.RegionalZone
 
 class BreakdownSimulationLogic {
 
@@ -98,7 +99,7 @@ class BreakdownSimulationLogic {
     }
 
     fun runSimulation(): SimulationResult {
-        val hub = Warehouse("WH-HUB", "Central Hub", "N/A", HUB_LAT, HUB_LNG)
+        val hub = Warehouse("WH-HUB", "Central Hub", RegionalZone.CENTRAL, HUB_LAT, HUB_LNG)
         val ring = setupRing(hub)
         val packages = createPackages(hub, PACKAGE_COUNT)
 

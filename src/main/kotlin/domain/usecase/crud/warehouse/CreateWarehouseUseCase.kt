@@ -6,6 +6,7 @@ import domain.model.Warehouse
 import domain.model.input.CreateWarehouseInput
 import domain.repository.WarehouseRepository
 import domain.validator.warehouse.CreateWarehouseValidator
+import domain.model.RegionalZone
 
 class CreateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -21,7 +22,7 @@ class CreateWarehouseUseCase(
             Warehouse(
                 id = input.id,
                 name = input.name,
-                regionalZone = input.regionalZone,
+                regionalZone = RegionalZone.valueOf(input.regionalZone.trim().uppercase()),
                 latitude = input.latitude,
                 longitude = input.longitude
             )
