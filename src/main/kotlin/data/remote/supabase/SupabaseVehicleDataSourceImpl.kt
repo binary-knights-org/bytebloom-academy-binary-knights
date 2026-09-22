@@ -8,6 +8,7 @@ import data.mapper.vehicles.toRaw
 import data.mapper.vehicles.toRequestDto
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.vehicleDto.VehicleResponseDto
+import data.remote.base.BaseRemoteDataSource
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import io.ktor.util.network.UnresolvedAddressException
@@ -17,9 +18,9 @@ private const val VEHICLES_TABLE = "vehicles"
 
 class SupabaseVehicleDataSourceImpl(
     private val httpClient: SupabaseHttpClient
-) : RemoteVehicleDataSource {
+) : BaseRemoteDataSource(), RemoteVehicleDataSource {
 
-    override suspend fun getRawVehicles(): List<VehicleRaw> = runCatching {
+    override suspend fun getRawVehicles(): List<VehicleRaw> = retryWithBackoff {
         val response = httpClient.get(VEHICLES_TABLE)
         val dtos: List<VehicleResponseDto> = response.body()
         dtos.map { it.toRaw() }
@@ -34,7 +35,7 @@ class SupabaseVehicleDataSourceImpl(
         }
     }
 
-    override suspend fun createRawVehicle(vehicle: VehicleRaw): Boolean = runCatching {
+    override suspend fun createRawVehicle(vehicle: VehicleRaw): Boolean = retryWithBackoff {
         val response = httpClient.post(table = VEHICLES_TABLE, body = vehicle.toRequestDto())
         response.status.isSuccess()
     }.getOrElse { e ->
@@ -48,7 +49,7 @@ class SupabaseVehicleDataSourceImpl(
         }
     }
 
-    override suspend fun updateRawVehicle(id: String, vehicle: VehicleRaw): Boolean = runCatching {
+    override suspend fun updateRawVehicle(id: String, vehicle: VehicleRaw): Boolean = retryWithBackoff {
         val response =
             httpClient.patch(table = VEHICLES_TABLE, id = id, body = vehicle.toRequestDto(), primaryKey = "vehicle_id")
         response.status.isSuccess()
@@ -63,7 +64,7 @@ class SupabaseVehicleDataSourceImpl(
         }
     }
 
-    override suspend fun deleteRawVehicle(id: String): Boolean = runCatching {
+    override suspend fun deleteRawVehicle(id: String): Boolean = retryWithBackoff {
         val response = httpClient.delete(table = VEHICLES_TABLE, id = id, primaryKey = "vehicle_id")
         response.status.isSuccess()
     }.getOrElse { e ->

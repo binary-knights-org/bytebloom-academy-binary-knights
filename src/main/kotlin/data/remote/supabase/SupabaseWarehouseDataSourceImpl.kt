@@ -8,6 +8,7 @@ import data.mapper.warehouses.toRaw
 import data.mapper.warehouses.toRequestDto
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.warehouseDto.WarehouseResponseDto
+import data.remote.base.BaseRemoteDataSource
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import io.ktor.util.network.UnresolvedAddressException
@@ -17,9 +18,9 @@ private const val WAREHOUSES_TABLE = "warehouses"
 
 class SupabaseWarehouseDataSourceImpl(
     private val httpClient: SupabaseHttpClient
-) : RemoteWarehouseDataSource {
+) : BaseRemoteDataSource(), RemoteWarehouseDataSource {
 
-    override suspend fun getRawWarehouses(): List<WarehouseRaw> = runCatching {
+    override suspend fun getRawWarehouses(): List<WarehouseRaw> = retryWithBackoff {
         val response = httpClient.get(WAREHOUSES_TABLE)
         val dtos: List<WarehouseResponseDto> = response.body()
         dtos.map { it.toRaw() }
@@ -34,7 +35,7 @@ class SupabaseWarehouseDataSourceImpl(
         }
     }
 
-    override suspend fun createRawWarehouse(warehouse: WarehouseRaw): Boolean = runCatching {
+    override suspend fun createRawWarehouse(warehouse: WarehouseRaw): Boolean = retryWithBackoff {
         val response = httpClient.post(table = WAREHOUSES_TABLE, body = warehouse.toRequestDto())
         response.status.isSuccess()
     }.getOrElse { e ->
@@ -48,7 +49,7 @@ class SupabaseWarehouseDataSourceImpl(
         }
     }
 
-    override suspend fun updateRawWarehouse(id: String, warehouse: WarehouseRaw): Boolean = runCatching {
+    override suspend fun updateRawWarehouse(id: String, warehouse: WarehouseRaw): Boolean = retryWithBackoff {
         val response = httpClient.patch(
             table = WAREHOUSES_TABLE,
             id = id,
@@ -67,7 +68,7 @@ class SupabaseWarehouseDataSourceImpl(
         }
     }
 
-    override suspend fun deleteRawWarehouse(id: String): Boolean = runCatching {
+    override suspend fun deleteRawWarehouse(id: String): Boolean = retryWithBackoff {
         val response = httpClient.delete(table = WAREHOUSES_TABLE, id = id, primaryKey = "warehouse_id")
         response.status.isSuccess()
     }.getOrElse { e ->

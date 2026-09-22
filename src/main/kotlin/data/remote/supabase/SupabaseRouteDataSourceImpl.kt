@@ -8,6 +8,7 @@ import data.mapper.routes.toRaw
 import data.mapper.routes.toRequestDto
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.routeDto.RouteResponseDto
+import data.remote.base.BaseRemoteDataSource
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import io.ktor.util.network.UnresolvedAddressException
@@ -17,9 +18,9 @@ private const val ROUTES_TABLE = "routes"
 
 class SupabaseRouteDataSourceImpl(
     private val httpClient: SupabaseHttpClient
-) : RemoteRouteDataSource {
+) : BaseRemoteDataSource(), RemoteRouteDataSource {
 
-    override suspend fun getRawRoutes(): List<RouteRaw> = runCatching {
+    override suspend fun getRawRoutes(): List<RouteRaw> = retryWithBackoff {
         val response = httpClient.get(ROUTES_TABLE)
         val dtos: List<RouteResponseDto> = response.body()
         dtos.map { it.toRaw() }
@@ -34,7 +35,7 @@ class SupabaseRouteDataSourceImpl(
         }
     }
 
-    override suspend fun createRawRoute(route: RouteRaw): Boolean = runCatching {
+    override suspend fun createRawRoute(route: RouteRaw): Boolean = retryWithBackoff {
         val response = httpClient.post(table = ROUTES_TABLE, body = route.toRequestDto())
         response.status.isSuccess()
     }.getOrElse { e ->
@@ -48,7 +49,7 @@ class SupabaseRouteDataSourceImpl(
         }
     }
 
-    override suspend fun updateRawRoute(id: String, route: RouteRaw): Boolean = runCatching {
+    override suspend fun updateRawRoute(id: String, route: RouteRaw): Boolean = retryWithBackoff {
         val response =
             httpClient.patch(table = ROUTES_TABLE, id = id, body = route.toRequestDto(), primaryKey = "route_id")
         response.status.isSuccess()
@@ -63,7 +64,7 @@ class SupabaseRouteDataSourceImpl(
         }
     }
 
-    override suspend fun deleteRawRoute(id: String): Boolean = runCatching {
+    override suspend fun deleteRawRoute(id: String): Boolean = retryWithBackoff {
         val response = httpClient.delete(table = ROUTES_TABLE, id = id, primaryKey = "route_id")
         response.status.isSuccess()
     }.getOrElse { e ->
