@@ -5,9 +5,6 @@ import data.remote.datasource.RemoteVehicleDataSource
 import data.mapper.vehicles.toDomain
 import data.mapper.vehicles.toRaw
 import data.exception.NetworkUnavailableException
-import data.mapper.packages.toDomain
-import data.utils.retryWithBackoff
-import domain.model.Package
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
@@ -27,21 +24,21 @@ class VehicleRepositoryImpl(
         getAll().find { it.id == id }
 
     override suspend fun create(item: Vehicle): Boolean =
-        retryWithBackoff { remoteDataSource.createRawVehicle(item.toRaw()) }
+        runCatching { remoteDataSource.createRawVehicle(item.toRaw()) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) vehicles = null
             }
 
     override suspend fun update(item: Vehicle): Boolean =
-        retryWithBackoff { remoteDataSource.updateRawVehicle(item.id, item.toRaw()) }
+        runCatching { remoteDataSource.updateRawVehicle(item.id, item.toRaw()) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) vehicles = null
             }
 
     override suspend fun delete(id: String): Boolean =
-        retryWithBackoff { remoteDataSource.deleteRawVehicle(id) }
+        runCatching { remoteDataSource.deleteRawVehicle(id) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) vehicles = null
@@ -50,11 +47,10 @@ class VehicleRepositoryImpl(
     private suspend fun fetchVehiclesFromSource(): List<Vehicle> {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
 
-        return retryWithBackoff {
+        return runCatching {
             remoteDataSource.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
         }.getOrElse { e ->
             if (e is NetworkUnavailableException) {
-                println("Offline mode active: Fetching from CSV due to -> ${e.message}")
                 localDataSource.getAllVehicles().mapNotNull { it.toDomain(warehousesById) }
             } else {
                 throw e
