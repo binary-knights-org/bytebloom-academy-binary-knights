@@ -8,6 +8,7 @@ import data.mapper.packages.toRaw
 import data.mapper.packages.toRequestDto
 import data.remote.client.SupabaseHttpClient
 import data.remote.dto.packageDto.PackageResponseDto
+import data.remote.base.BaseRemoteDataSource
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import io.ktor.util.network.UnresolvedAddressException
@@ -17,9 +18,9 @@ private const val PACKAGES_TABLE = "packages"
 
 class SupabasePackageDataSourceImpl(
     private val httpClient: SupabaseHttpClient
-) : RemotePackageDataSource {
+) : BaseRemoteDataSource(), RemotePackageDataSource {
 
-    override suspend fun getRawPackages(): List<PackageRaw> = runCatching {
+    override suspend fun getRawPackages(): List<PackageRaw> = retryWithBackoff {
         val response = httpClient.get(PACKAGES_TABLE)
         val dtos: List<PackageResponseDto> = response.body()
         dtos.map { it.toRaw() }
@@ -34,7 +35,7 @@ class SupabasePackageDataSourceImpl(
         }
     }
 
-    override suspend fun createRawPackage(pkg: PackageRaw): Boolean = runCatching {
+    override suspend fun createRawPackage(pkg: PackageRaw): Boolean = retryWithBackoff {
         val response = httpClient.post(table = PACKAGES_TABLE, body = pkg.toRequestDto())
         response.status.isSuccess()
     }.getOrElse { e ->
@@ -48,7 +49,7 @@ class SupabasePackageDataSourceImpl(
         }
     }
 
-    override suspend fun updateRawPackage(id: String, pkg: PackageRaw): Boolean = runCatching {
+    override suspend fun updateRawPackage(id: String, pkg: PackageRaw): Boolean = retryWithBackoff {
         val response =
             httpClient.patch(table = PACKAGES_TABLE, id = id, body = pkg.toRequestDto(), primaryKey = "package_id")
         response.status.isSuccess()
@@ -63,7 +64,7 @@ class SupabasePackageDataSourceImpl(
         }
     }
 
-    override suspend fun deleteRawPackage(id: String): Boolean = runCatching {
+    override suspend fun deleteRawPackage(id: String): Boolean = retryWithBackoff {
         val response = httpClient.delete(table = PACKAGES_TABLE, id = id, primaryKey = "package_id")
         response.status.isSuccess()
     }.getOrElse { e ->

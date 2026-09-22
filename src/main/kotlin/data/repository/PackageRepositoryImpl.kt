@@ -5,7 +5,6 @@ import data.local.datasource.CsvPackageDataSource
 import data.remote.datasource.RemotePackageDataSource
 import data.mapper.packages.toDomain
 import data.mapper.packages.toRaw
-import data.utils.retryWithBackoff
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
@@ -25,21 +24,21 @@ class PackageRepositoryImpl(
         getAll().find { it.id == id }
 
     override suspend fun create(item: Package): Boolean =
-        retryWithBackoff { remoteDataSource.createRawPackage(item.toRaw()) }
+        runCatching { remoteDataSource.createRawPackage(item.toRaw()) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) packages = null
             }
 
     override suspend fun update(item: Package): Boolean =
-        retryWithBackoff { remoteDataSource.updateRawPackage(item.id, item.toRaw()) }
+        runCatching { remoteDataSource.updateRawPackage(item.id, item.toRaw()) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) packages = null
             }
 
     override suspend fun delete(id: String): Boolean =
-        retryWithBackoff { remoteDataSource.deleteRawPackage(id) }
+        runCatching { remoteDataSource.deleteRawPackage(id) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) packages = null
@@ -48,11 +47,10 @@ class PackageRepositoryImpl(
     private suspend fun fetchPackagesFromSource(): List<Package> {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
 
-        return retryWithBackoff {
+        return runCatching {
             remoteDataSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
         }.getOrElse { e ->
             if (e is NetworkUnavailableException) {
-                println("Offline mode active: Fetching from CSV due to -> ${e.message}")
                 localDataSource.getAllPackages().mapNotNull { it.toDomain(warehousesById) }
             } else {
                 throw e

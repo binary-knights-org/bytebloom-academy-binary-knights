@@ -14,7 +14,6 @@ import data.mapper.vehicles.toDomain
 import data.mapper.warehouses.toDomain
 import data.mapper.warehouses.toRaw
 import data.exception.NetworkUnavailableException
-import data.utils.retryWithBackoff
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
@@ -49,28 +48,28 @@ class WarehouseRepositoryImpl(
         getAll().find { it.id == id }
 
     override suspend fun create(item: Warehouse): Boolean =
-        retryWithBackoff { remoteSources.warehouse.createRawWarehouse(item.toRaw()) }
+        runCatching { remoteSources.warehouse.createRawWarehouse(item.toRaw()) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) warehouses = null
             }
 
     override suspend fun update(item: Warehouse): Boolean =
-        retryWithBackoff { remoteSources.warehouse.updateRawWarehouse(item.id, item.toRaw()) }
+        runCatching { remoteSources.warehouse.updateRawWarehouse(item.id, item.toRaw()) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) warehouses = null
             }
 
     override suspend fun delete(id: String): Boolean =
-        retryWithBackoff { remoteSources.warehouse.deleteRawWarehouse(id) }
+        runCatching { remoteSources.warehouse.deleteRawWarehouse(id) }
             .getOrDefault(false)
             .also { isSuccess ->
                 if (isSuccess) warehouses = null
             }
 
     private suspend fun fetchAndLinkWarehouses(): List<Warehouse> {
-        return retryWithBackoff {
+        return runCatching {
             val loadedWarehouses = remoteSources.warehouse.getRawWarehouses().map { it.toDomain() }
             val warehousesById = loadedWarehouses.associateBy { it.id }
 
@@ -81,7 +80,6 @@ class WarehouseRepositoryImpl(
             linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
         }.getOrElse { e ->
             if (e is NetworkUnavailableException) {
-                println("Offline mode active: Fetching from CSV due to -> ${e.message}")
 
                 val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
                 val warehousesById = loadedWarehouses.associateBy { it.id }
