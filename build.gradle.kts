@@ -20,8 +20,10 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
 
+    testImplementation("com.google.truth:truth:1.4.5")
+    val mockkVersion = "1.14.11"
+    testImplementation("io.mockk:mockk-jvm:${mockkVersion}")
     val ktorVersion = "2.3.12"
-
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -29,6 +31,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("org.slf4j:slf4j-simple:2.0.13")
+    val koin_version = "4.1.1"
+    implementation("io.insert-koin:koin-core:${koin_version}")
 }
 
 kotlin {
