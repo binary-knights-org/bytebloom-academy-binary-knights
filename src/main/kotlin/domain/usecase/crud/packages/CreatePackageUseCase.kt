@@ -2,7 +2,6 @@ package domain.usecase.crud.packages
 
 import domain.model.exception.EntityValidationException
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.Package
 import domain.model.input.CreatePackageInput
 import domain.model.toPriority
@@ -37,7 +36,7 @@ class CreatePackageUseCase(
                             Result.failure(OperationFailedException())
                         }
                     },
-                    onFailure = { error -> Result.failure(translateDataError(error, "create", "package")) }
+                    onFailure = { error -> Result.failure(error) }
                 )
             },
             onFailure = { error -> Result.failure(error) }
