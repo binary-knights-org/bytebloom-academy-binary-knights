@@ -13,7 +13,7 @@ class UpdateRouteUseCase(
     private val routeRepository: RouteRepository,
     private val validator: UpdateRouteValidator
 ) {
-    suspend operator fun invoke(input: UpdateRouteInput): Result<Route> {
+    public suspend operator fun invoke(input: UpdateRouteInput): Result<Route> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))
@@ -61,3 +61,4 @@ class UpdateRouteUseCase(
         )
     }
 }
+

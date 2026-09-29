@@ -4,7 +4,7 @@ import domain.model.Warehouse
 import domain.model.Package
 
 class AssignPackageToCargoQueueUseCase {
-    operator fun invoke(
+    public  operator fun invoke(
         warehouse: Warehouse,
         packageToAssign: Package
     ){

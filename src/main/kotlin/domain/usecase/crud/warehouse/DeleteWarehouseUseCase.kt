@@ -6,7 +6,7 @@ import domain.repository.WarehouseRepository
 class DeleteWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Unit> {
+    public  suspend operator fun invoke(id: String): Result<Unit> {
         return runCatching { warehouseRepository.delete(id) }.fold(
             onSuccess = { isDeleted ->
                 if (isDeleted) {

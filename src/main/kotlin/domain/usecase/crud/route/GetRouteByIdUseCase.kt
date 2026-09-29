@@ -7,7 +7,7 @@ import domain.repository.RouteRepository
 class GetRouteByIdUseCase(
     private val routeRepository: RouteRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Route> {
+    public suspend operator fun invoke(id: String): Result<Route> {
         return runCatching { routeRepository.getById(id) }.fold(
             onSuccess = { route ->
                 if (route != null) {

@@ -6,7 +6,7 @@ import domain.repository.PackageRepository
 class DeletePackageUseCase(
     private val packageRepository: PackageRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Unit> {
+    public suspend operator fun invoke(id: String): Result<Unit> {
         return runCatching { packageRepository.delete(id) }.fold(onSuccess = { isDeleted ->
             if (isDeleted) {
                 Result.success(Unit)

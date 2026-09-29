@@ -2,13 +2,14 @@ package domain.usecase.analytics
 
 import domain.algorithm.tree.BalancedTree
 import domain.algorithm.tree.UnbalancedBST
+import domain.model.TreePerformanceAnalysis
 import domain.util.PackageDataGenerator
 import domain.model.TreePerformanceAnalysis
 
 
-
 class AnalyzeTreePerformanceUseCase {
-    operator fun invoke(count: Int = 1000): TreePerformanceAnalysis {
+
+    public operator fun invoke(count: Int = 1000): TreePerformanceAnalysis {
         val packageIds = PackageDataGenerator().generateSequentialIds(count)
 
         val unbalancedBst = packageIds.fold(UnbalancedBST()) { tree, id ->
@@ -18,7 +19,6 @@ class AnalyzeTreePerformanceUseCase {
         val balancedBst = packageIds.fold(BalancedTree()) { tree, id ->
             tree.insert(id)
         }
-
 
         val unbalancedResults = packageIds.map { id -> unbalancedBst.searchWithStepCount(id) }
         val balancedResults = packageIds.map { id -> balancedBst.searchWithStepCount(id) }

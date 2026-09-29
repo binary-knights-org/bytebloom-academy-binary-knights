@@ -13,7 +13,7 @@ import domain.validator.packages.UpdatePackageValidator
 class UpdatePackageUseCase(
     private val packageRepository: PackageRepository, private val validator: UpdatePackageValidator
 ) {
-    suspend operator fun invoke(input: UpdatePackageInput): Result<Package> {
+    public suspend operator fun invoke(input: UpdatePackageInput): Result<Package> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

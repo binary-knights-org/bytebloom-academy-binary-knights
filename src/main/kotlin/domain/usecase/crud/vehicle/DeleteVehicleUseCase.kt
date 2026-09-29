@@ -6,7 +6,7 @@ import domain.repository.VehicleRepository
 class DeleteVehicleUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Unit> {
+    public suspend operator fun invoke(id: String): Result<Unit> {
 
         return runCatching { vehicleRepository.delete(id) }.fold(
             onSuccess = { isDeleted ->
