@@ -9,7 +9,7 @@ class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
     private val warehouseRepository: WarehouseRepository
 ) {
-    public suspend operator fun invoke(packageId: String, newDestinationId: String) {
+    suspend operator fun invoke(packageId: String, newDestinationId: String) {
         val packageToReroute = findPackage(packageId)
         val newDestination = findWarehouse(newDestinationId)
         val oldDestination = packageToReroute.destinationHub
@@ -30,3 +30,4 @@ class ReroutePackageUseCase(
         return requireNotNull(warehousesById[warehouseId]) { "Warehouse not found: $warehouseId" }
     }
 }
+
