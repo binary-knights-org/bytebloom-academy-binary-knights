@@ -1,7 +1,6 @@
 package domain.usecase.crud.route
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.exception.EntityValidationException
 import domain.model.exception.ResourceNotFoundException
 import domain.model.Route
@@ -28,7 +27,7 @@ class UpdateRouteUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "retrieve", "route"))
+                Result.failure(error)
             }
         )
     }
@@ -52,7 +51,7 @@ class UpdateRouteUseCase(
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(translateDataError(error, "update", "route"))
+                        Result.failure(error)
                     }
                 )
             },
