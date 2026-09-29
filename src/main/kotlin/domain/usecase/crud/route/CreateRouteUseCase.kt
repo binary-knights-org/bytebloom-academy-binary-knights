@@ -13,7 +13,7 @@ class CreateRouteUseCase(
     private val routeRepository: RouteRepository,
     private val validator: CreateRouteValidator
 ) {
-    suspend operator fun invoke(input: CreateRouteInput): Result<Route> {
+    public suspend operator fun invoke(input: CreateRouteInput): Result<Route> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

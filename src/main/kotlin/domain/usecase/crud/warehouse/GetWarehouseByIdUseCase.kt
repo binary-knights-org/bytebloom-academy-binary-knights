@@ -8,7 +8,7 @@ import domain.repository.WarehouseRepository
 class GetWarehouseByIdUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Warehouse> {
+    public suspend operator fun invoke(id: String): Result<Warehouse> {
         return runCatching { warehouseRepository.getById(id) }.fold(
             onSuccess = { warehouse ->
                 if (warehouse != null) {

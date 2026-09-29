@@ -7,7 +7,7 @@ import domain.repository.RouteRepository
 class DeleteRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Unit> {
+    public suspend operator fun invoke(id: String): Result<Unit> {
         return runCatching { routeRepository.delete(id) }.fold(
             onSuccess = { isDeleted ->
                 if (isDeleted) {

@@ -14,7 +14,7 @@ class CreatePackageUseCase(
     private val packageRepository: PackageRepository,
     private val validator: CreatePackageValidator
 ) {
-    suspend operator fun invoke(input: CreatePackageInput): Result<Package> {
+    public suspend operator fun invoke(input: CreatePackageInput): Result<Package> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

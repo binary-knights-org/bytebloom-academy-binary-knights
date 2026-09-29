@@ -6,7 +6,7 @@ import domain.repository.VehicleRepository
 class AddVehicleToHubUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend  operator fun invoke(vehicle: Vehicle): Boolean {
+ public suspend  operator fun invoke(vehicle: Vehicle): Boolean {
         return vehicleRepository.create(vehicle)
     }
 }

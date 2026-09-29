@@ -14,7 +14,7 @@ class CreateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
     private val validator: CreateWarehouseValidator
 ) {
-    suspend operator fun invoke(input: CreateWarehouseInput): Result<Warehouse> {
+    public suspend operator fun invoke(input: CreateWarehouseInput): Result<Warehouse> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

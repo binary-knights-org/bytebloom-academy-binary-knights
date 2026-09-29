@@ -6,7 +6,7 @@ import domain.model.Warehouse
 class FindFewestHopsRouteUseCase(
     private val router: ShortestPathRouter,
 ) {
-   suspend operator fun invoke(
+    public  suspend operator fun invoke(
         origin: Warehouse,
         destination: Warehouse
     ): List<Warehouse>? {

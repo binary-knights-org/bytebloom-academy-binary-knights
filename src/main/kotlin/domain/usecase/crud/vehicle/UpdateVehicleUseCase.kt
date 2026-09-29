@@ -14,7 +14,7 @@ class UpdateVehicleUseCase(
     private val vehicleRepository: VehicleRepository,
     private val validator: UpdateVehicleValidator
 ) {
-    suspend operator fun invoke(input: UpdateVehicleInput): Result<Vehicle> {
+    public suspend operator fun invoke(input: UpdateVehicleInput): Result<Vehicle> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

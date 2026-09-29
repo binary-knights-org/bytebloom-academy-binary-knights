@@ -8,7 +8,7 @@ import domain.repository.VehicleRepository
 class GetVehicleByIdUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Vehicle> {
+    public suspend operator fun invoke(id: String): Result<Vehicle> {
         return runCatching { vehicleRepository.getById(id) }.fold(
             onSuccess = { vehicle ->
                 if (vehicle != null) {
