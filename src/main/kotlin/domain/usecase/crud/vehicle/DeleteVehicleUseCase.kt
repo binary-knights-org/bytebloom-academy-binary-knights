@@ -1,13 +1,12 @@
 package domain.usecase.crud.vehicle
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.repository.VehicleRepository
 
 class DeleteVehicleUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Unit> {
+    public suspend operator fun invoke(id: String): Result<Unit> {
 
         return runCatching { vehicleRepository.delete(id) }.fold(
             onSuccess = { isDeleted ->
@@ -18,7 +17,7 @@ class DeleteVehicleUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "delete", "vehicle"))
+                Result.failure(error)
             }
         )
     }

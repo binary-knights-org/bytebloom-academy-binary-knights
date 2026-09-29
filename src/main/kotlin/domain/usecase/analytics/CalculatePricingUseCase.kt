@@ -1,9 +1,6 @@
 package domain.usecase.analytics
 
-import domain.model.PackageComponent
-import domain.model.Route
-import domain.model.Package
-import domain.pricing.DispatchStrategy
+import domain.model.PricingRequest
 import domain.pricing.RoutePricingEngine
 
 class CalculatePricingUseCase(
@@ -11,14 +8,10 @@ class CalculatePricingUseCase(
 ) {
     operator fun invoke(request: PricingRequest): Double {
         pricingEngine.setStrategy(request.strategy)
-        val baseCost = pricingEngine.calculateCost(request.pkg.weight, request.route.distanceKm)
+        val baseCost = pricingEngine.calculateCost(
+            request.pkg.weight,
+            request.route.distanceKm
+        )
         return request.component.calculateTransitRate(baseCost)
     }
 }
-
-data class PricingRequest(
-    val pkg: Package,
-    val component: PackageComponent,
-    val route: Route,
-    val strategy: DispatchStrategy
-)

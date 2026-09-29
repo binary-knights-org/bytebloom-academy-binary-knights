@@ -1,6 +1,5 @@
 package domain.usecase.crud.route
 
-import data.exception.translateDataError
 import domain.model.exception.ResourceNotFoundException
 import domain.model.Route
 import domain.repository.RouteRepository
@@ -8,7 +7,7 @@ import domain.repository.RouteRepository
 class GetRouteByIdUseCase(
     private val routeRepository: RouteRepository
 ) {
-    suspend operator fun invoke(id: String): Result<Route> {
+    public suspend operator fun invoke(id: String): Result<Route> {
         return runCatching { routeRepository.getById(id) }.fold(
             onSuccess = { route ->
                 if (route != null) {
@@ -18,7 +17,7 @@ class GetRouteByIdUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "fetch", "route"))
+                Result.failure(error)
             }
         )
     }

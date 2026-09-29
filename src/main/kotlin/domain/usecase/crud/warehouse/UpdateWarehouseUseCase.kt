@@ -1,13 +1,12 @@
 package domain.usecase.crud.warehouse
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.exception.EntityValidationException
 import domain.model.exception.ResourceNotFoundException
 import domain.model.Warehouse
 import domain.model.input.UpdateWarehouseInput
 import domain.repository.WarehouseRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.warehouse.UpdateWarehouseValidator
 import domain.model.RegionalZone
 
@@ -15,7 +14,7 @@ class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
     private val validator: UpdateWarehouseValidator
 ) {
-    suspend operator fun invoke(input: UpdateWarehouseInput): Result<Warehouse> {
+    public  suspend operator fun invoke(input: UpdateWarehouseInput): Result<Warehouse> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))
@@ -29,7 +28,7 @@ class UpdateWarehouseUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "retrieve", "warehouse"))
+                Result.failure(error)
             }
         )
     }
@@ -54,7 +53,7 @@ class UpdateWarehouseUseCase(
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(translateDataError(error, "update", "warehouse"))
+                        Result.failure(error)
                     }
                 )
             },

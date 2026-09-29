@@ -13,7 +13,7 @@ import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.usecase.analytics.CalculatePricingUseCase
-import domain.usecase.analytics.PricingRequest
+import domain.model.PricingRequest
 
 private const val LABEL_PADDING = 12
 

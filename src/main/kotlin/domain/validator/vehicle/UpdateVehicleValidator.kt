@@ -1,7 +1,7 @@
 package domain.validator.vehicle
 
 import domain.model.input.UpdateVehicleInput
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 
 class UpdateVehicleValidator {
     fun validate(input: UpdateVehicleInput): ValidationResult<VehicleValidationError> {
