@@ -1,7 +1,6 @@
 package domain.usecase.crud.vehicle
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.exception.EntityValidationException
 import domain.model.Vehicle
 import domain.model.input.CreateVehicleInput
@@ -36,7 +35,7 @@ class CreateVehicleUseCase(
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(translateDataError(error, "create", "vehicle"))
+                        Result.failure(error)
                     }
                 )
             },
