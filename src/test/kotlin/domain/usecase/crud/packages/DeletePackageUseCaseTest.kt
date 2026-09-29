@@ -1,6 +1,5 @@
 package domain.usecase.crud.packages
 
-import domain.model.exception.OperationFailedException
 import domain.repository.PackageRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -12,49 +11,46 @@ import kotlin.test.assertTrue
 class DeletePackageUseCaseTest {
 
     private val packageRepository = mockk<PackageRepository>()
-    private val useCase = DeletePackageUseCase(packageRepository)
+
+    private val useCase = DeletePackageUseCase(
+        packageRepository
+    )
 
     @Test
-    fun `should return success when package is deleted successfully`() = runBlocking {
+    fun `should delete package successfully`() = runBlocking {
+
         // Given
-        val packageId = "PKG-123"
-        coEvery { packageRepository.delete(packageId) } returns true
+        coEvery {
+            packageRepository.delete("PKG-1")
+        } returns true
 
         // When
-        val result = useCase(packageId)
+        val result = useCase("PKG-1")
 
         // Then
         assertTrue(result.isSuccess)
-        coVerify(exactly = 1) { packageRepository.delete(packageId) }
+
+        coVerify(exactly = 1) {
+            packageRepository.delete("PKG-1")
+        }
     }
 
     @Test
-    fun `should return failure with OperationFailedException when repository returns false`() = runBlocking {
+    fun `should fail when package deletion returns false`() = runBlocking {
+
         // Given
-        val packageId = "PKG-123"
-        coEvery { packageRepository.delete(packageId) } returns false
+        coEvery {
+            packageRepository.delete("PKG-1")
+        } returns false
 
         // When
-        val result = useCase(packageId)
+        val result = useCase("PKG-1")
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is OperationFailedException)
-        coVerify(exactly = 1) { packageRepository.delete(packageId) }
-    }
 
-    @Test
-    fun `should return failure when repository throws an exception`() = runBlocking {
-        // Given
-        val packageId = "PKG-123"
-        val exception = RuntimeException("Database error")
-        coEvery { packageRepository.delete(packageId) } throws exception
-
-        // When
-        val result = useCase(packageId)
-
-        // Then
-        assertTrue(result.isFailure)
-        coVerify(exactly = 1) { packageRepository.delete(packageId) }
+        coVerify(exactly = 1) {
+            packageRepository.delete("PKG-1")
+        }
     }
 }

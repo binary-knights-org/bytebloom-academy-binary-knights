@@ -4,9 +4,12 @@ import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.input.CreatePackageInput
 import domain.repository.PackageRepository
+import domain.validator.ValidationResult
 import domain.validator.packages.CreatePackageValidator
+import domain.validator.packages.PackageValidationError
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
@@ -40,6 +43,7 @@ class CreatePackageUseCaseTest {
         val input = CreatePackageInput(
             id = "PKG-1", weight = 10.0, priority = "URGENT", originHub = origin, destinationHub = destination
         )
+        every { validator.validate(input) } returns ValidationResult.Valid
         coEvery { packageRepository.create(any()) } returns true
 
         // When
@@ -57,6 +61,7 @@ class CreatePackageUseCaseTest {
         val input = CreatePackageInput(
             id = "PKG-1", weight = 10.0, priority = "URGENT", originHub = origin, destinationHub = destination
         )
+        every { validator.validate(input) } returns ValidationResult.Valid
         coEvery { packageRepository.create(any()) } returns false
 
         // When
@@ -74,6 +79,9 @@ class CreatePackageUseCaseTest {
         val input = CreatePackageInput(
             id = "PKG-1", weight = 0.0, priority = "URGENT", originHub = origin, destinationHub = destination
         )
+        every { validator.validate(input) } returns ValidationResult.Invalid(
+            listOf(PackageValidationError.InvalidWeight)
+        )
 
         // When
         val result = useCase(input)
@@ -89,6 +97,9 @@ class CreatePackageUseCaseTest {
         // Given
         val input = CreatePackageInput(
             id = "PKG-1", weight = 10.0, priority = "URGENT", originHub = origin, destinationHub = origin
+        )
+        every { validator.validate(input) } returns ValidationResult.Invalid(
+            listOf(PackageValidationError.SameOriginAndDestination)
         )
 
         // When
