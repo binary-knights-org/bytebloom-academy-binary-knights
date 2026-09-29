@@ -1,7 +1,6 @@
 package domain.usecase.crud.warehouse
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.exception.EntityValidationException
 import domain.model.Warehouse
 import domain.model.input.CreateWarehouseInput
@@ -39,7 +38,7 @@ class CreateWarehouseUseCase(
                             }
                         },
                         onFailure = { error ->
-                            Result.failure(translateDataError(error, "create", "warehouse"))
+                            Result.failure(error)
                         }
                     )
             },

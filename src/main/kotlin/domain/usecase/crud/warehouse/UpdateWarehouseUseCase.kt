@@ -1,7 +1,6 @@
 package domain.usecase.crud.warehouse
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.exception.EntityValidationException
 import domain.model.exception.ResourceNotFoundException
 import domain.model.Warehouse
@@ -29,7 +28,7 @@ class UpdateWarehouseUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "retrieve", "warehouse"))
+                Result.failure(error)
             }
         )
     }
@@ -54,7 +53,7 @@ class UpdateWarehouseUseCase(
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(translateDataError(error, "update", "warehouse"))
+                        Result.failure(error)
                     }
                 )
             },
