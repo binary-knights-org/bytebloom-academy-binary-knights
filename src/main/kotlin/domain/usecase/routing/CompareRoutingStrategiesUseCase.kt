@@ -2,7 +2,7 @@ package domain.usecase.routing
 
 import domain.model.RoutingComparison
 import domain.model.Warehouse
-
+import domain.model.RoutingComparison
 
 class CompareRoutingStrategiesUseCase(
     private val findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,

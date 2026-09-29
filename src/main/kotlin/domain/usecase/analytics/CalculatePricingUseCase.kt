@@ -2,6 +2,7 @@ package domain.usecase.analytics
 
 import domain.model.PricingRequest
 import domain.pricing.RoutePricingEngine
+import domain.model.PricingRequest
 
 class CalculatePricingUseCase(
     private val pricingEngine: RoutePricingEngine

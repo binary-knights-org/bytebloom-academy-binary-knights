@@ -1,6 +1,5 @@
 package domain.usecase.crud.warehouse
 
-import data.exception.translateDataError
 import domain.model.exception.ResourceNotFoundException
 import domain.model.Warehouse
 import domain.repository.WarehouseRepository
@@ -18,7 +17,7 @@ class GetWarehouseByIdUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "fetch", "warehouse"))
+                Result.failure(error)
             }
         )
     }

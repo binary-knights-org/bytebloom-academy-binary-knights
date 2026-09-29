@@ -1,7 +1,6 @@
 package domain.usecase.crud.packages
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.repository.PackageRepository
 
 class DeletePackageUseCase(
@@ -14,6 +13,6 @@ class DeletePackageUseCase(
             } else {
                 Result.failure(OperationFailedException())
             }
-        }, onFailure = { error -> Result.failure(translateDataError(error, "delete", "package")) })
+        }, onFailure = { error -> Result.failure(error) })
     }
 }

@@ -1,13 +1,12 @@
 package domain.usecase.crud.vehicle
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.exception.EntityValidationException
 import domain.model.exception.ResourceNotFoundException
 import domain.model.Vehicle
 import domain.model.input.UpdateVehicleInput
 import domain.repository.VehicleRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.vehicle.UpdateVehicleValidator
 
 class UpdateVehicleUseCase(
@@ -28,7 +27,7 @@ class UpdateVehicleUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "retrieve", "vehicle"))
+                Result.failure(error)
             }
         )
     }
@@ -51,7 +50,7 @@ class UpdateVehicleUseCase(
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(translateDataError(error, "update", "vehicle"))
+                        Result.failure(error)
                     }
                 )
             },

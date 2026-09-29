@@ -2,6 +2,7 @@ package domain.usecase.analytics
 
 import domain.model.NetworkGraphContext
 import domain.model.Warehouse
+import domain.model.NetworkGraphContext
 
 private const val MINIMUM_NETWORK_SIZE = 1
 private const val PERFECT_RESILIENCE_SCORE = 100.0

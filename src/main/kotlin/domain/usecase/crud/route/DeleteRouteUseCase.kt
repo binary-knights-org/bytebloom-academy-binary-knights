@@ -1,7 +1,6 @@
 package domain.usecase.crud.route
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.repository.RouteRepository
 
 class DeleteRouteUseCase(
@@ -17,7 +16,7 @@ class DeleteRouteUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "delete", "route"))
+                Result.failure(error)
             }
         )
     }
