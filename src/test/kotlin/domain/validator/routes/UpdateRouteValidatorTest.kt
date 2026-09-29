@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.input.UpdateRouteInput
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
