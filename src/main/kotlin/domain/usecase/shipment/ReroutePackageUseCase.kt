@@ -9,7 +9,7 @@ class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
     private val warehouseRepository: WarehouseRepository
 ) {
-    suspend fun invoke(packageId: String, newDestinationId: String) {
+    suspend operator fun invoke(packageId: String, newDestinationId: String) {
         val packageToReroute = findPackage(packageId)
         val newDestination = findWarehouse(newDestinationId)
         val oldDestination = packageToReroute.destinationHub
