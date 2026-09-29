@@ -2,14 +2,13 @@ package domain.usecase.routing
 
 import domain.model.RoutingComparison
 import domain.model.Warehouse
-import domain.model.RoutingComparison
 
 class CompareRoutingStrategiesUseCase(
     private val findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
     private val findOptimalPathUseCase: FindOptimalPathUseCase,
     private val findBidirectionalRouteUseCase: FindBidirectionalRouteUseCase
 ) {
-    public suspend  operator fun invoke(origin: Warehouse, destination: Warehouse): RoutingComparison {
+    suspend operator fun invoke(origin: Warehouse, destination: Warehouse): RoutingComparison {
         return RoutingComparison(
             fewestHops = findFewestHopsRouteUseCase(origin, destination),
             optimalDistance = findOptimalPathUseCase(origin, destination),
