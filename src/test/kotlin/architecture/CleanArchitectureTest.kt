@@ -67,7 +67,7 @@ class CleanArchitectureTest {
                 it.functions().any { function ->
                     function.name == "invoke" &&
                             function.hasOperatorModifier &&
-                            function.hasPublicModifier
+                            function.hasPublicOrDefaultModifier
                 }
             }
     }
