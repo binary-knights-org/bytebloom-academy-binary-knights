@@ -19,14 +19,6 @@ class UpdatePackageValidatorTest {
         longitude = 35.91
     )
 
-    private val destination = Warehouse(
-        id = "WH-2",
-        name = "Destination Warehouse",
-        regionalZone = RegionalZone.SOUTH,
-        latitude = 31.50,
-        longitude = 34.47
-    )
-
     @Test
     fun `should return valid when update contains valid field`() {
 
