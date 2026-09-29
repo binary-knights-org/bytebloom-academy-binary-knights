@@ -1,7 +1,7 @@
 package domain.validator.packages
 
 import domain.model.input.CreatePackageInput
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 
 class CreatePackageValidator {
 

@@ -5,7 +5,7 @@ import domain.model.exception.EntityValidationException
 import domain.model.Route
 import domain.model.input.CreateRouteInput
 import domain.repository.RouteRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.routes.CreateRouteValidator
 
 class CreateRouteUseCase(

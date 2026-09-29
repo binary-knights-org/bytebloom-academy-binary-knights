@@ -6,7 +6,7 @@ import domain.model.exception.ResourceNotFoundException
 import domain.model.Route
 import domain.model.input.UpdateRouteInput
 import domain.repository.RouteRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.routes.UpdateRouteValidator
 
 class UpdateRouteUseCase(

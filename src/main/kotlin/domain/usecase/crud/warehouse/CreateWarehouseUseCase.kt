@@ -5,7 +5,7 @@ import domain.model.exception.EntityValidationException
 import domain.model.Warehouse
 import domain.model.input.CreateWarehouseInput
 import domain.repository.WarehouseRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.warehouse.CreateWarehouseValidator
 import domain.model.RegionalZone
 

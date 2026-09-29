@@ -6,7 +6,7 @@ import domain.model.exception.ResourceNotFoundException
 import domain.model.Warehouse
 import domain.model.input.UpdateWarehouseInput
 import domain.repository.WarehouseRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.warehouse.UpdateWarehouseValidator
 import domain.model.RegionalZone
 

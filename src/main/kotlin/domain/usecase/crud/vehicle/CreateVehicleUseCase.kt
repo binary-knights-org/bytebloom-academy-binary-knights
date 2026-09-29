@@ -5,7 +5,7 @@ import domain.model.exception.EntityValidationException
 import domain.model.Vehicle
 import domain.model.input.CreateVehicleInput
 import domain.repository.VehicleRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.vehicle.CreateVehicleValidator
 
 class CreateVehicleUseCase(

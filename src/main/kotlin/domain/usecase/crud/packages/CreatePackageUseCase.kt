@@ -6,7 +6,7 @@ import domain.model.Package
 import domain.model.input.CreatePackageInput
 import domain.model.toPriority
 import domain.repository.PackageRepository
-import domain.validator.ValidationResult
+import domain.validation.ValidationResult
 import domain.validator.packages.CreatePackageValidator
 
 class CreatePackageUseCase(
