@@ -1,15 +1,12 @@
 package domain.usecase.analytics
 
 import domain.model.Warehouse
+import domain.model.NetworkGraphContext
 
 private const val MINIMUM_NETWORK_SIZE = 1
 private const val PERFECT_RESILIENCE_SCORE = 100.0
 
-data class NetworkGraphContext(
-    val warehouses: List<Warehouse>,
-    val warehouseMap: Map<String, Warehouse>,
-    val incomingOriginsByDestinationId: Map<String, List<String>>
-)
+
 
 class CalculateNetworkResilienceScoreUseCase {
     operator fun invoke(warehouses: List<Warehouse>): Double {

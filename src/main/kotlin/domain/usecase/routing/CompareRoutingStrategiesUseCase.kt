@@ -1,7 +1,7 @@
 package domain.usecase.routing
 
 import domain.model.Warehouse
-
+import domain.model.RoutingComparison
 
 class CompareRoutingStrategiesUseCase(
     private val findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
@@ -17,9 +17,5 @@ class CompareRoutingStrategiesUseCase(
     }
 }
 
-data class RoutingComparison(
-    val fewestHops: List<Warehouse>?,
-    val optimalDistance: List<Warehouse>?,
-    val bidirectional: List<Warehouse>?
-)
+
 

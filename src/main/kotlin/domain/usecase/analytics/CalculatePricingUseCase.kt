@@ -1,10 +1,7 @@
 package domain.usecase.analytics
 
-import domain.model.PackageComponent
-import domain.model.Route
-import domain.model.Package
-import domain.pricing.DispatchStrategy
 import domain.pricing.RoutePricingEngine
+import domain.model.PricingRequest
 
 class CalculatePricingUseCase(
     private val pricingEngine: RoutePricingEngine
@@ -16,9 +13,4 @@ class CalculatePricingUseCase(
     }
 }
 
-data class PricingRequest(
-    val pkg: Package,
-    val component: PackageComponent,
-    val route: Route,
-    val strategy: DispatchStrategy
-)
+

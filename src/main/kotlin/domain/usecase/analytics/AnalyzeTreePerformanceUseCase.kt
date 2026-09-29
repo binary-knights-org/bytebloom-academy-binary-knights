@@ -3,17 +3,9 @@ package domain.usecase.analytics
 import domain.algorithm.tree.BalancedTree
 import domain.algorithm.tree.UnbalancedBST
 import domain.util.PackageDataGenerator
+import domain.model.TreePerformanceAnalysis
 
 
-data class TreePerformanceAnalysis(
-    val totalCount: Int,
-    val unbalancedMaxSteps: Int,
-    val unbalancedTotalSteps: Long,
-    val unbalancedAvgSteps: Double,
-    val balancedMaxSteps: Int,
-    val balancedTotalSteps: Long,
-    val balancedAvgSteps: Double
-)
 
 class AnalyzeTreePerformanceUseCase {
     operator fun invoke(count: Int = 1000): TreePerformanceAnalysis {
