@@ -6,7 +6,7 @@ import domain.model.exception.ResourceNotFoundException
 import domain.model.Warehouse
 import domain.model.input.UpdateWarehouseInput
 import domain.repository.WarehouseRepository
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.warehouse.UpdateWarehouseValidator
 import domain.model.RegionalZone
 
@@ -14,7 +14,7 @@ class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
     private val validator: UpdateWarehouseValidator
 ) {
-    public  suspend operator fun invoke(input: UpdateWarehouseInput): Result<Warehouse> {
+    suspend operator fun invoke(input: UpdateWarehouseInput): Result<Warehouse> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

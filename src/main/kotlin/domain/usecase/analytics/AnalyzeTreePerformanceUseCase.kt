@@ -2,7 +2,7 @@ package domain.usecase.analytics
 
 import domain.algorithm.tree.BalancedTree
 import domain.algorithm.tree.UnbalancedBST
-import domain.model.TreePerformanceAnalysis
+import domain.model.routing.TreePerformanceAnalysis
 import domain.util.PackageDataGenerator
 
 

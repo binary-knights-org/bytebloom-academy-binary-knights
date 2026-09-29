@@ -6,14 +6,14 @@ import domain.model.exception.ResourceNotFoundException
 import domain.model.Route
 import domain.model.input.UpdateRouteInput
 import domain.repository.RouteRepository
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.routes.UpdateRouteValidator
 
 class UpdateRouteUseCase(
     private val routeRepository: RouteRepository,
     private val validator: UpdateRouteValidator
 ) {
-    public suspend operator fun invoke(input: UpdateRouteInput): Result<Route> {
+    suspend operator fun invoke(input: UpdateRouteInput): Result<Route> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

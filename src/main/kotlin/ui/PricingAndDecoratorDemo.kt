@@ -3,9 +3,9 @@ package ui
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
-import domain.model.BasePackageComponent
+import domain.model.component.BasePackageComponent
 import domain.model.Package
-import domain.model.PackageComponent
+import domain.model.component.PackageComponent
 import domain.model.Route
 import domain.model.Warehouse
 import domain.pricing.DispatchStrategy
@@ -13,7 +13,7 @@ import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.usecase.analytics.CalculatePricingUseCase
-import domain.model.PricingRequest
+import domain.model.assignment.PricingRequest
 
 private const val LABEL_PADDING = 12
 

@@ -5,14 +5,14 @@ import domain.model.exception.EntityValidationException
 import domain.model.Vehicle
 import domain.model.input.CreateVehicleInput
 import domain.repository.VehicleRepository
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.vehicle.CreateVehicleValidator
 
 class CreateVehicleUseCase(
     private val vehicleRepository: VehicleRepository,
     private val validator: CreateVehicleValidator
 ) {
-  public  suspend operator fun invoke(input: CreateVehicleInput): Result<Vehicle> {
+  suspend operator fun invoke(input: CreateVehicleInput): Result<Vehicle> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

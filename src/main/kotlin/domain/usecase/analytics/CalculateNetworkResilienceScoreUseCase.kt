@@ -1,6 +1,6 @@
 package domain.usecase.analytics
 
-import domain.model.NetworkGraphContext
+import domain.model.routing.NetworkGraphContext
 import domain.model.Warehouse
 
 private const val MINIMUM_NETWORK_SIZE = 1

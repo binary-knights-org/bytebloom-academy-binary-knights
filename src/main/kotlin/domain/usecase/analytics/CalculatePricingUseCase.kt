@@ -1,6 +1,6 @@
 package domain.usecase.analytics
 
-import domain.model.PricingRequest
+import domain.model.assignment.PricingRequest
 import domain.pricing.RoutePricingEngine
 
 class CalculatePricingUseCase(

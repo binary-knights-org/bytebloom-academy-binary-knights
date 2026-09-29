@@ -1,4 +1,4 @@
-package domain.validation
+package domain.model.validation
 
 sealed interface ValidationResult<out E> {
 

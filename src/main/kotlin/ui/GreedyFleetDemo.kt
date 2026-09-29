@@ -3,7 +3,7 @@ package ui
 import domain.algorithm.greedy.GreedyFleetDispatcher
 import domain.model.RegionalZone
 import domain.model.Vehicle
-import domain.model.VehicleCoverage
+import domain.model.assignment.VehicleCoverage
 import domain.model.Warehouse
 
 fun runGreedyFleetDemo(vehicles: List<Vehicle>) {

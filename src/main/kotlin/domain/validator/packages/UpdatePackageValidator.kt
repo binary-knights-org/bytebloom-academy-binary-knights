@@ -1,7 +1,7 @@
 package domain.validator.packages
 
 import domain.model.input.UpdatePackageInput
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 
 class UpdatePackageValidator {
     fun validate(input: UpdatePackageInput): ValidationResult<PackageValidationError> {

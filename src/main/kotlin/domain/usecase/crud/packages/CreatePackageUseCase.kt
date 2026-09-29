@@ -6,14 +6,14 @@ import domain.model.Package
 import domain.model.input.CreatePackageInput
 import domain.model.toPriority
 import domain.repository.PackageRepository
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.packages.CreatePackageValidator
 
 class CreatePackageUseCase(
     private val packageRepository: PackageRepository,
     private val validator: CreatePackageValidator
 ) {
-    public suspend operator fun invoke(input: CreatePackageInput): Result<Package> {
+    suspend operator fun invoke(input: CreatePackageInput): Result<Package> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

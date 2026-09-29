@@ -1,8 +1,6 @@
 package domain.usecase.vehicle
 
-import domain.model.Package
-import domain.model.PackageVehicleAssignment
-import domain.model.Vehicle
+import domain.model.assignment.PackageVehicleAssignment
 import domain.usecase.shipment.FindPackagesForConsolidationUseCase
 
 class AssignPackagesToVehicleUseCase(

@@ -1,7 +1,7 @@
 package domain.validator.routes
 
 import domain.model.input.UpdateRouteInput
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 
 class UpdateRouteValidator {
     fun validate(input: UpdateRouteInput): ValidationResult<RouteValidationError> {

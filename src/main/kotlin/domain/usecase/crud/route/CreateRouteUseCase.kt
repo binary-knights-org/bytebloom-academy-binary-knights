@@ -5,14 +5,14 @@ import domain.model.exception.EntityValidationException
 import domain.model.Route
 import domain.model.input.CreateRouteInput
 import domain.repository.RouteRepository
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.routes.CreateRouteValidator
 
 class CreateRouteUseCase(
     private val routeRepository: RouteRepository,
     private val validator: CreateRouteValidator
 ) {
-    public suspend operator fun invoke(input: CreateRouteInput): Result<Route> {
+    suspend operator fun invoke(input: CreateRouteInput): Result<Route> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

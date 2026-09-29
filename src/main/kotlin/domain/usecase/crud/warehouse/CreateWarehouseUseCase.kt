@@ -5,7 +5,7 @@ import domain.model.exception.EntityValidationException
 import domain.model.Warehouse
 import domain.model.input.CreateWarehouseInput
 import domain.repository.WarehouseRepository
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.warehouse.CreateWarehouseValidator
 import domain.model.RegionalZone
 
@@ -13,7 +13,7 @@ class CreateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
     private val validator: CreateWarehouseValidator
 ) {
-    public suspend operator fun invoke(input: CreateWarehouseInput): Result<Warehouse> {
+    suspend operator fun invoke(input: CreateWarehouseInput): Result<Warehouse> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

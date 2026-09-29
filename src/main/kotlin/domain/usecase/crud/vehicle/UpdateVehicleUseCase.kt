@@ -6,14 +6,14 @@ import domain.model.exception.ResourceNotFoundException
 import domain.model.Vehicle
 import domain.model.input.UpdateVehicleInput
 import domain.repository.VehicleRepository
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.vehicle.UpdateVehicleValidator
 
 class UpdateVehicleUseCase(
     private val vehicleRepository: VehicleRepository,
     private val validator: UpdateVehicleValidator
 ) {
-    public suspend operator fun invoke(input: UpdateVehicleInput): Result<Vehicle> {
+    suspend operator fun invoke(input: UpdateVehicleInput): Result<Vehicle> {
         val validation = validator.validate(input)
         if (validation is ValidationResult.Invalid)
             return Result.failure(EntityValidationException(validation.violations))

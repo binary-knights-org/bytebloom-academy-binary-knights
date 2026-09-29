@@ -1,6 +1,6 @@
 package domain.usecase.routing
 
-import domain.model.RoutingComparison
+import domain.model.routing.RoutingComparison
 import domain.model.Warehouse
 
 class CompareRoutingStrategiesUseCase(

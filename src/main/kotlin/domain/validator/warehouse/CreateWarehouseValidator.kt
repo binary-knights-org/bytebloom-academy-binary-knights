@@ -1,7 +1,7 @@
 package domain.validator.warehouse
 
 import domain.model.input.CreateWarehouseInput
-import domain.validation.ValidationResult
+import domain.model.validation.ValidationResult
 
 class CreateWarehouseValidator {
     fun validate(input: CreateWarehouseInput): ValidationResult<WarehouseValidationError> {

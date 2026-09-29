@@ -3,7 +3,7 @@ package domain.validator.packages
 import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.input.UpdatePackageInput
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

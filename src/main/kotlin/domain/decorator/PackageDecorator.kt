@@ -1,6 +1,6 @@
 package domain.decorator
 
-import domain.model.PackageComponent
+import domain.model.component.PackageComponent
 
 abstract class PackageDecorator(
     val component: PackageComponent

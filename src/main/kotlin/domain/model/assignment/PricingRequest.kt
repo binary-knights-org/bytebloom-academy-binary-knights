@@ -1,5 +1,8 @@
-package domain.model
+package domain.model.assignment
 
+import domain.model.Package
+import domain.model.Route
+import domain.model.component.PackageComponent
 import domain.pricing.DispatchStrategy
 
 data class PricingRequest(

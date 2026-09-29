@@ -1,4 +1,6 @@
-package domain.model
+package domain.model.routing
+
+import domain.model.Warehouse
 
 data class RoutingComparison(
     val fewestHops: List<Warehouse>?,

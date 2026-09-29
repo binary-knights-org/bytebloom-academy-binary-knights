@@ -1,4 +1,4 @@
-package domain.model
+package domain.model.routing
 
 data class TreePerformanceAnalysis(
     val totalCount: Int,

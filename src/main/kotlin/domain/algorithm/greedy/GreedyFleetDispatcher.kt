@@ -1,7 +1,7 @@
 package domain.algorithm.greedy
 
 import domain.model.RegionalZone
-import domain.model.VehicleCoverage
+import domain.model.assignment.VehicleCoverage
 
 class GreedyFleetDispatcher {
 
