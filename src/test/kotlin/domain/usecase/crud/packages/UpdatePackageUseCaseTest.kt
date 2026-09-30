@@ -4,16 +4,20 @@ import domain.model.Package
 import domain.model.Priority
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import domain.model.exception.EntityValidationException
+import domain.model.exception.OperationFailedException
+import domain.model.exception.ResourceNotFoundException
 import domain.model.input.UpdatePackageInput
-import domain.repository.PackageRepository
 import domain.model.validation.ValidationResult
+import domain.repository.PackageRepository
+import domain.validator.packages.PackageValidationError
 import domain.validator.packages.UpdatePackageValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -52,17 +56,24 @@ class UpdatePackageUseCaseTest {
     )
 
     @Test
-    fun `should update package successfully`() = runBlocking {
-
+    fun `should update package successfully`() = runTest {
         // Given
         val input = UpdatePackageInput(
             id = "PKG-1",
             weight = 20.0
         )
 
-        every { validator.validate(input) } returns ValidationResult.Valid
-        coEvery { packageRepository.getById("PKG-1") } returns existingPackage
-        coEvery { packageRepository.update(any()) } returns true
+        every {
+            validator.validate(input)
+        } returns ValidationResult.Valid
+
+        coEvery {
+            packageRepository.getById("PKG-1")
+        } returns existingPackage
+
+        coEvery {
+            packageRepository.update(any())
+        } returns true
 
         // When
         val result = useCase(input)
@@ -70,72 +81,185 @@ class UpdatePackageUseCaseTest {
         // Then
         assertTrue(result.isSuccess)
         assertEquals(20.0, result.getOrNull()?.weight)
+        assertEquals(existingPackage.priority, result.getOrNull()?.priority)
 
-        coVerify(exactly = 1) { packageRepository.getById("PKG-1") }
-        coVerify(exactly = 1) { packageRepository.update(any()) }
+        coVerify(exactly = 1) {
+            validator.validate(input)
+            packageRepository.getById("PKG-1")
+            packageRepository.update(any())
+        }
     }
 
     @Test
-    fun `should fail when package does not exist`() = runBlocking {
+    fun `should return EntityValidationException when validation fails`() = runTest {
+        // Given
+        val input = UpdatePackageInput(
+            id = "PKG-1"
+        )
 
+        val violations = listOf(
+            PackageValidationError.NoUpdateFields
+        )
+
+        every {
+            validator.validate(input)
+        } returns ValidationResult.Invalid(violations)
+
+        // When
+        val result = useCase(input)
+
+        // Then
+        assertTrue(result.isFailure)
+
+        val exception = result.exceptionOrNull()
+        assertTrue(exception is EntityValidationException)
+
+        val validationException = exception as EntityValidationException
+        assertEquals(violations, validationException.violations)
+
+        coVerify(exactly = 1) {
+            validator.validate(input)
+        }
+
+        coVerify(exactly = 0) {
+            packageRepository.getById(any())
+            packageRepository.update(any())
+        }
+    }
+
+    @Test
+    fun `should return ResourceNotFoundException when package does not exist`() = runTest {
         // Given
         val input = UpdatePackageInput(
             id = "PKG-999",
             weight = 20.0
         )
 
-        every { validator.validate(input) } returns ValidationResult.Valid
-        coEvery { packageRepository.getById("PKG-999") } returns null
+        every {
+            validator.validate(input)
+        } returns ValidationResult.Valid
+
+        coEvery {
+            packageRepository.getById("PKG-999")
+        } returns null
 
         // When
         val result = useCase(input)
 
         // Then
         assertTrue(result.isFailure)
-
-        coVerify(exactly = 1) { packageRepository.getById("PKG-999") }
-        coVerify(exactly = 0) { packageRepository.update(any()) }
-    }
-
-    @Test
-    fun `should fail when validation fails`() = runBlocking {
-
-        // Given
-        val input = UpdatePackageInput(
-            id = "PKG-1"
+        assertTrue(
+            result.exceptionOrNull() is ResourceNotFoundException
         )
 
-        every { validator.validate(input) } returns ValidationResult.Invalid(emptyList())
+        coVerify(exactly = 1) {
+            packageRepository.getById("PKG-999")
+        }
 
-        // When
-        val result = useCase(input)
-
-        // Then
-        assertTrue(result.isFailure)
-
-        coVerify(exactly = 0) { packageRepository.getById(any()) }
-        coVerify(exactly = 0) { packageRepository.update(any()) }
+        coVerify(exactly = 0) {
+            packageRepository.update(any())
+        }
     }
 
     @Test
-    fun `should fail when package update returns false`() = runBlocking {
-
+    fun `should return OperationFailedException when update returns false`() = runTest {
         // Given
         val input = UpdatePackageInput(
             id = "PKG-1",
             weight = 20.0
         )
 
-        every { validator.validate(input) } returns ValidationResult.Valid
-        coEvery { packageRepository.getById("PKG-1") } returns existingPackage
-        coEvery { packageRepository.update(any()) } returns false
+        every {
+            validator.validate(input)
+        } returns ValidationResult.Valid
+
+        coEvery {
+            packageRepository.getById("PKG-1")
+        } returns existingPackage
+
+        coEvery {
+            packageRepository.update(any())
+        } returns false
 
         // When
         val result = useCase(input)
 
         // Then
         assertTrue(result.isFailure)
+        assertTrue(
+            result.exceptionOrNull() is OperationFailedException
+        )
 
-        coVerify(exactly = 1) { packageRepository.update(any()) }
+        coVerify(exactly = 1) {
+            packageRepository.update(any())
+        }
+    }
+
+    @Test
+    fun `should return repository exception when fetching package fails`() = runTest {
+        // Given
+        val input = UpdatePackageInput(
+            id = "PKG-1",
+            weight = 20.0
+        )
+
+        val exception = RuntimeException("Database error")
+
+        every {
+            validator.validate(input)
+        } returns ValidationResult.Valid
+
+        coEvery {
+            packageRepository.getById("PKG-1")
+        } throws exception
+
+        // When
+        val result = useCase(input)
+
+        // Then
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+
+        coVerify(exactly = 1) {
+            packageRepository.getById("PKG-1")
+        }
+
+        coVerify(exactly = 0) {
+            packageRepository.update(any())
+        }
+    }
+
+    @Test
+    fun `should return repository exception when updating package fails`() = runTest {
+        // Given
+        val input = UpdatePackageInput(
+            id = "PKG-1",
+            weight = 20.0
+        )
+
+        val exception = RuntimeException("Database error")
+
+        every {
+            validator.validate(input)
+        } returns ValidationResult.Valid
+
+        coEvery {
+            packageRepository.getById("PKG-1")
+        } returns existingPackage
+
+        coEvery {
+            packageRepository.update(any())
+        } throws exception
+
+        // When
+        val result = useCase(input)
+
+        // Then
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+
+        coVerify(exactly = 1) {
+            packageRepository.update(any())
+        }
     }
 }

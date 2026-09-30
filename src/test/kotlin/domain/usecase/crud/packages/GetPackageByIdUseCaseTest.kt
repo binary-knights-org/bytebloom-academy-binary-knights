@@ -4,12 +4,13 @@ import domain.model.Package
 import domain.model.Priority
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import domain.model.exception.ResourceNotFoundException
 import domain.repository.PackageRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -46,8 +47,7 @@ class GetPackageByIdUseCaseTest {
     )
 
     @Test
-    fun `should return package when package exists`() = runBlocking {
-
+    fun `should return package when package exists`() = runTest {
         // Given
         coEvery {
             packageRepository.getById("PKG-1")
@@ -66,8 +66,7 @@ class GetPackageByIdUseCaseTest {
     }
 
     @Test
-    fun `should fail when package does not exist`() = runBlocking {
-
+    fun `should return ResourceNotFoundException when package does not exist`() = runTest {
         // Given
         coEvery {
             packageRepository.getById("PKG-999")
@@ -78,9 +77,33 @@ class GetPackageByIdUseCaseTest {
 
         // Then
         assertTrue(result.isFailure)
+        assertTrue(
+            result.exceptionOrNull() is ResourceNotFoundException
+        )
 
         coVerify(exactly = 1) {
             packageRepository.getById("PKG-999")
+        }
+    }
+
+    @Test
+    fun `should return repository exception when fetching package fails`() = runTest {
+        // Given
+        val exception = RuntimeException("Database error")
+
+        coEvery {
+            packageRepository.getById("PKG-1")
+        } throws exception
+
+        // When
+        val result = useCase("PKG-1")
+
+        // Then
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+
+        coVerify(exactly = 1) {
+            packageRepository.getById("PKG-1")
         }
     }
 }
