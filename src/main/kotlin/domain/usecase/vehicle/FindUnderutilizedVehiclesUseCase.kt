@@ -8,7 +8,7 @@ private const val ZERO_WEIGHT = 0.0
 class FindUnderutilizedVehiclesUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    public suspend operator fun invoke(utilizationThreshold: Double): List<Vehicle>{
+     suspend operator fun invoke(utilizationThreshold: Double): List<Vehicle>{
         val allVehicles = vehicleRepository.getAll()
 
         return allVehicles.filter { vehicle ->
