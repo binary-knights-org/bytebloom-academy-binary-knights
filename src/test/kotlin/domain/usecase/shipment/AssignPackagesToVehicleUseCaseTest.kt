@@ -1,4 +1,5 @@
 package domain.usecase.shipment
+
 import com.google.common.truth.Truth.assertThat
 import domain.model.Package
 import domain.model.Priority
@@ -13,13 +14,21 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions
 
 class AssignPackagesToVehicleUseCaseTest {
 
-    private val findPackagesForConsolidationUseCase = mockk<FindPackagesForConsolidationUseCase>()
-    private val findSuitableVehicleUseCase = mockk<FindSuitableVehicleUseCase>()
+    private val findPackagesForConsolidationUseCase =
+        mockk<FindPackagesForConsolidationUseCase>()
+
+    private val findSuitableVehicleUseCase =
+        mockk<FindSuitableVehicleUseCase>()
+
     private val useCase = AssignPackagesToVehicleUseCase(
-        findPackagesForConsolidationUseCase, findSuitableVehicleUseCase)
+        findPackagesForConsolidationUseCase,
+        findSuitableVehicleUseCase
+    )
 
     private val origin = createWarehouse("WH-001")
     private val destination = createWarehouse("WH-002")
@@ -38,7 +47,13 @@ class AssignPackagesToVehicleUseCaseTest {
         val result = useCase()
 
         // Then
-        assertThat(result).containsExactly(PackageVehicleAssignment(packages = packages, vehicle = vehicle))
+        assertThat(result)
+            .containsExactly(
+                PackageVehicleAssignment(
+                    packages = packages,
+                    vehicle = vehicle
+                )
+            )
 
         coVerify(exactly = 1) { findPackagesForConsolidationUseCase() }
         coVerify(exactly = 1) { findSuitableVehicleUseCase(packages) }
@@ -73,6 +88,27 @@ class AssignPackagesToVehicleUseCaseTest {
 
         coVerify(exactly = 1) { findPackagesForConsolidationUseCase() }
         coVerify(exactly = 0) { findSuitableVehicleUseCase(any()) }
+    }
+
+    @Test
+    fun `should propagate exception when finding consolidation packages fails`() = runTest {
+        // Given
+        val expectedException = IllegalStateException("Failed to find consolidation packages")
+
+        coEvery { findPackagesForConsolidationUseCase() } throws expectedException
+
+        // When
+        val thrown = Assertions.assertThrows(IllegalStateException::class.java
+        ) {
+            runBlocking {
+                useCase()
+            }
+        }
+
+        // Then
+        assertThat(thrown.message).isEqualTo("Failed to find consolidation packages")
+
+        coVerify(exactly = 1) { findPackagesForConsolidationUseCase() }
     }
 
     private fun createWarehouse(id: String): Warehouse =
