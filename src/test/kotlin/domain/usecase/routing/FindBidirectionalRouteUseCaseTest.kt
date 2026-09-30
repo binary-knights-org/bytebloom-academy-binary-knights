@@ -7,15 +7,14 @@ import domain.model.Warehouse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.assertThrows
 
 class FindBidirectionalRouteUseCaseTest {
 
-    private lateinit var router: ShortestPathRouter
-    private lateinit var useCase: FindBidirectionalRouteUseCase
+    private var router: ShortestPathRouter = mockk<ShortestPathRouter>()
+    private var useCase: FindBidirectionalRouteUseCase = FindBidirectionalRouteUseCase(router)
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -41,14 +40,8 @@ class FindBidirectionalRouteUseCaseTest {
         longitude = 40.0
     )
 
-    @BeforeEach
-    fun setUp() {
-        router = mockk()
-        useCase = FindBidirectionalRouteUseCase(router)
-    }
-
     @Test
-    fun `invoke when bidirectional path is found then returns list of warehouses`() = runBlocking {
+    fun `invoke when bidirectional path is found then returns list of warehouses`() = runTest {
         // Given
         val expectedPath = listOf(originHub, intermediateHub, destinationHub)
         coEvery { router.findShortestPath(originHub, destinationHub) } returns expectedPath
@@ -63,7 +56,7 @@ class FindBidirectionalRouteUseCaseTest {
     }
 
     @Test
-    fun `invoke when no path exists between hubs then returns null`() = runBlocking {
+    fun `invoke when no path exists between hubs then returns null`() = runTest {
         // Given
         coEvery { router.findShortestPath(originHub, destinationHub) } returns null
 
@@ -76,7 +69,7 @@ class FindBidirectionalRouteUseCaseTest {
     }
 
     @Test
-    fun `invoke when path is empty then returns empty list`() = runBlocking {
+    fun `invoke when path is empty then returns empty list`() = runTest {
         // Given
         coEvery { router.findShortestPath(originHub, destinationHub) } returns emptyList()
 
@@ -89,14 +82,14 @@ class FindBidirectionalRouteUseCaseTest {
     }
 
     @Test
-    fun `invoke when router throws exception then propagates exception`() = runBlocking {
+    fun `invoke when router throws exception then propagates exception`() = runTest {
         // Given
         val expectedException = IllegalStateException("Bidirectional search meet point failure")
         coEvery { router.findShortestPath(originHub, destinationHub) } throws expectedException
 
         // When / Then
         val thrown = assertThrows<IllegalStateException> {
-            runBlocking { useCase(originHub, destinationHub) }
+            runTest { useCase(originHub, destinationHub) }
         }
         assertThat(thrown).hasMessageThat().isEqualTo("Bidirectional search meet point failure")
         coVerify(exactly = 1) { router.findShortestPath(originHub, destinationHub) }

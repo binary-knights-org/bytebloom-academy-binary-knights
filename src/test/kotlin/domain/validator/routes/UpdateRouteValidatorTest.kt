@@ -5,12 +5,11 @@ import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.input.UpdateRouteInput
 import domain.model.validation.ValidationResult
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class UpdateRouteValidatorTest {
 
-    private lateinit var validator: UpdateRouteValidator
+    private var validator: UpdateRouteValidator = UpdateRouteValidator()
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -27,11 +26,6 @@ class UpdateRouteValidatorTest {
         latitude = 30.0,
         longitude = 40.0
     )
-
-    @BeforeEach
-    fun setUp() {
-        validator = UpdateRouteValidator()
-    }
 
     @Test
     fun `validate when no update fields are provided then returns Invalid with NoUpdateFields`() {

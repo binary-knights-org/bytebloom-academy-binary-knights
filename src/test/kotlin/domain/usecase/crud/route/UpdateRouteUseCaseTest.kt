@@ -19,15 +19,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 class UpdateRouteUseCaseTest {
 
-    private lateinit var routeRepository: RouteRepository
-    private lateinit var validator: UpdateRouteValidator
-    private lateinit var useCase: UpdateRouteUseCase
+    private var routeRepository: RouteRepository = mockk<RouteRepository>()
+    private var validator: UpdateRouteValidator = mockk<UpdateRouteValidator>()
+    private var useCase: UpdateRouteUseCase = UpdateRouteUseCase(routeRepository, validator)
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -53,16 +52,9 @@ class UpdateRouteUseCaseTest {
         destinationHub = destinationHub
     )
 
-    @BeforeEach
-    fun setUp() {
-        routeRepository = mockk()
-        validator = mockk()
-        useCase = UpdateRouteUseCase(routeRepository, validator)
-    }
-
     @Test
     fun `invoke when input is valid and existing route updated then returns Result success`() =
-        runBlocking {
+        runTest {
             // Given
             val input = UpdateRouteInput(
                 id = "RT-001",
@@ -91,7 +83,7 @@ class UpdateRouteUseCaseTest {
 
     @Test
     fun `invoke when validation fails then returns EntityValidationException without querying repo`() =
-        runBlocking {
+        runTest {
             // Given
             val input = UpdateRouteInput(
                 id = "RT-001",
@@ -115,7 +107,7 @@ class UpdateRouteUseCaseTest {
 
     @Test
     fun `invoke when route does not exist then returns Result failure with ResourceNotFoundException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = UpdateRouteInput(
                 id = "RT-NON-EXISTENT",
@@ -136,7 +128,7 @@ class UpdateRouteUseCaseTest {
 
     @Test
     fun `invoke when retrieving route throws NetworkUnavailableException then returns DataUnavailableException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = UpdateRouteInput(
                 id = "RT-001",
@@ -157,7 +149,7 @@ class UpdateRouteUseCaseTest {
 
     @Test
     fun `invoke when repo update returns false then returns Result failure with OperationFailedException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = UpdateRouteInput(
                 id = "RT-001",
@@ -178,7 +170,7 @@ class UpdateRouteUseCaseTest {
 
     @Test
     fun `invoke when repo update throws NetworkUnavailableException then returns DataUnavailableException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = UpdateRouteInput(
                 id = "RT-001",
@@ -199,7 +191,7 @@ class UpdateRouteUseCaseTest {
 
     @Test
     fun `invoke when repo update throws generic exception then returns translated OperationFailedException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = UpdateRouteInput(
                 id = "RT-001",
@@ -220,7 +212,7 @@ class UpdateRouteUseCaseTest {
 
     @Test
     fun `invoke when updated route violates domain invariants then returns Result failure with domain exception`() =
-        runBlocking {
+        runTest {
             // Given - updating destinationHub to equal originHub (causing SameOriginAndDestinationException)
             val input = UpdateRouteInput(
                 id = "RT-001",

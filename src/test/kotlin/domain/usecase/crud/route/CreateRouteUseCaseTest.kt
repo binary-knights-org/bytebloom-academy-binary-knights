@@ -17,15 +17,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 class CreateRouteUseCaseTest {
 
-    private lateinit var routeRepository: RouteRepository
-    private lateinit var validator: CreateRouteValidator
-    private lateinit var useCase: CreateRouteUseCase
+    private var routeRepository: RouteRepository = mockk<RouteRepository>()
+    private var validator: CreateRouteValidator = mockk<CreateRouteValidator>()
+    private var useCase: CreateRouteUseCase = CreateRouteUseCase(routeRepository, validator)
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -43,16 +42,9 @@ class CreateRouteUseCaseTest {
         longitude = 40.0
     )
 
-    @BeforeEach
-    fun setUp() {
-        routeRepository = mockk()
-        validator = mockk()
-        useCase = CreateRouteUseCase(routeRepository, validator)
-    }
-
     @Test
     fun `invoke when input is valid and repo creates route then returns Result success`() =
-        runBlocking {
+        runTest {
             // Given
             val input = CreateRouteInput(
                 id = "RT-001",
@@ -81,7 +73,7 @@ class CreateRouteUseCaseTest {
 
     @Test
     fun `invoke when validation fails then returns Result failure with EntityValidationException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = CreateRouteInput(
                 id = "RT-001",
@@ -107,7 +99,7 @@ class CreateRouteUseCaseTest {
 
     @Test
     fun `invoke when repo returns false then returns Result failure with OperationFailedException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = CreateRouteInput(
                 id = "RT-001",
@@ -130,7 +122,7 @@ class CreateRouteUseCaseTest {
 
     @Test
     fun `invoke when repo throws NetworkUnavailableException then returns DataUnavailableException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = CreateRouteInput(
                 id = "RT-001",
@@ -153,7 +145,7 @@ class CreateRouteUseCaseTest {
 
     @Test
     fun `invoke when repo throws generic exception then returns translated OperationFailedException`() =
-        runBlocking {
+        runTest {
             // Given
             val input = CreateRouteInput(
                 id = "RT-001",
@@ -176,7 +168,7 @@ class CreateRouteUseCaseTest {
 
     @Test
     fun `invoke when route model creation throws exception then returns Result failure with exception`() =
-        runBlocking {
+        runTest {
             // Given - validator improperly passes invalid distance
             val input = CreateRouteInput(
                 id = "RT-001",

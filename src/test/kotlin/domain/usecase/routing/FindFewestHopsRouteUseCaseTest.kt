@@ -7,15 +7,14 @@ import domain.model.Warehouse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class FindFewestHopsRouteUseCaseTest {
 
-    private lateinit var router: ShortestPathRouter
-    private lateinit var useCase: FindFewestHopsRouteUseCase
+    private var router: ShortestPathRouter  = mockk<ShortestPathRouter>()
+    private var useCase: FindFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(router)
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -33,14 +32,8 @@ class FindFewestHopsRouteUseCaseTest {
         longitude = 40.0
     )
 
-    @BeforeEach
-    fun setUp() {
-        router = mockk()
-        useCase = FindFewestHopsRouteUseCase(router)
-    }
-
     @Test
-    fun `invoke when route with fewest hops is found then returns list of warehouses`() = runBlocking {
+    fun `invoke when route with fewest hops is found then returns list of warehouses`() = runTest {
         // Given
         val expectedHopsPath = listOf(originHub, directHub)
         coEvery { router.findShortestPath(originHub, directHub) } returns expectedHopsPath
@@ -55,7 +48,7 @@ class FindFewestHopsRouteUseCaseTest {
     }
 
     @Test
-    fun `invoke when no reachable path exists then returns null`() = runBlocking {
+    fun `invoke when no reachable path exists then returns null`() = runTest {
         // Given
         coEvery { router.findShortestPath(originHub, directHub) } returns null
 
@@ -68,7 +61,7 @@ class FindFewestHopsRouteUseCaseTest {
     }
 
     @Test
-    fun `invoke when returned path is empty then returns empty list`() = runBlocking {
+    fun `invoke when returned path is empty then returns empty list`() = runTest {
         // Given
         coEvery { router.findShortestPath(originHub, directHub) } returns emptyList()
 
@@ -81,14 +74,14 @@ class FindFewestHopsRouteUseCaseTest {
     }
 
     @Test
-    fun `invoke when router throws exception then propagates exception`() = runBlocking {
+    fun `invoke when router throws exception then propagates exception`() = runTest {
         // Given
         val expectedException = RuntimeException("Router traversal failed")
         coEvery { router.findShortestPath(originHub, directHub) } throws expectedException
 
         // When / Then
         val thrown = assertThrows<RuntimeException> {
-            runBlocking { useCase(originHub, directHub) }
+            runTest { useCase(originHub, directHub) }
         }
         assertThat(thrown).hasMessageThat().isEqualTo("Router traversal failed")
         coVerify(exactly = 1) { router.findShortestPath(originHub, directHub) }

@@ -1,5 +1,6 @@
 package domain.usecase.crud.route
 
+import data.exception.translateDataError
 import domain.model.exception.OperationFailedException
 import domain.model.exception.EntityValidationException
 import domain.model.Route
@@ -36,7 +37,9 @@ class CreateRouteUseCase(
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(error)
+                        // here is problem, temp solution !!
+                        // ---
+                        Result.failure(translateDataError(error, "test", "test"))
                     }
                 )
             },

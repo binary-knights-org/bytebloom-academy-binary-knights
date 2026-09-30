@@ -5,12 +5,11 @@ import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.input.CreateRouteInput
 import domain.model.validation.ValidationResult
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class CreateRouteValidatorTest {
 
-    private lateinit var validator: CreateRouteValidator
+    private var validator: CreateRouteValidator = CreateRouteValidator()
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -27,11 +26,6 @@ class CreateRouteValidatorTest {
         latitude = 30.0,
         longitude = 40.0
     )
-
-    @BeforeEach
-    fun setUp() {
-        validator = CreateRouteValidator()
-    }
 
     @Test
     fun `validate when all fields are valid then returns Valid`() {

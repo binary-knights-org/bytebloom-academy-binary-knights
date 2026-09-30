@@ -12,14 +12,13 @@ import domain.repository.RouteRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 class GetRouteByIdUseCaseTest {
 
-    private lateinit var routeRepository: RouteRepository
-    private lateinit var useCase: GetRouteByIdUseCase
+    private var routeRepository: RouteRepository = mockk()
+    private var useCase: GetRouteByIdUseCase = GetRouteByIdUseCase(routeRepository)
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -45,15 +44,9 @@ class GetRouteByIdUseCaseTest {
         destinationHub = destinationHub
     )
 
-    @BeforeEach
-    fun setUp() {
-        routeRepository = mockk()
-        useCase = GetRouteByIdUseCase(routeRepository)
-    }
-
     @Test
     fun `invoke when route exists then returns Result success with route`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-001"
             coEvery { routeRepository.getById(routeId) } returns existingRoute
@@ -69,7 +62,7 @@ class GetRouteByIdUseCaseTest {
 
     @Test
     fun `invoke when route does not exist then returns Result failure with ResourceNotFoundException`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-NON-EXISTENT"
             coEvery { routeRepository.getById(routeId) } returns null
@@ -85,7 +78,7 @@ class GetRouteByIdUseCaseTest {
 
     @Test
     fun `invoke when repo throws NetworkUnavailableException then returns DataUnavailableException`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-001"
             coEvery { routeRepository.getById(routeId) } throws NetworkUnavailableException("No network")
@@ -101,7 +94,7 @@ class GetRouteByIdUseCaseTest {
 
     @Test
     fun `invoke when repo throws generic exception then returns Result failure with OperationFailedException`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-001"
             coEvery { routeRepository.getById(routeId) } throws RuntimeException("Database timeout")

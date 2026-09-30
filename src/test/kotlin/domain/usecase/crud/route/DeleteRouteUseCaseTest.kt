@@ -8,24 +8,17 @@ import domain.repository.RouteRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 class DeleteRouteUseCaseTest {
 
-    private lateinit var routeRepository: RouteRepository
-    private lateinit var useCase: DeleteRouteUseCase
-
-    @BeforeEach
-    fun setUp() {
-        routeRepository = mockk()
-        useCase = DeleteRouteUseCase(routeRepository)
-    }
+    private var routeRepository: RouteRepository = mockk()
+    private var useCase: DeleteRouteUseCase = DeleteRouteUseCase(routeRepository)
 
     @Test
     fun `invoke when route is successfully deleted then returns Result success Unit`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-001"
             coEvery { routeRepository.delete(routeId) } returns true
@@ -41,7 +34,7 @@ class DeleteRouteUseCaseTest {
 
     @Test
     fun `invoke when repo delete returns false then returns Result failure with OperationFailedException`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-001"
             coEvery { routeRepository.delete(routeId) } returns false
@@ -57,7 +50,7 @@ class DeleteRouteUseCaseTest {
 
     @Test
     fun `invoke when repo delete throws NetworkUnavailableException then returns DataUnavailableException`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-001"
             coEvery { routeRepository.delete(routeId) } throws NetworkUnavailableException("No connection")
@@ -73,7 +66,7 @@ class DeleteRouteUseCaseTest {
 
     @Test
     fun `invoke when repo delete throws generic exception then returns Result failure with OperationFailedException`() =
-        runBlocking {
+        runTest {
             // Given
             val routeId = "RT-001"
             coEvery { routeRepository.delete(routeId) } throws RuntimeException("Foreign key error")
