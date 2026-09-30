@@ -2,6 +2,7 @@ package domain.usecase.shipment
 
 import domain.model.Package
 import domain.model.Warehouse
+import domain.model.exception.ResourceNotFoundException
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
 
@@ -22,12 +23,13 @@ class ReroutePackageUseCase(
 
     private suspend  fun findPackage(packageId: String): Package {
         val packagesById = packageRepository.getAll().associateBy { it.id }
-        return requireNotNull(packagesById[packageId]) { "Package not found: $packageId" }
+        return packagesById[packageId]
+            ?: throw ResourceNotFoundException()
     }
 
     private suspend  fun findWarehouse(warehouseId: String): Warehouse {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
-        return requireNotNull(warehousesById[warehouseId]) { "Warehouse not found: $warehouseId" }
+        return warehousesById[warehouseId]
+            ?: throw ResourceNotFoundException()
     }
 }
-

@@ -4,6 +4,8 @@ import domain.model.Package
 import domain.model.Priority
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import domain.model.exception.DomainException.Companion.RESOURCE_NOT_FOUND
+import domain.model.exception.ResourceNotFoundException
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
 import io.mockk.coEvery
@@ -76,7 +78,10 @@ class ReroutePackageUseCaseTest {
         // Then
         assertEquals(emptyList(), oldDestination.cargoQueue)
         assertEquals(1, newDestination.cargoQueue.size)
-        assertEquals("WH-3", newDestination.cargoQueue.first().destinationHub.id)
+        assertEquals(
+            "WH-3",
+            newDestination.cargoQueue.first().destinationHub.id
+        )
 
         coVerify(exactly = 1) {
             packageRepository.getAll()
@@ -96,9 +101,14 @@ class ReroutePackageUseCaseTest {
         } returns emptyList()
 
         // When / Then
-        assertFailsWith<IllegalArgumentException> {
+        val exception = assertFailsWith<ResourceNotFoundException> {
             useCase("PKG-999", "WH-3")
         }
+
+        assertEquals(
+            RESOURCE_NOT_FOUND,
+            exception.message
+        )
 
         coVerify(exactly = 1) {
             packageRepository.getAll()
@@ -122,9 +132,14 @@ class ReroutePackageUseCaseTest {
         } returns listOf(origin, oldDestination)
 
         // When / Then
-        assertFailsWith<IllegalArgumentException> {
+        val exception = assertFailsWith<ResourceNotFoundException> {
             useCase("PKG-1", "WH-999")
         }
+
+        assertEquals(
+            RESOURCE_NOT_FOUND,
+            exception.message
+        )
 
         coVerify(exactly = 1) {
             packageRepository.getAll()
