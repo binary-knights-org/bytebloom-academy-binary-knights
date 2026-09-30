@@ -1,5 +1,7 @@
 package data.repository
 
+import data.exception.NetworkUnavailableException
+import data.exception.translateDataError
 import data.local.datasource.CsvPackageDataSource
 import data.local.datasource.CsvRouteDataSource
 import data.local.datasource.CsvVehicleDataSource
@@ -13,7 +15,6 @@ import data.mapper.routes.toDomain
 import data.mapper.vehicles.toDomain
 import data.mapper.warehouses.toDomain
 import data.mapper.warehouses.toRaw
-import data.exception.NetworkUnavailableException
 import domain.model.Package
 import domain.model.Route
 import domain.model.Vehicle
@@ -48,25 +49,43 @@ class WarehouseRepositoryImpl(
         getAll().find { it.id == id }
 
     override suspend fun create(item: Warehouse): Boolean =
-        runCatching { remoteSources.warehouse.createRawWarehouse(item.toRaw()) }
-            .getOrDefault(false)
-            .also { isSuccess ->
-                if (isSuccess) warehouses = null
+        runCatching {
+            remoteSources.warehouse.createRawWarehouse(item.toRaw())
+        }.fold(
+            onSuccess = { isCreated ->
+                if (isCreated) warehouses = null
+                isCreated
+            },
+            onFailure = { error ->
+                throw translateDataError(error, "create", "warehouse")
             }
+        )
 
     override suspend fun update(item: Warehouse): Boolean =
-        runCatching { remoteSources.warehouse.updateRawWarehouse(item.id, item.toRaw()) }
-            .getOrDefault(false)
-            .also { isSuccess ->
-                if (isSuccess) warehouses = null
+        runCatching {
+            remoteSources.warehouse.updateRawWarehouse(item.id, item.toRaw())
+        }.fold(
+            onSuccess = { isUpdated ->
+                if (isUpdated) warehouses = null
+                isUpdated
+            },
+            onFailure = { error ->
+                throw translateDataError(error, "update", "warehouse")
             }
+        )
 
     override suspend fun delete(id: String): Boolean =
-        runCatching { remoteSources.warehouse.deleteRawWarehouse(id) }
-            .getOrDefault(false)
-            .also { isSuccess ->
-                if (isSuccess) warehouses = null
+        runCatching {
+            remoteSources.warehouse.deleteRawWarehouse(id)
+        }.fold(
+            onSuccess = { isDeleted ->
+                if (isDeleted) warehouses = null
+                isDeleted
+            },
+            onFailure = { error ->
+                throw translateDataError(error, "delete", "warehouse")
             }
+        )
 
     private suspend fun fetchAndLinkWarehouses(): List<Warehouse> {
         return runCatching {
@@ -78,9 +97,8 @@ class WarehouseRepositoryImpl(
             val routes = remoteSources.route.getRawRoutes().mapNotNull { it.toDomain(warehousesById) }
 
             linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
-        }.getOrElse { e ->
-            if (e is NetworkUnavailableException) {
-
+        }.getOrElse { error ->
+            if (error is NetworkUnavailableException) {
                 val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
                 val warehousesById = loadedWarehouses.associateBy { it.id }
 
@@ -90,7 +108,7 @@ class WarehouseRepositoryImpl(
 
                 linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
             } else {
-                throw e
+                throw translateDataError(error, "fetch", "warehouse data")
             }
         }
     }

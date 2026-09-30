@@ -1,6 +1,6 @@
 package domain.model.exception
 
-import domain.validator.ValidationError
+import domain.model.validation.ValidationError
 
 sealed class DomainException(message: String) : Exception(message) {
     companion object {

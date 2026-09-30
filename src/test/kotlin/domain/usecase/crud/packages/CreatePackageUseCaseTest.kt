@@ -4,7 +4,7 @@ import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.input.CreatePackageInput
 import domain.repository.PackageRepository
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.packages.CreatePackageValidator
 import domain.validator.packages.PackageValidationError
 import io.mockk.coEvery

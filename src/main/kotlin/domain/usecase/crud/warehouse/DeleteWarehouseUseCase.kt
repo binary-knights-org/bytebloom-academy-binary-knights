@@ -1,7 +1,6 @@
 package domain.usecase.crud.warehouse
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.repository.WarehouseRepository
 
 class DeleteWarehouseUseCase(
@@ -17,7 +16,7 @@ class DeleteWarehouseUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "delete", "warehouse"))
+                Result.failure(error)
             }
         )
     }

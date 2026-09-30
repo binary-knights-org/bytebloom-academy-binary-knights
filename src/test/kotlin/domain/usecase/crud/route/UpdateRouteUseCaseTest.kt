@@ -12,7 +12,7 @@ import domain.model.exception.ResourceNotFoundException
 import domain.model.exception.SameOriginAndDestinationException
 import domain.model.input.UpdateRouteInput
 import domain.repository.RouteRepository
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.routes.RouteValidationError
 import domain.validator.routes.UpdateRouteValidator
 import io.mockk.coEvery

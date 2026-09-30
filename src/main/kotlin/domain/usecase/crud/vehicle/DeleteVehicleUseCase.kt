@@ -1,7 +1,6 @@
 package domain.usecase.crud.vehicle
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.repository.VehicleRepository
 
 class DeleteVehicleUseCase(
@@ -18,7 +17,7 @@ class DeleteVehicleUseCase(
                 }
             },
             onFailure = { error ->
-                Result.failure(translateDataError(error, "delete", "vehicle"))
+                Result.failure(error)
             }
         )
     }
