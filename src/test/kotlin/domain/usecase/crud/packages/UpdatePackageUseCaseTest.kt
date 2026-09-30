@@ -6,7 +6,7 @@ import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.input.UpdatePackageInput
 import domain.repository.PackageRepository
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.packages.UpdatePackageValidator
 import io.mockk.coEvery
 import io.mockk.coVerify

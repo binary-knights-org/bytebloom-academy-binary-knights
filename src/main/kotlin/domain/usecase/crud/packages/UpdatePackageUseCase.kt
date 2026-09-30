@@ -3,13 +3,14 @@ package domain.usecase.crud.packages
 import domain.model.exception.EntityValidationException
 import domain.model.exception.OperationFailedException
 import domain.model.exception.ResourceNotFoundException
-import data.exception.translateDataError
 import domain.model.Package
 import domain.model.input.UpdatePackageInput
 import domain.model.toPriority
 import domain.repository.PackageRepository
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.packages.UpdatePackageValidator
+
+
 
 class UpdatePackageUseCase(
     private val packageRepository: PackageRepository, private val validator: UpdatePackageValidator
@@ -25,7 +26,7 @@ class UpdatePackageUseCase(
             } else {
                 executeUpdate(existing, input)
             }
-        }, onFailure = { error -> Result.failure(translateDataError(error, "retrieve", "package")) })
+        }, onFailure = { error -> Result.failure(error) })
     }
 
     private suspend fun executeUpdate(existing: Package, input: UpdatePackageInput): Result<Package> {
@@ -43,7 +44,7 @@ class UpdatePackageUseCase(
                 } else {
                     Result.failure(OperationFailedException())
                 }
-            }, onFailure = { error -> Result.failure(translateDataError(error, "update", "package")) })
+            }, onFailure = { error -> Result.failure(error) })
         }, onFailure = { error -> Result.failure(error) })
     }
 }

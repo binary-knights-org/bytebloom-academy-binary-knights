@@ -1,7 +1,7 @@
 package domain.validator.vehicle
 
 import domain.model.exception.DomainException
-import domain.validator.ValidationError
+import domain.model.validation.ValidationError
 
 sealed interface VehicleValidationError : ValidationError {
 

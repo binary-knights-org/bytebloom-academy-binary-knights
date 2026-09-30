@@ -1,12 +1,11 @@
 package domain.usecase.crud.route
 
 import domain.model.exception.OperationFailedException
-import data.exception.translateDataError
 import domain.model.exception.EntityValidationException
 import domain.model.Route
 import domain.model.input.CreateRouteInput
 import domain.repository.RouteRepository
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.routes.CreateRouteValidator
 
 class CreateRouteUseCase(
@@ -37,7 +36,7 @@ class CreateRouteUseCase(
                         }
                     },
                     onFailure = { error ->
-                        Result.failure(translateDataError(error, "create", "route"))
+                        Result.failure(error)
                     }
                 )
             },

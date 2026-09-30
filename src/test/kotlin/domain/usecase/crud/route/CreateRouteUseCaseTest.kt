@@ -10,7 +10,7 @@ import domain.model.exception.InvalidRouteDistanceException
 import domain.model.exception.OperationFailedException
 import domain.model.input.CreateRouteInput
 import domain.repository.RouteRepository
-import domain.validator.ValidationResult
+import domain.model.validation.ValidationResult
 import domain.validator.routes.CreateRouteValidator
 import domain.validator.routes.RouteValidationError
 import io.mockk.coEvery
