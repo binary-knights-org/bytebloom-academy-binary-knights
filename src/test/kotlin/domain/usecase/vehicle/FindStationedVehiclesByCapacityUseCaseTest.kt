@@ -7,7 +7,9 @@ import domain.model.Warehouse
 import domain.repository.WarehouseRepository
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assertions
 import kotlin.test.Test
 
 class FindStationedVehiclesByCapacityUseCaseTest {
@@ -60,5 +62,26 @@ class FindStationedVehiclesByCapacityUseCaseTest {
 
         // Then
         assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should propagate exception when getting warehouses fails`() = runTest {
+        // Given
+        val expectedException = IllegalStateException("Failed to get warehouses")
+
+        coEvery { warehouseRepository.getAll() } throws expectedException
+
+        // When
+        val thrown = Assertions.assertThrows(
+            IllegalStateException::class.java
+        ) {
+            runBlocking {
+                useCase("WH-1", 100.0)
+            }
+        }
+
+        // Then
+        assertThat(thrown.message)
+            .isEqualTo("Failed to get warehouses")
     }
 }
