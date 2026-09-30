@@ -9,7 +9,10 @@ import domain.model.Package
 import domain.model.Priority
 import io.mockk.coEvery
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertThrows
 import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions
 
 
 
@@ -76,5 +79,27 @@ class CalculateAveragePackageWeightUseCaseTest {
 
         // Then
         assertThat(result).isEqualTo(0.0)
+    }
+    @Test
+    fun `should propagate exception when getting warehouses fails`() = runTest {
+        // Given
+        val expectedException =
+            IllegalStateException("Failed to get warehouses")
+
+        coEvery {
+            warehouseRepository.getAll()
+        } throws expectedException
+
+        // When
+        val thrown = Assertions.assertThrows(IllegalStateException::class.java
+        ) {
+            runBlocking {
+                useCase()
+            }
+        }
+
+        // Then
+        assertThat(thrown.message)
+            .isEqualTo("Failed to get warehouses")
     }
 }
