@@ -47,3 +47,4 @@ class CompareRoutingStrategiesUseCaseTest {
         coVerify(exactly = 1) { bidirectionalUseCase(origin, destination) }
     }
 }
+
