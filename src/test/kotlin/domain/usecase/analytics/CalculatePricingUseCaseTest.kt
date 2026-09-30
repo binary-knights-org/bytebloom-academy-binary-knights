@@ -12,9 +12,8 @@ import domain.pricing.DispatchStrategy
 import domain.pricing.RoutePricingEngine
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions
 
 class CalculatePricingUseCaseTest {
 
@@ -69,5 +68,25 @@ class CalculatePricingUseCaseTest {
 
         // Then
         assertThat(result).isEqualTo(50.0)
+    }
+
+    @Test
+    fun `should propagate exception when calculating route cost fails`() {
+        // Given
+        val expectedException = IllegalStateException("Failed to calculate route cost")
+
+        every { pricingEngine.calculateCost(any(), any()) } throws expectedException
+
+        val request = PricingRequest(package1, component, route, strategy)
+
+        // When
+        val thrown = Assertions.assertThrows(IllegalStateException::class.java
+        ) {
+            useCase(request)
+        }
+
+        // Then
+        assertThat(thrown.message)
+            .isEqualTo("Failed to calculate route cost")
     }
 }
