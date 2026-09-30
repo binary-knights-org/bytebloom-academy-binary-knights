@@ -8,7 +8,7 @@ class AssignPackagesToVehicleUseCase(
     private val findSuitableVehicleUseCase: FindSuitableVehicleUseCase
 ) {
 
-    public suspend operator fun invoke(): List<PackageVehicleAssignment> {
+     suspend operator fun invoke(): List<PackageVehicleAssignment> {
         val consolidationGroups = findPackagesForConsolidationUseCase()
 
         return consolidationGroups.mapNotNull { packages ->
