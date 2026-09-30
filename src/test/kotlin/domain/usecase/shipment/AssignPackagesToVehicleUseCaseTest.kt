@@ -18,7 +18,8 @@ class AssignPackagesToVehicleUseCaseTest {
 
     private val findPackagesForConsolidationUseCase = mockk<FindPackagesForConsolidationUseCase>()
     private val findSuitableVehicleUseCase = mockk<FindSuitableVehicleUseCase>()
-    private val useCase = AssignPackagesToVehicleUseCase(findPackagesForConsolidationUseCase, findSuitableVehicleUseCase)
+    private val useCase = AssignPackagesToVehicleUseCase(
+        findPackagesForConsolidationUseCase, findSuitableVehicleUseCase)
 
     private val origin = createWarehouse("WH-001")
     private val destination = createWarehouse("WH-002")
@@ -75,7 +76,13 @@ class AssignPackagesToVehicleUseCaseTest {
     }
 
     private fun createWarehouse(id: String): Warehouse =
-        Warehouse(id = id, name = "Warehouse $id", regionalZone = RegionalZone.CENTRAL, latitude = 31.9, longitude = 35.2)
+        Warehouse(
+            id = id,
+            name = "Warehouse $id",
+            regionalZone = RegionalZone.CENTRAL,
+            latitude = 31.9,
+            longitude = 35.2
+        )
 
     private fun createPackage(
         id: String,
