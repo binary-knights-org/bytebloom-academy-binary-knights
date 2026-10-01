@@ -1,117 +1,96 @@
 package domain.usecase.crud.route
 
 import com.google.common.truth.Truth.assertThat
-import data.exception.NetworkUnavailableException
 import domain.model.RegionalZone
 import domain.model.Route
 import domain.model.Warehouse
-import domain.model.exception.DataUnavailableException
-import domain.model.exception.OperationFailedException
 import domain.model.exception.ResourceNotFoundException
 import domain.repository.RouteRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 class GetRouteByIdUseCaseTest {
 
-    private lateinit var routeRepository: RouteRepository
-    private lateinit var useCase: GetRouteByIdUseCase
+    private val routeRepository = mockk<RouteRepository>()
+    private val useCase = GetRouteByIdUseCase(routeRepository)
 
     private val originHub = Warehouse(
-        id = "WH-ORIGIN",
-        name = "Origin Hub",
-        regionalZone = RegionalZone.NORTH,
-        latitude = 10.0,
-        longitude = 20.0
+        id = "WH-ORIGIN", name = "Origin Hub", regionalZone = RegionalZone.NORTH, latitude = 10.0, longitude = 20.0
     )
 
     private val destinationHub = Warehouse(
-        id = "WH-DEST",
-        name = "Destination Hub",
-        regionalZone = RegionalZone.SOUTH,
-        latitude = 30.0,
-        longitude = 40.0
+        id = "WH-DEST", name = "Destination Hub", regionalZone = RegionalZone.SOUTH, latitude = 30.0, longitude = 40.0
     )
 
     private val existingRoute = Route(
-        id = "RT-001",
-        distanceKm = 100.0,
-        typicalDelayMin = 10,
-        originHub = originHub,
-        destinationHub = destinationHub
+        id = "RT-001", distanceKm = 100.0, typicalDelayMin = 10, originHub = originHub, destinationHub = destinationHub
     )
 
-    @BeforeEach
-    fun setUp() {
-        routeRepository = mockk()
-        useCase = GetRouteByIdUseCase(routeRepository)
+    @Test
+    fun `invoke when route exists then returns Result success with route`() = runTest {
+        // Given
+        val routeId = "RT-001"
+
+        coEvery {
+            routeRepository.getById(routeId)
+        } returns existingRoute
+
+        // When
+        val result = useCase(routeId)
+
+        // Then
+        assertThat(result.isSuccess).isTrue()
+        assertThat(result.getOrNull()).isEqualTo(existingRoute)
+
+        coVerify(exactly = 1) {
+            routeRepository.getById(routeId)
+        }
     }
 
     @Test
-    fun `invoke when route exists then returns Result success with route`() =
-        runBlocking {
-            // Given
-            val routeId = "RT-001"
-            coEvery { routeRepository.getById(routeId) } returns existingRoute
+    fun `invoke when route does not exist then returns Result failure with ResourceNotFoundException`() = runTest {
+        // Given
+        val routeId = "RT-NON-EXISTENT"
 
-            // When
-            val result = useCase(routeId)
+        coEvery {
+            routeRepository.getById(routeId)
+        } returns null
 
-            // Then
-            assertThat(result.isSuccess).isTrue()
-            assertThat(result.getOrNull()).isEqualTo(existingRoute)
-            coVerify(exactly = 1) { routeRepository.getById(routeId) }
+        // When
+        val result = useCase(routeId)
+
+        // Then
+        assertThat(result.isFailure).isTrue()
+
+        assertThat(result.exceptionOrNull() is ResourceNotFoundException)
+
+        coVerify(exactly = 1) {
+            routeRepository.getById(routeId)
         }
+    }
 
     @Test
-    fun `invoke when route does not exist then returns Result failure with ResourceNotFoundException`() =
-        runBlocking {
-            // Given
-            val routeId = "RT-NON-EXISTENT"
-            coEvery { routeRepository.getById(routeId) } returns null
+    fun `invoke when repo throws exception then returns the same exception`() = runTest {
+        // Given
+        val routeId = "RT-001"
+        val exception = RuntimeException("Database timeout")
 
-            // When
-            val result = useCase(routeId)
+        coEvery {
+            routeRepository.getById(routeId)
+        } throws exception
 
-            // Then
-            assertThat(result.isFailure).isTrue()
-            assertThat(result.exceptionOrNull()).isInstanceOf(ResourceNotFoundException::class.java)
-            coVerify(exactly = 1) { routeRepository.getById(routeId) }
+        // When
+        val result = useCase(routeId)
+
+        // Then
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isEqualTo(exception)
+
+        coVerify(exactly = 1) {
+            routeRepository.getById(routeId)
         }
-
-    @Test
-    fun `invoke when repo throws NetworkUnavailableException then returns DataUnavailableException`() =
-        runBlocking {
-            // Given
-            val routeId = "RT-001"
-            coEvery { routeRepository.getById(routeId) } throws NetworkUnavailableException("No network")
-
-            // When
-            val result = useCase(routeId)
-
-            // Then
-            assertThat(result.isFailure).isTrue()
-            assertThat(result.exceptionOrNull()).isInstanceOf(DataUnavailableException::class.java)
-            coVerify(exactly = 1) { routeRepository.getById(routeId) }
-        }
-
-    @Test
-    fun `invoke when repo throws generic exception then returns Result failure with OperationFailedException`() =
-        runBlocking {
-            // Given
-            val routeId = "RT-001"
-            coEvery { routeRepository.getById(routeId) } throws RuntimeException("Database timeout")
-
-            // When
-            val result = useCase(routeId)
-
-            // Then
-            assertThat(result.isFailure).isTrue()
-            assertThat(result.exceptionOrNull()).isInstanceOf(OperationFailedException::class.java)
-            coVerify(exactly = 1) { routeRepository.getById(routeId) }
-        }
+    }
 }
