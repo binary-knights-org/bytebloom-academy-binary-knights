@@ -37,9 +37,7 @@ class CreateRouteUseCase(
                         }
                     },
                     onFailure = { error ->
-                        // here is problem, temp solution !!
-                        // ---
-                        Result.failure(translateDataError(error, "test", "test"))
+                        Result.failure(error)
                     }
                 )
             },
