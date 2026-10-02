@@ -29,6 +29,8 @@ dependencies {
     testImplementation("com.lemonappdev:konsist:0.17.3")
 
     testImplementation("com.google.truth:truth:1.4.5")
+    testImplementation("io.insert-koin:koin-test:4.1.1")
+    testImplementation("io.insert-koin:koin-test-junit5:4.1.1")
 
     val ktorVersion = "2.3.12"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
