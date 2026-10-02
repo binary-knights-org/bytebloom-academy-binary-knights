@@ -2,6 +2,10 @@ package di
 
 import com.google.common.truth.Truth.assertThat
 import domain.pricing.RoutePricingEngine
+import domain.repository.PackageRepository
+import domain.repository.RouteRepository
+import domain.repository.VehicleRepository
+import domain.repository.WarehouseRepository
 
 import domain.usecase.analytics.AnalyzeTreePerformanceUseCase
 import domain.usecase.analytics.CalculateNetworkResilienceScoreUseCase
@@ -27,6 +31,11 @@ import domain.usecase.crud.warehouse.DeleteWarehouseUseCase
 import domain.usecase.crud.warehouse.GetWarehouseByIdUseCase
 import domain.usecase.crud.warehouse.UpdateWarehouseUseCase
 
+import domain.usecase.routing.CompareRoutingStrategiesUseCase
+import domain.usecase.routing.FindBidirectionalRouteUseCase
+import domain.usecase.routing.FindFewestHopsRouteUseCase
+import domain.usecase.routing.FindOptimalPathUseCase
+
 import domain.usecase.shipment.AssignPackageToCargoQueueUseCase
 import domain.usecase.shipment.CalculateAveragePackageWeightUseCase
 import domain.usecase.shipment.FindPackagesByOriginUseCase
@@ -45,21 +54,15 @@ import domain.usecase.warehouse.GetOverloadedWarehousesUseCase
 import domain.usecase.warehouse.GetWarehouseLoadFactorUseCase
 import domain.usecase.warehouse.TraceHubLineageUseCase
 
-import domain.usecase.routing.CompareRoutingStrategiesUseCase
-import domain.usecase.routing.FindBidirectionalRouteUseCase
-import domain.usecase.routing.FindFewestHopsRouteUseCase
-import domain.usecase.routing.FindOptimalPathUseCase
-
 import io.mockk.mockk
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.core.qualifier.named
-import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.get
+import org.koin.dsl.module
 
 class UseCaseModuleTest : KoinTest {
 
@@ -68,16 +71,10 @@ class UseCaseModuleTest : KoinTest {
         startKoin {
             modules(
                 module {
-                    single { mockk<domain.repository.PackageRepository>() }
-                    single { mockk<domain.repository.RouteRepository>() }
-                    single { mockk<domain.repository.VehicleRepository>() }
-                    single { mockk<domain.repository.WarehouseRepository>() }
-
-                    single {
-                        RoutePricingEngine(
-                            get(named("ecoStrategy"))
-                        )
-                    }
+                    single<PackageRepository> { mockk() }
+                    single<RouteRepository> { mockk() }
+                    single<VehicleRepository> { mockk() }
+                    single<WarehouseRepository> { mockk() }
                 },
                 validatorModule,
                 pricingModule,
@@ -93,7 +90,7 @@ class UseCaseModuleTest : KoinTest {
     }
 
     @Test
-    fun `should provide all use cases`() {
+    fun `should resolve all use cases from Koin`() {
         assertThat(get<AnalyzeTreePerformanceUseCase>()).isNotNull()
         assertThat(get<CalculateNetworkResilienceScoreUseCase>()).isNotNull()
         assertThat(get<CalculatePricingUseCase>()).isNotNull()
@@ -132,13 +129,19 @@ class UseCaseModuleTest : KoinTest {
         assertThat(get<FindUnderutilizedVehiclesUseCase>()).isNotNull()
         assertThat(get<SuggestBestVehicleForPackageUseCase>()).isNotNull()
 
-        assertThat(get<GetWarehouseLoadFactorUseCase>()).isNotNull()
         assertThat(get<GetOverloadedWarehousesUseCase>()).isNotNull()
+        assertThat(get<GetWarehouseLoadFactorUseCase>()).isNotNull()
         assertThat(get<TraceHubLineageUseCase>()).isNotNull()
 
         assertThat(get<FindOptimalPathUseCase>()).isNotNull()
         assertThat(get<FindFewestHopsRouteUseCase>()).isNotNull()
         assertThat(get<FindBidirectionalRouteUseCase>()).isNotNull()
         assertThat(get<CompareRoutingStrategiesUseCase>()).isNotNull()
+    }
+
+    @Test
+    fun `should provide pricing engine required by calculate pricing use case`() {
+        assertThat(get<RoutePricingEngine>()).isNotNull()
+        assertThat(get<CalculatePricingUseCase>()).isNotNull()
     }
 }
