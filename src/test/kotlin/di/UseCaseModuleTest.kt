@@ -1,6 +1,7 @@
 package di
 
 import com.google.common.truth.Truth.assertThat
+import domain.pricing.RoutePricingEngine
 
 import domain.usecase.analytics.AnalyzeTreePerformanceUseCase
 import domain.usecase.analytics.CalculateNetworkResilienceScoreUseCase
@@ -55,6 +56,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.get
@@ -70,6 +72,12 @@ class UseCaseModuleTest : KoinTest {
                     single { mockk<domain.repository.RouteRepository>() }
                     single { mockk<domain.repository.VehicleRepository>() }
                     single { mockk<domain.repository.WarehouseRepository>() }
+
+                    single {
+                        RoutePricingEngine(
+                            get(named("ecoStrategy"))
+                        )
+                    }
                 },
                 validatorModule,
                 pricingModule,
@@ -84,249 +92,53 @@ class UseCaseModuleTest : KoinTest {
         stopKoin()
     }
 
-    // Analytics
-
     @Test
-    fun `should provide analyze tree performance use case`() {
-        val useCase = get<AnalyzeTreePerformanceUseCase>()
-        assertThat(useCase).isNotNull()
-    }
+    fun `should provide all use cases`() {
+        assertThat(get<AnalyzeTreePerformanceUseCase>()).isNotNull()
+        assertThat(get<CalculateNetworkResilienceScoreUseCase>()).isNotNull()
+        assertThat(get<CalculatePricingUseCase>()).isNotNull()
 
-    @Test
-    fun `should provide calculate network resilience score use case`() {
-        val useCase = get<CalculateNetworkResilienceScoreUseCase>()
-        assertThat(useCase).isNotNull()
-    }
+        assertThat(get<CreatePackageUseCase>()).isNotNull()
+        assertThat(get<DeletePackageUseCase>()).isNotNull()
+        assertThat(get<GetPackageByIdUseCase>()).isNotNull()
+        assertThat(get<UpdatePackageUseCase>()).isNotNull()
 
-    @Test
-    fun `should provide calculate pricing use case`() {
-        val useCase = get<CalculatePricingUseCase>()
-        assertThat(useCase).isNotNull()
-    }
+        assertThat(get<CreateRouteUseCase>()).isNotNull()
+        assertThat(get<DeleteRouteUseCase>()).isNotNull()
+        assertThat(get<GetRouteByIdUseCase>()).isNotNull()
+        assertThat(get<UpdateRouteUseCase>()).isNotNull()
 
-    // Package
+        assertThat(get<CreateVehicleUseCase>()).isNotNull()
+        assertThat(get<DeleteVehicleUseCase>()).isNotNull()
+        assertThat(get<GetVehicleByIdUseCase>()).isNotNull()
+        assertThat(get<UpdateVehicleUseCase>()).isNotNull()
 
-    @Test
-    fun `should provide create package use case`() {
-        val useCase = get<CreatePackageUseCase>()
-        assertThat(useCase).isNotNull()
-    }
+        assertThat(get<CreateWarehouseUseCase>()).isNotNull()
+        assertThat(get<DeleteWarehouseUseCase>()).isNotNull()
+        assertThat(get<GetWarehouseByIdUseCase>()).isNotNull()
+        assertThat(get<UpdateWarehouseUseCase>()).isNotNull()
 
-    @Test
-    fun `should provide delete package use case`() {
-        val useCase = get<DeletePackageUseCase>()
-        assertThat(useCase).isNotNull()
-    }
+        assertThat(get<AssignPackageToCargoQueueUseCase>()).isNotNull()
+        assertThat(get<CalculateAveragePackageWeightUseCase>()).isNotNull()
+        assertThat(get<FindPackagesByOriginUseCase>()).isNotNull()
+        assertThat(get<FindPackagesForConsolidationUseCase>()).isNotNull()
+        assertThat(get<ReroutePackageUseCase>()).isNotNull()
 
-    @Test
-    fun `should provide get package by id use case`() {
-        val useCase = get<GetPackageByIdUseCase>()
-        assertThat(useCase).isNotNull()
-    }
+        assertThat(get<AddVehicleToHubUseCase>()).isNotNull()
+        assertThat(get<AssignPackagesToVehicleUseCase>()).isNotNull()
+        assertThat(get<DispatchVehicleUseCase>()).isNotNull()
+        assertThat(get<FindStationedVehiclesByCapacityUseCase>()).isNotNull()
+        assertThat(get<FindSuitableVehicleUseCase>()).isNotNull()
+        assertThat(get<FindUnderutilizedVehiclesUseCase>()).isNotNull()
+        assertThat(get<SuggestBestVehicleForPackageUseCase>()).isNotNull()
 
-    @Test
-    fun `should provide update package use case`() {
-        val useCase = get<UpdatePackageUseCase>()
-        assertThat(useCase).isNotNull()
-    }
+        assertThat(get<GetWarehouseLoadFactorUseCase>()).isNotNull()
+        assertThat(get<GetOverloadedWarehousesUseCase>()).isNotNull()
+        assertThat(get<TraceHubLineageUseCase>()).isNotNull()
 
-    // Route
-
-    @Test
-    fun `should provide create route use case`() {
-        val useCase = get<CreateRouteUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide delete route use case`() {
-        val useCase = get<DeleteRouteUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide get route by id use case`() {
-        val useCase = get<GetRouteByIdUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide update route use case`() {
-        val useCase = get<UpdateRouteUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    // Vehicle
-
-    @Test
-    fun `should provide create vehicle use case`() {
-        val useCase = get<CreateVehicleUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide delete vehicle use case`() {
-        val useCase = get<DeleteVehicleUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide get vehicle by id use case`() {
-        val useCase = get<GetVehicleByIdUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide update vehicle use case`() {
-        val useCase = get<UpdateVehicleUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    // Warehouse
-
-    @Test
-    fun `should provide create warehouse use case`() {
-        val useCase = get<CreateWarehouseUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide delete warehouse use case`() {
-        val useCase = get<DeleteWarehouseUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide get warehouse by id use case`() {
-        val useCase = get<GetWarehouseByIdUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide update warehouse use case`() {
-        val useCase = get<UpdateWarehouseUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    // Shipment
-
-    @Test
-    fun `should provide assign package to cargo queue use case`() {
-        val useCase = get<AssignPackageToCargoQueueUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide calculate average package weight use case`() {
-        val useCase = get<CalculateAveragePackageWeightUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide find packages by origin use case`() {
-        val useCase = get<FindPackagesByOriginUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide find packages for consolidation use case`() {
-        val useCase = get<FindPackagesForConsolidationUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide reroute package use case`() {
-        val useCase = get<ReroutePackageUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    // Vehicle Operations
-
-    @Test
-    fun `should provide add vehicle to hub use case`() {
-        val useCase = get<AddVehicleToHubUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide assign packages to vehicle use case`() {
-        val useCase = get<AssignPackagesToVehicleUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide dispatch vehicle use case`() {
-        val useCase = get<DispatchVehicleUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide find stationed vehicles by capacity use case`() {
-        val useCase = get<FindStationedVehiclesByCapacityUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide find suitable vehicle use case`() {
-        val useCase = get<FindSuitableVehicleUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide find underutilized vehicles use case`() {
-        val useCase = get<FindUnderutilizedVehiclesUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide suggest best vehicle for package use case`() {
-        val useCase = get<SuggestBestVehicleForPackageUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    // Warehouse Operations
-
-    @Test
-    fun `should provide get warehouse load factor use case`() {
-        val useCase = get<GetWarehouseLoadFactorUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide get overloaded warehouses use case`() {
-        val useCase = get<GetOverloadedWarehousesUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide trace hub lineage use case`() {
-        val useCase = get<TraceHubLineageUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    // Routing
-
-    @Test
-    fun `should provide optimal path use case`() {
-        val useCase = get<FindOptimalPathUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide fewest hops route use case`() {
-        val useCase = get<FindFewestHopsRouteUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide bidirectional route use case`() {
-        val useCase = get<FindBidirectionalRouteUseCase>()
-        assertThat(useCase).isNotNull()
-    }
-
-    @Test
-    fun `should provide compare routing strategies use case`() {
-        val useCase = get<CompareRoutingStrategiesUseCase>()
-        assertThat(useCase).isNotNull()
+        assertThat(get<FindOptimalPathUseCase>()).isNotNull()
+        assertThat(get<FindFewestHopsRouteUseCase>()).isNotNull()
+        assertThat(get<FindBidirectionalRouteUseCase>()).isNotNull()
+        assertThat(get<CompareRoutingStrategiesUseCase>()).isNotNull()
     }
 }
