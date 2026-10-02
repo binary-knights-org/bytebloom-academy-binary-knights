@@ -28,7 +28,7 @@ private const val VEHICLES_FILE_PATH = "src/main/resources/fleet.csv"
 
 val repositoryModule = module {
 
-    // ---- Local (CSV) data sources ----
+    
     single<CsvWarehouseDataSource> {
         CsvWarehouseDataSourceImpl(CsvFileHandler(WAREHOUSES_FILE_PATH))
     }
@@ -42,7 +42,7 @@ val repositoryModule = module {
         CsvRouteDataSourceImpl(CsvFileHandler(ROUTES_FILE_PATH))
     }
 
-    // ---- Bundled source groups (used only by WarehouseRepositoryImpl) ----
+    
     single {
         RemoteDataSources(
             warehouse = get(),
@@ -60,7 +60,7 @@ val repositoryModule = module {
         )
     }
 
-    // ---- Repository implementations, exposed through their domain interfaces ----
+  
     single<WarehouseRepository> {
         WarehouseRepositoryImpl(
             remoteSources = get(),
