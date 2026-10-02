@@ -1,6 +1,5 @@
 package domain.usecase.crud.route
 
-import data.exception.translateDataError
 import domain.model.exception.OperationFailedException
 import domain.model.exception.EntityValidationException
 import domain.model.Route
