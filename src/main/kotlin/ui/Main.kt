@@ -1,94 +1,72 @@
 package ui
 
-import data.local.csv.CsvFileHandler
-import data.local.csv.CsvPackageDataSourceImpl
-import data.local.csv.CsvRouteDataSourceImpl
-import data.local.csv.CsvVehicleDataSourceImpl
-import data.local.csv.CsvWarehouseDataSourceImpl
-import data.repository.PackageRepositoryImpl
-import data.repository.RouteRepositoryImpl
-import data.repository.VehicleRepositoryImpl
-import data.repository.WarehouseRepositoryImpl
-import domain.algorithm.pathfinding.BidirectionalBfsRouter
-import domain.algorithm.pathfinding.LeastHopRouter
-import domain.algorithm.pathfinding.OptimalTransitRouter
-import domain.pricing.EcoStrategy
-import domain.pricing.RoutePricingEngine
+import di.networkModule
+import di.pricingModule
+import di.repositoryModule
+import di.routingModule
+import di.useCaseModule
+import di.validatorModule
+
+import domain.repository.PackageRepository
+import domain.repository.RouteRepository
+import domain.repository.VehicleRepository
+import domain.repository.WarehouseRepository
+
 import domain.usecase.analytics.CalculatePricingUseCase
 import domain.usecase.routing.FindBidirectionalRouteUseCase
 import domain.usecase.routing.FindFewestHopsRouteUseCase
 import domain.usecase.routing.FindOptimalPathUseCase
-import domain.usecase.shipment.FindPackagesForConsolidationUseCase
-import domain.usecase.vehicle.FindSuitableVehicleUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
-import data.remote.client.SupabaseHttpClient
-import data.remote.supabase.SupabaseWarehouseDataSourceImpl
-import data.remote.supabase.SupabasePackageDataSourceImpl
-import data.remote.supabase.SupabaseRouteDataSourceImpl
-import data.remote.supabase.SupabaseVehicleDataSourceImpl
-import data.repository.LocalDataSources
-import data.repository.RemoteDataSources
+
 import kotlinx.coroutines.runBlocking
+import org.koin.core.context.startKoin
 
 
 fun main() = runBlocking {
-   printSystemHeader()
-   val warehouseDataSource = SupabaseWarehouseDataSourceImpl(SupabaseHttpClient)
-   val packageDataSource = SupabasePackageDataSourceImpl(SupabaseHttpClient)
-   val vehicleDataSource = SupabaseVehicleDataSourceImpl(SupabaseHttpClient)
-   val routeDataSource = SupabaseRouteDataSourceImpl(SupabaseHttpClient)
+    val koin = startKoin {
+        modules(
+            networkModule,
+            repositoryModule,
+            validatorModule,
+            pricingModule,
+            routingModule,
+            useCaseModule
+        )
+    }.koin
 
-    val warehouseCsvHandler = CsvFileHandler("src/main/resources/warehouses.csv")
-    val packageCsvHandler = CsvFileHandler("src/main/resources/packages.csv")
-    val vehicleCsvHandler = CsvFileHandler("src/main/resources/fleet.csv")
-    val routeCsvHandler = CsvFileHandler("src/main/resources/routes.csv")
+    printSystemHeader()
 
-    val localWarehouseDataSource = CsvWarehouseDataSourceImpl(warehouseCsvHandler)
-    val localPackageDataSource = CsvPackageDataSourceImpl(packageCsvHandler)
-    val localVehicleDataSource = CsvVehicleDataSourceImpl(vehicleCsvHandler)
-    val localRouteDataSource = CsvRouteDataSourceImpl(routeCsvHandler)
+    val warehouseRepository = koin.get<WarehouseRepository>()
+    val packageRepository = koin.get<PackageRepository>()
+    val vehicleRepository = koin.get<VehicleRepository>()
+    val routeRepository = koin.get<RouteRepository>()
 
-    val remoteSources = RemoteDataSources(
-        warehouseDataSource,
-        packageDataSource,
-        vehicleDataSource,
-        routeDataSource
+    printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
+
+    val warehouses = buildDomainGraph(warehouseRepository)
+    val vehicles = vehicleRepository.getAll()
+
+    val assignPackagesToVehicleUseCase = koin.get<AssignPackagesToVehicleUseCase>()
+    val findOptimalPathUseCase = koin.get<FindOptimalPathUseCase>()
+    val findFewestHopsRouteUseCase = koin.get<FindFewestHopsRouteUseCase>()
+    val findBidirectionalRouteUseCase = koin.get<FindBidirectionalRouteUseCase>()
+    val calculatePricingUseCase = koin.get<CalculatePricingUseCase>()
+
+    runCargoDemos(packageRepository, warehouses)
+    runPackageConsolidationDemo(assignPackagesToVehicleUseCase)
+    runPricingAndDecoratorDemos(warehouses, calculatePricingUseCase)
+    runBreakdownSimulationDemo()
+    runRoutingAndComparisonDemos(
+        warehouseRepository,
+        warehouses,
+        findOptimalPathUseCase,
+        findFewestHopsRouteUseCase,
+        findBidirectionalRouteUseCase
     )
-
-    val localSources = LocalDataSources(
-        localWarehouseDataSource,
-        localPackageDataSource,
-        localVehicleDataSource,
-        localRouteDataSource
-    )
-   val warehouseRepository = WarehouseRepositoryImpl(remoteSources, localSources,)
-   val packageRepository = PackageRepositoryImpl(packageDataSource,localPackageDataSource , warehouseRepository)
-   val vehicleRepository = VehicleRepositoryImpl(vehicleDataSource,localVehicleDataSource , warehouseRepository)
-   val routeRepository = RouteRepositoryImpl(routeDataSource,localRouteDataSource , warehouseRepository)
-
-   printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
-   val warehouses = buildDomainGraph(warehouseRepository)
-   val vehicles = vehicleRepository.getAll()
-   val findPackagesForConsolidationUseCase = FindPackagesForConsolidationUseCase(packageRepository)
-   val findSuitableVehicleUseCase = FindSuitableVehicleUseCase(vehicleRepository)
-   val assignPackagesToVehicleUseCase = AssignPackagesToVehicleUseCase(findPackagesForConsolidationUseCase,
-       findSuitableVehicleUseCase)
-   val findOptimalPathUseCase = FindOptimalPathUseCase(OptimalTransitRouter(warehouseRepository))
-   val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(LeastHopRouter(warehouseRepository))
-   val findBidirectionalRouteUseCase = FindBidirectionalRouteUseCase(BidirectionalBfsRouter(warehouseRepository))
-   val calculatePricingUseCase = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
-   runCargoDemos(packageRepository, warehouses)
-   runPackageConsolidationDemo(assignPackagesToVehicleUseCase)
-   runPricingAndDecoratorDemos(warehouses, calculatePricingUseCase)
-   runBreakdownSimulationDemo()
-   runRoutingAndComparisonDemos(
-       warehouseRepository, warehouses,
-       findOptimalPathUseCase, findFewestHopsRouteUseCase, findBidirectionalRouteUseCase
-   )
-   runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
+    runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
     runGreedyFleetDemo(vehicles)
     runInvalidInputDemo()
-   printSystemFooter()
+    printSystemFooter()
 }
 
 private fun printSystemHeader() {
