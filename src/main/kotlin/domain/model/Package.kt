@@ -2,6 +2,8 @@ package domain.model
 
 import domain.model.exception.InvalidPackageWeightException
 import domain.model.exception.SameOriginAndDestinationException
+import domain.state.CreatedState
+import domain.state.ShipmentState
 import kotlin.uuid.Uuid
 
 data class Package(
@@ -11,9 +13,35 @@ data class Package(
     val originHub: Warehouse,
     val destinationHub: Warehouse
 ) {
+    private var currentState: ShipmentState = CreatedState()
+
     init {
         validateWeight()
         validateHubs()
+    }
+
+    fun setState(state: ShipmentState) {
+        currentState = state
+    }
+
+    fun getState(): ShipmentState {
+        return currentState
+    }
+
+    fun assignToVehicle() {
+        currentState = currentState.assignToVehicle()
+    }
+
+    fun startTransit() {
+        currentState = currentState.startTransit()
+    }
+
+    fun markDelivered() {
+        currentState = currentState.markDelivered()
+    }
+
+    fun markFailed() {
+        currentState = currentState.markFailed()
     }
 
     private fun validateWeight() {
@@ -24,7 +52,9 @@ data class Package(
 
     private fun validateHubs() {
         if (originHub.id == destinationHub.id) {
-            throw SameOriginAndDestinationException("Origin and destination hubs cannot be the same")
+            throw SameOriginAndDestinationException(
+                "Origin and destination hubs cannot be the same"
+            )
         }
     }
 
