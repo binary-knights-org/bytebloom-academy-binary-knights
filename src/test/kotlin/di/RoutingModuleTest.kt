@@ -24,9 +24,7 @@ class RoutingModuleTest : KoinTest {
         startKoin {
             modules(
                 module {
-                    single<WarehouseRepository> {
-                        mockk()
-                    }
+                    single<WarehouseRepository> { mockk() }
                 },
                 routingModule
             )
@@ -40,28 +38,19 @@ class RoutingModuleTest : KoinTest {
 
     @Test
     fun `should provide optimal router`() {
-        val router = get<ShortestPathRouter>(
-            named("optimalRouter")
-        )
-
+        val router = get<ShortestPathRouter>(named("optimalRouter"))
         assertThat(router).isInstanceOf(OptimalTransitRouter::class.java)
     }
 
     @Test
     fun `should provide fewest hops router`() {
-        val router = get<ShortestPathRouter>(
-            named("fewestHopsRouter")
-        )
-
+        val router = get<ShortestPathRouter>(named("fewestHopsRouter"))
         assertThat(router).isInstanceOf(LeastHopRouter::class.java)
     }
 
     @Test
     fun `should provide bidirectional router`() {
-        val router = get<ShortestPathRouter>(
-            named("bidirectionalRouter")
-        )
-
+        val router = get<ShortestPathRouter>(named("bidirectionalRouter"))
         assertThat(router).isInstanceOf(BidirectionalBfsRouter::class.java)
     }
 }

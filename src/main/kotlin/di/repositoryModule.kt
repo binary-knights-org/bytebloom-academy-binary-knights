@@ -21,74 +21,23 @@ import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
 import org.koin.dsl.module
 
+val repositoryModule = module {
+
+    single<CsvWarehouseDataSource> { CsvWarehouseDataSourceImpl(CsvFileHandler(WAREHOUSES_FILE_PATH)) }
+    single<CsvPackageDataSource> { CsvPackageDataSourceImpl(CsvFileHandler(PACKAGE_FILE_PATH)) }
+    single<CsvVehicleDataSource> { CsvVehicleDataSourceImpl(CsvFileHandler(VEHICLES_FILE_PATH)) }
+    single<CsvRouteDataSource> { CsvRouteDataSourceImpl(CsvFileHandler(ROUTES_FILE_PATH)) }
+
+    single { RemoteDataSources(get(), get(), get(), get()) }
+    single { LocalDataSources(get(), get(), get(), get()) }
+
+    single<WarehouseRepository> { WarehouseRepositoryImpl(get(), get()) }
+    single<PackageRepository> { PackageRepositoryImpl(get(), get(), get()) }
+    single<VehicleRepository> { VehicleRepositoryImpl(get(), get(), get()) }
+    single<RouteRepository> { RouteRepositoryImpl(get(), get(), get()) }
+}
+
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
 private const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
 private const val VEHICLES_FILE_PATH = "src/main/resources/fleet.csv"
-
-val repositoryModule = module {
-
-    
-    single<CsvWarehouseDataSource> {
-        CsvWarehouseDataSourceImpl(CsvFileHandler(WAREHOUSES_FILE_PATH))
-    }
-    single<CsvPackageDataSource> {
-        CsvPackageDataSourceImpl(CsvFileHandler(PACKAGE_FILE_PATH))
-    }
-    single<CsvVehicleDataSource> {
-        CsvVehicleDataSourceImpl(CsvFileHandler(VEHICLES_FILE_PATH))
-    }
-    single<CsvRouteDataSource> {
-        CsvRouteDataSourceImpl(CsvFileHandler(ROUTES_FILE_PATH))
-    }
-
-    
-    single {
-        RemoteDataSources(
-            warehouse = get(),
-            packageSource = get(),
-            vehicle = get(),
-            route = get()
-        )
-    }
-    single {
-        LocalDataSources(
-            warehouse = get(),
-            packageSource = get(),
-            vehicle = get(),
-            route = get()
-        )
-    }
-
-  
-    single<WarehouseRepository> {
-        WarehouseRepositoryImpl(
-            remoteSources = get(),
-            localSources = get()
-        )
-    }
-
-    single<PackageRepository> {
-        PackageRepositoryImpl(
-            remoteDataSource = get(),
-            localDataSource = get(),
-            warehouseRepository = get()
-        )
-    }
-
-    single<VehicleRepository> {
-        VehicleRepositoryImpl(
-            remoteDataSource = get(),
-            localDataSource = get(),
-            warehouseRepository = get()
-        )
-    }
-
-    single<RouteRepository> {
-        RouteRepositoryImpl(
-            remoteDataSource = get(),
-            localDataSource = get(),
-            warehouseRepository = get()
-        )
-    }
-}

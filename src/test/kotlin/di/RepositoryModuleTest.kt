@@ -32,10 +32,10 @@ class RepositoryModuleTest : KoinTest {
 
     @Test
     fun `should bind repositories to correct implementations`() {
-        assertThat(get<WarehouseRepository>() is WarehouseRepositoryImpl)
-        assertThat(get<PackageRepository>() is PackageRepositoryImpl)
-        assertThat(get<VehicleRepository>() is VehicleRepositoryImpl)
-        assertThat(get<RouteRepository>() is RouteRepositoryImpl)
+        assertThat(get<WarehouseRepository>()).isInstanceOf(WarehouseRepositoryImpl::class.java)
+        assertThat(get<PackageRepository>()).isInstanceOf(PackageRepositoryImpl::class.java)
+        assertThat(get<VehicleRepository>()).isInstanceOf(VehicleRepositoryImpl::class.java)
+        assertThat(get<RouteRepository>()).isInstanceOf(RouteRepositoryImpl::class.java)
     }
 
     @Test

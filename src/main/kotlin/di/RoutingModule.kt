@@ -9,15 +9,7 @@ import org.koin.dsl.module
 
 val routingModule = module {
 
-    single<ShortestPathRouter>(named("optimalRouter")) {
-        OptimalTransitRouter(get())
-    }
-
-    single<ShortestPathRouter>(named("fewestHopsRouter")) {
-        LeastHopRouter(get())
-    }
-
-    single<ShortestPathRouter>(named("bidirectionalRouter")) {
-        BidirectionalBfsRouter(get())
-    }
+    single<ShortestPathRouter>(named("optimalRouter")) { OptimalTransitRouter(get()) }
+    single<ShortestPathRouter>(named("fewestHopsRouter")) { LeastHopRouter(get()) }
+    single<ShortestPathRouter>(named("bidirectionalRouter")) { BidirectionalBfsRouter(get()) }
 }
