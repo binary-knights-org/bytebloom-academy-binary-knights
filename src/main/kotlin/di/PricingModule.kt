@@ -10,21 +10,8 @@ import org.koin.dsl.module
 
 val pricingModule = module {
 
-    single<DispatchStrategy>(named("ecoStrategy")) {
-        EcoStrategy()
-    }
-
-    single<DispatchStrategy>(named("expressStrategy")) {
-        ExpressStrategy()
-    }
-
-    single<DispatchStrategy>(named("fragileStrategy")) {
-        FragileStrategy()
-    }
-
-    single {
-        RoutePricingEngine(
-            strategy = get(named("ecoStrategy"))
-        )
-    }
+    single<DispatchStrategy>(named("ecoStrategy")) { EcoStrategy() }
+    single<DispatchStrategy>(named("expressStrategy")) { ExpressStrategy() }
+    single<DispatchStrategy>(named("fragileStrategy")) { FragileStrategy() }
+    single { RoutePricingEngine(get(named("ecoStrategy"))) }
 }

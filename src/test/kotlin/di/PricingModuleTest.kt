@@ -31,21 +31,18 @@ class PricingModuleTest : KoinTest {
     @Test
     fun `should provide eco strategy`() {
         val strategy = get<DispatchStrategy>(named("ecoStrategy"))
-
         assertThat(strategy).isInstanceOf(EcoStrategy::class.java)
     }
 
     @Test
     fun `should provide express strategy`() {
         val strategy = get<DispatchStrategy>(named("expressStrategy"))
-
         assertThat(strategy).isInstanceOf(ExpressStrategy::class.java)
     }
 
     @Test
     fun `should provide fragile strategy`() {
         val strategy = get<DispatchStrategy>(named("fragileStrategy"))
-
         assertThat(strategy).isInstanceOf(FragileStrategy::class.java)
     }
 }

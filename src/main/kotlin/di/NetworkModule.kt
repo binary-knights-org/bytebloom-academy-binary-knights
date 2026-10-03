@@ -13,20 +13,8 @@ import org.koin.dsl.module
 
 val networkModule = module {
     single { SupabaseHttpClient }
-
-    single<RemotePackageDataSource> {
-        SupabasePackageDataSourceImpl(get())
-    }
-
-    single<RemoteRouteDataSource> {
-        SupabaseRouteDataSourceImpl(get())
-    }
-
-    single<RemoteVehicleDataSource> {
-        SupabaseVehicleDataSourceImpl(get())
-    }
-
-    single<RemoteWarehouseDataSource> {
-        SupabaseWarehouseDataSourceImpl(get())
-    }
+    single<RemotePackageDataSource> { SupabasePackageDataSourceImpl(get()) }
+    single<RemoteRouteDataSource> { SupabaseRouteDataSourceImpl(get()) }
+    single<RemoteVehicleDataSource> { SupabaseVehicleDataSourceImpl(get()) }
+    single<RemoteWarehouseDataSource> { SupabaseWarehouseDataSourceImpl(get()) }
 }
