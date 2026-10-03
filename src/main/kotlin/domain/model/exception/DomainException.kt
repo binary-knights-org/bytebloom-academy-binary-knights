@@ -22,6 +22,9 @@ sealed class DomainException(message: String) : Exception(message) {
         const val BLANK_REGIONAL_ZONE = "Warehouse regional zone cannot be blank."
         const val INVALID_LATITUDE = "Latitude must be between -90.0 and 90.0."
         const val INVALID_LONGITUDE = "Longitude must be between -180.0 and 180.0."
+
+        const val INSUFFICIENT_VEHICLE_CAPACITY = "Package weight exceeds available vehicle capacity."
+        const val INVALID_DISPATCH_PRIORITY = "Package priority is not compatible with this dispatch pipeline."
     }
 }
 
@@ -41,7 +44,6 @@ class InvalidVehicleCostException(message: String = INVALID_VEHICLE_COST) : Doma
 class InvalidWarehouseTextException(message: String = BLANK_WAREHOUSE_NAME) : DomainException(message)
 class InvalidLatitudeException(message: String = INVALID_LATITUDE) : DomainException(message)
 class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainException(message)
-class IllegalStateTransitionException(
-    message: String
-) : RuntimeException(message)
-
+class IllegalStateTransitionException( message: String ) : RuntimeException(message)
+class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
+class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
