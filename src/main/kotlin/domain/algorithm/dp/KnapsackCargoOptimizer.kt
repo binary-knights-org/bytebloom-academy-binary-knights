@@ -2,6 +2,7 @@ package domain.algorithm.dp
 
 import domain.model.Package
 import domain.model.Priority
+import domain.model.exception.InvalidCargoInputException
 import kotlin.math.roundToInt
 
 class KnapsackCargoOptimizer {
@@ -26,13 +27,8 @@ class KnapsackCargoOptimizer {
         packages: List<Package>,
         maxCapacityKg: Double
     ) {
-        require(maxCapacityKg >= MIN_CAPACITY_KG) {
-            "Maximum capacity cannot be negative."
-        }
-
-        require(packages.none { it.weight < MIN_PACKAGE_WEIGHT_KG }) {
-            "Package weight cannot be negative."
-        }
+        if (maxCapacityKg < MIN_CAPACITY_KG) { throw InvalidCargoInputException() }
+        if (packages.any { it.weight < MIN_PACKAGE_WEIGHT_KG }) { throw InvalidCargoInputException() }
     }
 
     private fun buildValueGrid(
