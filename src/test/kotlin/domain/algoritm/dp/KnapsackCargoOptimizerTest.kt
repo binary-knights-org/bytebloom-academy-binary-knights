@@ -6,7 +6,6 @@ import domain.model.Package
 import domain.model.Priority
 import domain.model.RegionalZone
 import domain.model.Warehouse
-import io.mockk.mockk
 import org.junit.jupiter.api.Test
 
 class KnapsackCargoOptimizerTest {
