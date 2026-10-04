@@ -14,7 +14,9 @@ abstract class BaseDispatchProcessor {
 
     protected abstract fun validateCargo(pkg : Package, vehicle : Vehicle)
     protected abstract fun reserveVehicleCapacity(pkg : Package, vehicle : Vehicle)
-    protected abstract fun updateShipmentState(pkg : Package)
+    protected open fun updateShipmentState(pkg : Package): Package {
+        pkg.assignToVehicle()
+        return pkg
+    }
     protected open fun notifyDispatchStatus(pkg: Package , vehicle: Vehicle){}
-
 }

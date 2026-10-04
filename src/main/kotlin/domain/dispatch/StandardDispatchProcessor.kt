@@ -26,12 +26,7 @@ class StandardDispatchProcessor : BaseDispatchProcessor() {
     vehicle.takeUnless { it.loadPackage(pkg)  }?.let {
         throw InsufficientVehicleCapacityException(
            "Standard Dispatch Failed: Could not load package ${pkg.id} into vehicle ${vehicle.id}."
-        )
+            )
+        }
     }
-    }
-
-    override fun updateShipmentState(pkg : Package) {
-        pkg.assignToVehicle()
-    }
-
 }

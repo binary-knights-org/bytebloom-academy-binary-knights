@@ -9,7 +9,7 @@ import domain.model.exception.InvalidDispatchPriorityException
 
 class ExpressDispatchProcessor : BaseDispatchProcessor() {
     override fun validateCargo(pkg: Package, vehicle: Vehicle) {
-        val availableCapacity = vehicle.maxCapacityKg - vehicle.currentLoadKg
+        val availableCapacity = vehicle.maxCapacityKg - vehicle.loadedCargo.sumOf { it.weight }
 
         pkg.takeIf { it.weight > availableCapacity }?.let {
             throw InsufficientVehicleCapacityException(
@@ -28,16 +28,13 @@ class ExpressDispatchProcessor : BaseDispatchProcessor() {
     vehicle.takeUnless { it.loadPackage(pkg) }?.let {
         throw InsufficientVehicleCapacityException(
             "Express Dispatch Failed: Priority load failed for package ${pkg.id} into vehicle ${vehicle.id}."
-        )
-    }
+            )
+        }
     }
 
-    override fun updateShipmentState(pkg: Package) {
-     pkg.assignToVehicle()
-    }
 
     override fun notifyDispatchStatus(pkg: Package , vehicle: Vehicle) {
         println("URGENT DISPATCH: Express Package ${pkg.id} successfully assigned to Vehicle ${vehicle.id}!")
     }
-    }
+}
 
