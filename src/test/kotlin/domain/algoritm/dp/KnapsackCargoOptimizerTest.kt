@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test
 
 class KnapsackCargoOptimizerTest {
 
+    private val knapsackCargoOptimizer = KnapsackCargoOptimizer()
+
     private val origin = Warehouse(
         id = "WH-1",
         name = "Origin Warehouse",
@@ -62,9 +64,7 @@ class KnapsackCargoOptimizerTest {
 
     @Test
     fun `should select package combination with maximum priority without exceeding capacity`() {
-        val optimizer = KnapsackCargoOptimizer()
-
-        val result = optimizer.optimize(
+        val result = knapsackCargoOptimizer(
             packages = packages,
             maxCapacityKg = 10.0
         )
