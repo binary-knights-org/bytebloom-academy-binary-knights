@@ -3,72 +3,71 @@ package domain.usecase.vehicle
 import domain.model.RegionalZone
 import domain.model.Vehicle
 import domain.model.Warehouse
-import domain.repository.VehicleRepository
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class AddVehicleToHubUseCaseTest {
 
-    private val vehicleRepository = mockk<VehicleRepository>()
-    private val useCase = AddVehicleToHubUseCase(vehicleRepository)
+    private val useCase = AddVehicleToHubUseCase()
 
-    private val hub = Warehouse(
+    @Test
+    fun `should add vehicle to the hub successfully`() {
+        // Given
+        val hub = createWarehouse()
+        val vehicle = createVehicle(id = "TRK-1", hub = hub)
+
+        // When
+        useCase(hub, vehicle)
+
+        // Then
+        assertEquals(listOf(vehicle), hub.stationedVehicles)
+    }
+
+    @Test
+    fun `should keep previously stationed vehicles when a new vehicle is added`() {
+        // Given
+        val hub = createWarehouse()
+        val firstVehicle = createVehicle(id = "TRK-1", hub = hub)
+        val secondVehicle = createVehicle(id = "TRK-2", hub = hub)
+
+        useCase(hub, firstVehicle )
+
+        // When
+        useCase(hub, secondVehicle )
+
+        // Then
+        assertEquals(listOf(firstVehicle, secondVehicle),hub.stationedVehicles)
+    }
+
+    @Test
+    fun `should throw IllegalStateException when adding vehicle with existing id`() {
+        // Given
+        val hub = createWarehouse()
+        val firstVehicle = createVehicle(id = "TRK-1", hub = hub)
+        val duplicateVehicle = createVehicle(id = "TRK-1", hub = hub)
+
+        // When
+        useCase(hub, firstVehicle)
+
+        // Then
+        assertFailsWith<IllegalStateException> {
+            useCase(hub, duplicateVehicle)
+        }
+    }
+
+    private fun createWarehouse() = Warehouse(
         id = "WH-1",
-        name = "Main Hub",
+        name = "Central Hub",
         regionalZone = RegionalZone.NORTH,
         latitude = 31.95,
         longitude = 35.91
     )
 
-    private val vehicle = Vehicle(
-        id = "TRK-1",
+    private fun createVehicle(id: String, hub: Warehouse) = Vehicle(
+        id = id,
         maxCapacityKg = 5000.0,
         costPerKm = 3.0,
         currentHub = hub
     )
-
-
-
-    @Test
-    fun `should add vehicle successfully`() = runTest {
-
-        // Given
-        coEvery {
-            vehicleRepository.create(vehicle)
-        } returns true
-
-        // When
-        val result = useCase(vehicle)
-
-        // Then
-        assertTrue(result)
-
-        coVerify(exactly = 1) {
-            vehicleRepository.create(vehicle)
-        }
-    }
-
-    @Test
-    fun `should fail to add vehicle when repository fails`() = runTest {
-
-        // Given
-        coEvery {
-            vehicleRepository.create(vehicle)
-        } returns false
-
-        // When
-        val result = useCase(vehicle)
-
-        // Then
-        assertFalse(result)
-
-        coVerify(exactly = 1) {
-            vehicleRepository.create(vehicle)
-        }
-    }
 }
