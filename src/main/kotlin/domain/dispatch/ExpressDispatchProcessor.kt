@@ -5,11 +5,10 @@ import domain.model.Priority
 import domain.model.Vehicle
 import domain.model.exception.InsufficientVehicleCapacityException
 import domain.model.exception.InvalidDispatchPriorityException
-import org.slf4j.LoggerFactory
+
 
 
 class ExpressDispatchProcessor : BaseDispatchProcessor() {
-    private val logger = LoggerFactory.getLogger(ExpressDispatchProcessor::class.java)
     override fun validateCargo(pkg: Package, vehicle: Vehicle) {
         val availableCapacity = vehicle.maxCapacityKg - vehicle.loadedCargo.sumOf { it.weight }
 
