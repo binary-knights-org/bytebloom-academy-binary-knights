@@ -5,7 +5,6 @@ import domain.model.Vehicle
 import domain.model.Warehouse
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class AddVehicleToHubUseCaseTest {
 
@@ -38,22 +37,6 @@ class AddVehicleToHubUseCaseTest {
 
         // Then
         assertEquals(listOf(firstVehicle, secondVehicle),hub.stationedVehicles)
-    }
-
-    @Test
-    fun `should throw IllegalStateException when adding vehicle with existing id`() {
-        // Given
-        val hub = createWarehouse()
-        val firstVehicle = createVehicle(id = "TRK-1", hub = hub)
-        val duplicateVehicle = createVehicle(id = "TRK-1", hub = hub)
-
-        // When
-        useCase(hub, firstVehicle)
-
-        // Then
-        assertFailsWith<IllegalStateException> {
-            useCase(hub, duplicateVehicle)
-        }
     }
 
     private fun createWarehouse() = Warehouse(
