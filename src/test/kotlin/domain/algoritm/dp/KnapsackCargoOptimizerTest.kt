@@ -1,16 +1,32 @@
 package domain.algoritm.dp
 
 import com.google.common.truth.Truth.assertThat
+import domain.algorithm.dp.KnapsackCargoOptimizer
 import domain.model.Package
 import domain.model.Priority
+import domain.model.RegionalZone
 import domain.model.Warehouse
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 
 class KnapsackCargoOptimizerTest {
 
-    private val origin = mockk<Warehouse>()
-    private val destination = mockk<Warehouse>()
+    private val origin = Warehouse(
+        id = "WH-1",
+        name = "Origin Warehouse",
+        regionalZone = RegionalZone.NORTH,
+        latitude = 31.95,
+        longitude = 35.91
+    )
+
+    private val destination = Warehouse(
+        id = "WH-2",
+        name = "Destination Warehouse",
+        regionalZone = RegionalZone.SOUTH,
+        latitude = 31.50,
+        longitude = 34.47
+    )
+
     private val packageA = Package(
         id = "A",
         weight = 6.0,
@@ -43,12 +59,7 @@ class KnapsackCargoOptimizerTest {
         destinationHub = destination
     )
 
-    private val packages = listOf(
-        packageA,
-        packageB,
-        packageC,
-        packageD
-    )
+    private val packages = listOf(packageA, packageB, packageC, packageD)
 
     @Test
     fun `should select package combination with maximum priority without exceeding capacity`() {
@@ -56,7 +67,7 @@ class KnapsackCargoOptimizerTest {
 
         val result = optimizer.optimize(
             packages = packages,
-            maxCapacityKg = 10
+            maxCapacityKg = 10.0
         )
 
         assertThat(result).containsExactly(packageA,packageC)
