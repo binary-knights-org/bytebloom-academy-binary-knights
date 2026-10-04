@@ -24,6 +24,9 @@ sealed class DomainException(message: String) : Exception(message) {
         const val INVALID_LONGITUDE = "Longitude must be between -180.0 and 180.0."
 
         const val INVALID_CARGO = "Invalid input provided for cargo optimization."
+
+        const val INSUFFICIENT_VEHICLE_CAPACITY = "Package weight exceeds available vehicle capacity."
+        const val INVALID_DISPATCH_PRIORITY = "Package priority is not compatible with this dispatch pipeline."
     }
 }
 
@@ -45,3 +48,6 @@ class InvalidLatitudeException(message: String = INVALID_LATITUDE) : DomainExcep
 class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainException(message)
 class InvalidCargoInputException(message: String = INVALID_CARGO) : DomainException(message)
 class IllegalStateTransitionException(message: String) : RuntimeException(message)
+class IllegalStateTransitionException( message: String ) : RuntimeException(message)
+class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
+class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
