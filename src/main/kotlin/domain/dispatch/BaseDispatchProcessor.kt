@@ -5,11 +5,11 @@ import domain.model.Vehicle
 
 abstract class BaseDispatchProcessor {
 
-    fun dispatch(pkg : Package , vehicle: Vehicle){
+    fun dispatch(pkg : Package , vehicle: Vehicle) : DispatchNotification? {
         validateCargo(pkg,vehicle)
         reserveVehicleCapacity(pkg,vehicle)
         updateShipmentState(pkg)
-        notifyDispatchStatus(pkg, vehicle)
+        return notifyDispatchStatus(pkg, vehicle)
     }
 
     protected abstract fun validateCargo(pkg : Package, vehicle : Vehicle)
@@ -18,5 +18,5 @@ abstract class BaseDispatchProcessor {
         pkg.assignToVehicle()
         return pkg
     }
-    protected open fun notifyDispatchStatus(pkg: Package , vehicle: Vehicle){}
+    protected open fun notifyDispatchStatus(pkg: Package, vehicle: Vehicle) : DispatchNotification? = null
 }

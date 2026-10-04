@@ -13,6 +13,7 @@ import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class StandardDispatchProcessorTest {
@@ -73,8 +74,9 @@ class StandardDispatchProcessorTest {
             return pkg
         }
 
-        override fun notifyDispatchStatus(pkg: Package, vehicle: Vehicle) {
+        override fun notifyDispatchStatus(pkg: Package, vehicle: Vehicle): DispatchNotification? {
             callOrder.add("notifyDispatchStatus")
+            return null
         }
     }
 
@@ -207,11 +209,22 @@ class StandardDispatchProcessorTest {
     @Test
     fun `standard dispatch should keep package state as CreatedState when priority is invalid`() {
         val processor = StandardDispatchProcessor()
-        val vehicle = createMockVehicle(maxCapacityKg = 1000.0)
+        val vehicle = createMockVehicle(id = "TRK-1", maxCapacityKg = 1000.0)
         val pkg = createPackage(weight = 10.0, priority = Priority.URGENT)
 
         runCatching { processor.dispatch(pkg, vehicle) }
 
         assertTrue(pkg.getState() is CreatedState)
+    }
+
+    @Test
+    fun `standard dispatch notification should return null on success`() {
+        val processor = StandardDispatchProcessor()
+        val vehicle = createMockVehicle(id = "TRK-1", maxCapacityKg = 1000.0)
+        val pkg = createPackage(weight = 10.0, priority = Priority.STANDARD)
+
+        val notification = processor.dispatch(pkg, vehicle)
+
+        assertNull(notification)
     }
 }

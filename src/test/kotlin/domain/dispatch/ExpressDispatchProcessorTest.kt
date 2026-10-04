@@ -10,9 +10,8 @@ import domain.state.AssignedToVehicleState
 import domain.state.CreatedState
 import io.mockk.every
 import io.mockk.mockk
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
@@ -147,34 +146,24 @@ class ExpressDispatchProcessorTest {
     }
 
     @Test
-    fun `express dispatch notification output should contain package id`() {
+    fun `express dispatch notification should contain correct package id`() {
         val processor = ExpressDispatchProcessor()
         val vehicle = createMockVehicle(id = "TRK-1", maxCapacityKg = 1000.0)
         val pkg = createPackage(weight = 10.0, priority = Priority.URGENT)
 
-        val outputCapture = ByteArrayOutputStream()
-        val originalOut = System.out
-        System.setOut(PrintStream(outputCapture))
+        val notification = processor.dispatch(pkg, vehicle)
 
-        processor.dispatch(pkg, vehicle)
-        System.setOut(originalOut)
-
-        assertTrue(outputCapture.toString().contains(pkg.id))
+        assertEquals(pkg.id, notification?.packageId)
     }
 
     @Test
-    fun `express dispatch notification output should contain vehicle id`() {
+    fun `express dispatch notification should contain correct vehicle id`() {
         val processor = ExpressDispatchProcessor()
         val vehicle = createMockVehicle(id = "TRK-1", maxCapacityKg = 1000.0)
         val pkg = createPackage(weight = 10.0, priority = Priority.URGENT)
 
-        val outputCapture = ByteArrayOutputStream()
-        val originalOut = System.out
-        System.setOut(PrintStream(outputCapture))
+        val notification = processor.dispatch(pkg, vehicle)
 
-        processor.dispatch(pkg, vehicle)
-        System.setOut(originalOut)
-
-        assertTrue(outputCapture.toString().contains("TRK-1"))
+        assertEquals("TRK-1", notification?.vehicleId)
     }
 }
