@@ -59,7 +59,7 @@ class KnapsackCargoOptimizer {
     ) {
         val currentPackage = packages[packageIndex]
         val packageWeight = toCapacityUnits(currentPackage.weight)
-        val packagePriority = priorityValue(currentPackage.priority)
+        val packageValue = priorityValue(currentPackage.priority) * packageWeight
 
         for (currentCapacity in 0..capacity) {
             grid[packageIndex + GRID_SIZE_OFFSET][currentCapacity] =
@@ -67,7 +67,7 @@ class KnapsackCargoOptimizer {
                     previousRow = grid[packageIndex],
                     currentCapacity = currentCapacity,
                     packageWeight = packageWeight,
-                    packagePriority = packagePriority
+                    packagePriority = packageValue
                 )
         }
     }
