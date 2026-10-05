@@ -19,25 +19,32 @@ import domain.repository.PackageRepository
 import domain.repository.RouteRepository
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val repositoryModule = module {
 
-    single<CsvWarehouseDataSource> { CsvWarehouseDataSourceImpl(CsvFileHandler(WAREHOUSES_FILE_PATH)) }
-    single<CsvPackageDataSource> { CsvPackageDataSourceImpl(CsvFileHandler(PACKAGE_FILE_PATH)) }
-    single<CsvVehicleDataSource> { CsvVehicleDataSourceImpl(CsvFileHandler(VEHICLES_FILE_PATH)) }
-    single<CsvRouteDataSource> { CsvRouteDataSourceImpl(CsvFileHandler(ROUTES_FILE_PATH)) }
+    singleOf(::provideCsvWarehouseDataSource) bind CsvWarehouseDataSource::class
+    singleOf(::provideCsvPackageDataSource) bind CsvPackageDataSource::class
+    singleOf(::provideCsvVehicleDataSource) bind CsvVehicleDataSource::class
+    singleOf(::provideCsvRouteDataSource) bind CsvRouteDataSource::class
 
-    single { RemoteDataSources(get(), get(), get(), get()) }
-    single { LocalDataSources(get(), get(), get(), get()) }
+    singleOf(::RemoteDataSources)
+    singleOf(::LocalDataSources)
 
-    single<WarehouseRepository> { WarehouseRepositoryImpl(get(), get()) }
-    single<PackageRepository> { PackageRepositoryImpl(get(), get(), get()) }
-    single<VehicleRepository> { VehicleRepositoryImpl(get(), get(), get()) }
-    single<RouteRepository> { RouteRepositoryImpl(get(), get(), get()) }
+    singleOf(::WarehouseRepositoryImpl) bind WarehouseRepository::class
+    singleOf(::PackageRepositoryImpl) bind PackageRepository::class
+    singleOf(::VehicleRepositoryImpl) bind VehicleRepository::class
+    singleOf(::RouteRepositoryImpl) bind RouteRepository::class
 }
 
 private const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
 private const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
 private const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
 private const val VEHICLES_FILE_PATH = "src/main/resources/fleet.csv"
+
+private fun provideCsvWarehouseDataSource() = CsvWarehouseDataSourceImpl(CsvFileHandler(WAREHOUSES_FILE_PATH))
+private fun provideCsvPackageDataSource() = CsvPackageDataSourceImpl(CsvFileHandler(PACKAGE_FILE_PATH))
+private fun provideCsvVehicleDataSource() = CsvVehicleDataSourceImpl(CsvFileHandler(VEHICLES_FILE_PATH))
+private fun provideCsvRouteDataSource() = CsvRouteDataSourceImpl(CsvFileHandler(ROUTES_FILE_PATH))

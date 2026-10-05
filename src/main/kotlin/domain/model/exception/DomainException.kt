@@ -48,6 +48,5 @@ class InvalidLatitudeException(message: String = INVALID_LATITUDE) : DomainExcep
 class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainException(message)
 class InvalidCargoInputException(message: String = INVALID_CARGO) : DomainException(message)
 class IllegalStateTransitionException(message: String) : RuntimeException(message)
-class IllegalStateTransitionException( message: String ) : RuntimeException(message)
 class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
 class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)

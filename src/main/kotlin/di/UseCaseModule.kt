@@ -39,7 +39,6 @@ import domain.usecase.warehouse.GetOverloadedWarehousesUseCase
 import domain.usecase.warehouse.GetWarehouseLoadFactorUseCase
 import domain.usecase.warehouse.TraceHubLineageUseCase
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -86,9 +85,9 @@ val useCaseModule = module {
     factoryOf(::GetOverloadedWarehousesUseCase)
     factoryOf(::TraceHubLineageUseCase)
 
-    factory { FindOptimalPathUseCase(router = get(named("optimalRouter"))) }
-    factory { FindFewestHopsRouteUseCase(router = get(named("fewestHopsRouter"))) }
-    factory { FindBidirectionalRouteUseCase(router = get(named("bidirectionalRouter"))) }
+    factoryOf(::FindOptimalPathUseCase)
+    factoryOf(::FindFewestHopsRouteUseCase)
+    factoryOf(::FindBidirectionalRouteUseCase)
 
     factoryOf(::CompareRoutingStrategiesUseCase)
 }

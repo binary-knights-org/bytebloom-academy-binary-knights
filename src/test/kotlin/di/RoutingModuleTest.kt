@@ -38,7 +38,7 @@ class RoutingModuleTest : KoinTest {
 
     @Test
     fun `should provide optimal router`() {
-        val router = get<ShortestPathRouter>(named("optimalRouter"))
+        val router = get<ShortestPathRouter>()
         assertThat(router).isInstanceOf(OptimalTransitRouter::class.java)
     }
 

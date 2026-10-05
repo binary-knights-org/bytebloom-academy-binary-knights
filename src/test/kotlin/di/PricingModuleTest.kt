@@ -30,7 +30,7 @@ class PricingModuleTest : KoinTest {
 
     @Test
     fun `should provide eco strategy`() {
-        val strategy = get<DispatchStrategy>(named("ecoStrategy"))
+        val strategy = get<DispatchStrategy>()
         assertThat(strategy).isInstanceOf(EcoStrategy::class.java)
     }
 
