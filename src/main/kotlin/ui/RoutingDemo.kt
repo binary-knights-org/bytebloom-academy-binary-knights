@@ -7,11 +7,10 @@ import domain.repository.WarehouseRepository
 import domain.usecase.routing.FindBidirectionalRouteUseCase
 import domain.usecase.routing.FindFewestHopsRouteUseCase
 import domain.usecase.routing.FindOptimalPathUseCase
-import java.util.*
+import java.util.Locale
 
 internal const val NANOS_TO_MILLIS = 1_000_000.0
 internal const val PERCENTAGE_MULTIPLIER = 100.0
-private const val ROUTER_LABEL_PADDING = 35
 
 internal data class RoutingResult(
     val path: List<Warehouse>?,
@@ -27,15 +26,14 @@ internal suspend fun runRoutingAndComparisonDemos(
     findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
     findBidirectionalRouteUseCase: FindBidirectionalRouteUseCase
 ) {
-    println("\n[PATHFINDING ALGORITHMS]")
-    println("============================================================")
+    println("\n--- PATHFINDING ALGORITHMS ---")
     printRouteDemo(warehouses, findFewestHopsRouteUseCase::invoke, "Least-Hop Router (Standard BFS)")
     printRouteDemo(warehouses, findBidirectionalRouteUseCase::invoke, "Bidirectional BFS Router")
     printRouteDemo(warehouses, findOptimalPathUseCase::invoke, "Optimal Transit Router (Dijkstra)")
     compareRoutingAlgorithms(warehouseRepository, warehouses)
 }
 
-private  fun calculateTotalDistance(path: List<Warehouse>?): Double {
+private fun calculateTotalDistance(path: List<Warehouse>?): Double {
     if (path == null || path.size < 2) return 0.0
     var distance = 0.0
     for (i in 0 until path.size - 1) {
@@ -47,24 +45,24 @@ private  fun calculateTotalDistance(path: List<Warehouse>?): Double {
     return distance
 }
 
-private suspend  fun printRouteDemo(
+private suspend fun printRouteDemo(
     graph: List<Warehouse>,
-    findPath: suspend  (Warehouse, Warehouse) -> List<Warehouse>?,
+    findPath: suspend (Warehouse, Warehouse) -> List<Warehouse>?,
     label: String
 ) {
     val origin = graph.firstOrNull() ?: return
     val destination = graph.lastOrNull() ?: return
 
     val path = findPath(origin, destination)
-    print(" ${label.padEnd(ROUTER_LABEL_PADDING)} -> ")
-
-    if (path == null) println("No Path") else {
+    if (path == null) {
+        println("  %-35s -> No Path".format(label))
+    } else {
         val distance = calculateTotalDistance(path)
-        println("${path.size - 1} Hops | %.2f km".format(Locale.US, distance))
+        println("  %-35s -> %d Hops | %.2f km".format(Locale.US, label, path.size - 1, distance))
     }
 }
 
-private suspend  fun runStandardBfs(
+private suspend fun runStandardBfs(
     warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
@@ -80,7 +78,7 @@ private suspend  fun runStandardBfs(
     )
 }
 
-private suspend  fun runBidirectionalBfs(
+private suspend fun runBidirectionalBfs(
     warehouseRepository: WarehouseRepository,
     origin: Warehouse,
     destination: Warehouse
@@ -96,7 +94,7 @@ private suspend  fun runBidirectionalBfs(
     )
 }
 
-private suspend  fun compareRoutingAlgorithms(
+private suspend fun compareRoutingAlgorithms(
     warehouseRepository: WarehouseRepository,
     graph: List<Warehouse>
 ) {
@@ -114,39 +112,25 @@ private fun printComparisonReport(
     bfsResult: RoutingResult,
     bidirectionalResult: RoutingResult
 ) {
-    println("\n[ALGORITHM EFFICIENCY BENCHMARK]")
-    println("------------------------------------------------------------")
-    println(" Route: ${origin.id} -> ${destination.id}")
-    println("------------------------------------------------------------")
-
-    println("%-20s | %-6s | %-12s | %-10s".format("Algorithm", "Hops", "Evaluated", "Time (ms)"))
-    println("----------------------------------------------------------")
+    println("\n--- ALGORITHM EFFICIENCY BENCHMARK ---")
+    println("  Route: ${origin.id} -> ${destination.id}")
+    println("  %-20s | %-6s | %-12s | %-10s".format("Algorithm", "Hops", "Evaluated", "Time (ms)"))
+    println("  --------------------------------------------------")
     printRouterReport("Standard BFS", bfsResult)
     printRouterReport("Bidirectional BFS", bidirectionalResult)
-    println("------------------------------------------------------------")
+    println("  --------------------------------------------------")
     printEfficiencyComparison(bfsResult.evaluatedWarehouses, bidirectionalResult.evaluatedWarehouses)
-    println("============================================================")
 }
 
-private fun printRouterReport(
-    name: String,
-    result: RoutingResult
-) {
-
-    val hops =
-        if (result.path != null) (result.path.size - 1).toString()
-        else "N/A"
+private fun printRouterReport(name: String, result: RoutingResult) {
+    val hops = if (result.path != null) (result.path.size - 1).toString() else "N/A"
     val evaluated = result.evaluatedWarehouses.toString()
     val time = "%.4f".format(Locale.US, result.executionTime)
-
-    println("%-20s | %-6s | %-12s | %-10s".format(name, hops, evaluated, time))
+    println("  %-20s | %-6s | %-12s | %-10s".format(name, hops, evaluated, time))
 }
 
-private fun printEfficiencyComparison(
-    bfsEvaluated: Int,
-    bidirectionalEvaluated: Int
-) {
+private fun printEfficiencyComparison(bfsEvaluated: Int, bidirectionalEvaluated: Int) {
     if (bfsEvaluated == 0) return
     val improvement = (bfsEvaluated - bidirectionalEvaluated) * PERCENTAGE_MULTIPLIER / bfsEvaluated
-    println(" RESULT: Bidirectional BFS evaluated %.2f%% fewer nodes!".format(Locale.US, improvement))
+    println("  Result: Bidirectional BFS evaluated %.2f%% fewer nodes.".format(Locale.US, improvement))
 }

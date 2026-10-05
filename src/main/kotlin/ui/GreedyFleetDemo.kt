@@ -3,13 +3,14 @@ package ui
 import domain.algorithm.greedy.GreedyFleetDispatcher
 import domain.model.RegionalZone
 import domain.model.Vehicle
-import domain.model.assignment.VehicleCoverage
 import domain.model.Warehouse
+import domain.model.assignment.VehicleCoverage
 
 fun runGreedyFleetDemo(vehicles: List<Vehicle>) {
     val vehicleCoverages = vehicles.map { vehicle ->
         VehicleCoverage(
-            vehicle = vehicle, coveredZones = setOf(vehicle.currentHub.regionalZone)
+            vehicle = vehicle,
+            coveredZones = setOf(vehicle.currentHub.regionalZone)
         )
     }
 
@@ -21,24 +22,27 @@ fun runGreedyFleetDemo(vehicles: List<Vehicle>) {
             RegionalZone.WEST
         )
 
-        val dispatchedVehicles = dispatcher.dispatch(targetZones = targetZones,
-            vehicleCoverages = vehicleCoverages)
+        val dispatchedVehicles = dispatcher.dispatch(
+            targetZones = targetZones,
+            vehicleCoverages = vehicleCoverages
+        )
 
         val coveredZones = dispatchedVehicles.flatMap { it.coveredZones }.toSet()
         val uncoveredZones = targetZones - coveredZones
 
-        println("\n[GREEDY FLEET DISPATCH]")
-        println("Target zones: $targetZones")
-        println("Selected vehicles: ${dispatchedVehicles.size}")
-        println("Covered zones: $coveredZones")
-        println("Uncovered zones: $uncoveredZones")
+        println("\n--- GREEDY FLEET DISPATCH ---")
+        println("  Target zones    : $targetZones")
+        println("  Selected vehicles: ${dispatchedVehicles.size}")
+        println("  Covered zones   : $coveredZones")
+        println("  Uncovered zones : $uncoveredZones")
     }.onFailure { error ->
-        println("\n[GREEDY FLEET DISPATCH ERROR]")
-        println("Fleet dispatch failed: ${error.message}")
+        println("\n--- GREEDY FLEET DISPATCH ERROR ---")
+        println("  Fleet dispatch failed: ${error.message}")
     }
 }
 
 fun runInvalidInputDemo() {
+    println("\n--- INVALID INPUT VALIDATION TEST ---")
     runCatching {
         Warehouse(
             id = "invalid",
@@ -48,11 +52,9 @@ fun runInvalidInputDemo() {
             longitude = -300.0
         )
     }.onSuccess {
-        println("\n[INVALID INPUT TEST]")
-        println("Unexpected: invalid warehouse was accepted.")
+        println("  Unexpected: Invalid warehouse was accepted.")
     }.onFailure { error ->
-        println("\n[INVALID INPUT TEST]")
-        println("Invalid warehouse rejected successfully.")
-        println("Validation details: ${error.message}")
+        println("  Invalid warehouse rejected successfully.")
+        println("  Validation details: ${error.message}")
     }
 }

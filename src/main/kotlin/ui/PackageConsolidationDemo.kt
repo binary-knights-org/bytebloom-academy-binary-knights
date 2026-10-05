@@ -9,23 +9,20 @@ internal suspend fun runPackageConsolidationDemo(
 ) {
     val assignments = assignPackagesToVehicleUseCase()
 
-    println("\n[PACKAGE CONSOLIDATION]")
-    println("------------------------------------------------------------")
+    println("\n--- PACKAGE CONSOLIDATION ---")
 
     if (assignments.isEmpty()) {
-        println(" No packages were assigned to available vehicles.")
-        println("------------------------------------------------------------")
+        println("  No packages were assigned to available vehicles.")
         return
     }
-    println(" Packages assigned to ${assignments.size} vehicles.")
 
+    println("  Packages assigned to ${assignments.size} vehicles.")
     assignments.take(DISPLAY_LIMIT).forEachIndexed { index, assignment ->
-        println(" ${index + 1}. Vehicle: ${assignment.vehicle.id}")
-        println("    Packages: ${assignment.packages.joinToString { it.id }}")
+        val packageIds = assignment.packages.joinToString { it.id }
+        println("  ${index + 1}. Vehicle: ${assignment.vehicle.id} -> Packages: [$packageIds]")
     }
 
     if (assignments.size > DISPLAY_LIMIT) {
-        println(" ... and ${assignments.size - DISPLAY_LIMIT} more.")
+        println("  ... and ${assignments.size - DISPLAY_LIMIT} more.")
     }
-    println("------------------------------------------------------------")
 }
