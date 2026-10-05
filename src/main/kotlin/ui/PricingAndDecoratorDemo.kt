@@ -3,22 +3,22 @@ package ui
 import domain.decorator.ColdChainDecorator
 import domain.decorator.ExpressInsuranceDecorator
 import domain.decorator.FragileHandlingDecorator
-import domain.model.component.BasePackageComponent
 import domain.model.Package
-import domain.model.component.PackageComponent
 import domain.model.Route
 import domain.model.Warehouse
+import domain.model.assignment.PricingRequest
+import domain.model.component.BasePackageComponent
+import domain.model.component.PackageComponent
 import domain.pricing.DispatchStrategy
 import domain.pricing.EcoStrategy
 import domain.pricing.ExpressStrategy
 import domain.pricing.FragileStrategy
 import domain.usecase.analytics.CalculatePricingUseCase
-import domain.model.assignment.PricingRequest
-
-private const val LABEL_PADDING = 12
+import java.util.Locale
 
 internal fun runPricingAndDecoratorDemos(
-    warehouses: List<Warehouse>, calculatePricingUseCase: CalculatePricingUseCase
+    warehouses: List<Warehouse>,
+    calculatePricingUseCase: CalculatePricingUseCase
 ) {
     val firstWarehouse = warehouses.firstOrNull()
     val firstRoute = firstWarehouse?.outgoingRoutes?.firstOrNull()
@@ -26,45 +26,36 @@ internal fun runPricingAndDecoratorDemos(
 
     if (firstRoute == null || firstPackage == null) return
 
-    println("\n[DYNAMIC PRICING ENGINE]")
-    println("------------------------------------------------------------")
+    println("\n--- DYNAMIC PRICING ENGINE ---")
+    printStrategyResult("Eco", firstPackage, firstRoute, EcoStrategy(), calculatePricingUseCase)
+    printStrategyResult("Express", firstPackage, firstRoute, ExpressStrategy(), calculatePricingUseCase)
+    printStrategyResult("Fragile", firstPackage, firstRoute, FragileStrategy(), calculatePricingUseCase)
 
-    printStrategyResult(
-        "Eco", firstPackage, firstRoute, EcoStrategy(), calculatePricingUseCase
-    )
-
-    printStrategyResult(
-        "Express", firstPackage, firstRoute, ExpressStrategy(), calculatePricingUseCase
-    )
-
-    printStrategyResult(
-        "Fragile", firstPackage, firstRoute, FragileStrategy(), calculatePricingUseCase
-    )
-
-    runDecoratorDemo(
-        firstPackage, firstRoute, calculatePricingUseCase
-    )
+    runDecoratorDemo(firstPackage, firstRoute, calculatePricingUseCase)
 }
 
 private fun printStrategyResult(
-    label: String, pkg: Package, route: Route,
-    strategy: DispatchStrategy, useCase: CalculatePricingUseCase
+    label: String,
+    pkg: Package,
+    route: Route,
+    strategy: DispatchStrategy,
+    useCase: CalculatePricingUseCase
 ) {
     val component = BasePackageComponent()
-
     val request = PricingRequest(
-        pkg = pkg, component = component, route = route, strategy = strategy
+        pkg = pkg,
+        component = component,
+        route = route,
+        strategy = strategy
     )
-
     val cost = useCase(request)
-
-    println(
-        " ${label.padEnd(LABEL_PADDING)} | Final Cost: $$cost"
-    )
+    println("  %-10s | Final Cost: $%.2f".format(Locale.US, label, cost))
 }
 
 private fun runDecoratorDemo(
-    pkg: Package, route: Route, calculatePricingUseCase: CalculatePricingUseCase
+    pkg: Package,
+    route: Route,
+    calculatePricingUseCase: CalculatePricingUseCase
 ) {
     val strategy = ExpressStrategy()
     val baseComponent = BasePackageComponent()
@@ -73,29 +64,16 @@ private fun runDecoratorDemo(
     val coldChain = ColdChainDecorator(insured)
     val fragile = FragileHandlingDecorator(coldChain)
 
-    val baseCost = calculateCost(
-        pkg, route, baseComponent, strategy, calculatePricingUseCase
-    )
+    val baseCost = calculateCost(pkg, route, baseComponent, strategy, calculatePricingUseCase)
+    val insuredCost = calculateCost(pkg, route, insured, strategy, calculatePricingUseCase)
+    val coldChainCost = calculateCost(pkg, route, coldChain, strategy, calculatePricingUseCase)
+    val fragileCost = calculateCost(pkg, route, fragile, strategy, calculatePricingUseCase)
 
-    val insuredCost = calculateCost(
-        pkg, route, insured, strategy, calculatePricingUseCase
-    )
-
-    val coldChainCost = calculateCost(
-        pkg, route, coldChain, strategy, calculatePricingUseCase
-    )
-
-    val fragileCost = calculateCost(
-        pkg, route, fragile, strategy, calculatePricingUseCase
-    )
-
-    println("\n[DECORATOR PATTERN: VALUE-ADDED SERVICES]")
-    println("------------------------------------------------------------")
-    println(" 1. Base Express Cost      : $$baseCost")
-    println(" 2. + Insurance            : $$insuredCost")
-    println(" 3. + Cold Chain           : $$coldChainCost")
-    println(" 4. + Fragile Handling     : $$fragileCost")
-    println("------------------------------------------------------------")
+    println("\n--- DECORATOR PATTERN: VALUE-ADDED SERVICES ---")
+    println("  1. Base Express Cost  : $%.2f".format(Locale.US, baseCost))
+    println("  2. + Insurance        : $%.2f".format(Locale.US, insuredCost))
+    println("  3. + Cold Chain       : $%.2f".format(Locale.US, coldChainCost))
+    println("  4. + Fragile Handling : $%.2f".format(Locale.US, fragileCost))
 }
 
 private fun calculateCost(

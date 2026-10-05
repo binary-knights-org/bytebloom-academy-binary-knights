@@ -8,108 +8,69 @@ import domain.repository.RouteRepository
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
 
-internal const val PACKAGE_FILE_PATH = "src/main/resources/packages.csv"
-internal const val WAREHOUSES_FILE_PATH = "src/main/resources/warehouses.csv"
-internal const val ROUTES_FILE_PATH = "src/main/resources/routes.csv"
-internal const val VEHICLES_FILE_PATH = "src/main/resources/fleet.csv"
 internal const val TOP_SHIPMENTS_LIMIT = 3
 
-private const val PAD_SMALL = 4
-private const val PAD_MEDIUM = 5
-private const val PAD_LARGE = 8
 private const val QUEUE_DISPLAY_LIMIT = 5
 
-internal suspend  fun printParsingReport(
+internal suspend fun printParsingReport(
     vehicleRepository: VehicleRepository,
     warehouseRepository: WarehouseRepository,
     packageRepository: PackageRepository,
     routeRepository: RouteRepository
 ) {
-    println("\n[DATA PARSING REPORT]")
-    println("------------------------------------------------------------")
-    println(
-        " Fleet       : ${
-            vehicleRepository.getAll().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
-    println(
-        " Packages    : ${
-            packageRepository.getAll().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
-    println(
-        " Routes      : ${
-            routeRepository.getAll().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
-    println(
-        " Warehouses  : ${
-            warehouseRepository.getAll().size.toString().padEnd(PAD_SMALL)
-        } records parsed."
-    )
-    println("------------------------------------------------------------")
+    println("\n--- DATA PARSING REPORT ---")
+    println("  Fleet      : ${vehicleRepository.getAll().size} records parsed.")
+    println("  Packages   : ${packageRepository.getAll().size} records parsed.")
+    println("  Routes     : ${routeRepository.getAll().size} records parsed.")
+    println("  Warehouses : ${warehouseRepository.getAll().size} records parsed.")
 }
 
-internal suspend  fun buildDomainGraph(
-    warehouseRepository: WarehouseRepository,
+internal suspend fun buildDomainGraph(
+    warehouseRepository: WarehouseRepository
 ): List<Warehouse> {
     val graph = warehouseRepository.getAll()
     printGraphSummary(graph)
     return graph
 }
 
-private fun printGraphSummary(
-    warehouses: List<Warehouse>
-) {
-    println("\n[DOMAIN GRAPH SUMMARY]")
-    println("------------------------------------------------------------")
-    println("Total Connected Hubs: ${warehouses.size}")
+private fun printGraphSummary(warehouses: List<Warehouse>) {
+    println("\n--- DOMAIN GRAPH SUMMARY ---")
+    println("  Total Connected Hubs: ${warehouses.size}")
     val firstHub = warehouses.firstOrNull()
     if (firstHub != null) {
-        println("\nSample Hub: ${firstHub.id} (${firstHub.name}) | Zone: ${firstHub.regionalZone}")
-        println("   -->  Stationed Vehicles : ${firstHub.stationedVehicles.size}")
-        println("   -->  Cargo Queue        : ${firstHub.cargoQueue.size}")
-        println("   -->  Outgoing Routes    : ${firstHub.outgoingRoutes.size}")
+        println("  Sample Hub: ${firstHub.id} (${firstHub.name}) | Zone: ${firstHub.regionalZone}")
+        println("    -> Stationed Vehicles : ${firstHub.stationedVehicles.size}")
+        println("    -> Cargo Queue        : ${firstHub.cargoQueue.size}")
+        println("    -> Outgoing Routes    : ${firstHub.outgoingRoutes.size}")
     }
-    println("------------------------------------------------------------")
 }
 
-internal suspend  fun runCargoDemos(
-    packageRepository: PackageRepository, warehouses: List<Warehouse>
+internal suspend fun runCargoDemos(
+    packageRepository: PackageRepository,
+    warehouses: List<Warehouse>
 ) {
     val sortedPackages = sortPackagesByImportance(packageRepository.getAll())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(warehouses)
 }
 
-private fun printTopShipments(
-    packages: List<Package>, limit: Int
-) {
-    println("\n[TOP $limit PRIORITY SHIPMENTS]")
-    println("------------------------------------------------------------")
+private fun printTopShipments(packages: List<Package>, limit: Int) {
+    println("\n--- TOP $limit PRIORITY SHIPMENTS ---")
     packages.take(limit).forEachIndexed { index, pkg ->
-        val weightFormatted = "${pkg.weight} kg".padEnd(PAD_LARGE)
-        println(
-            " ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id.padEnd(PAD_MEDIUM)}"
-                    + " | $weightFormatted | ${pkg.priority}"
-        )
+        println("  ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id} | ${pkg.weight} kg | Priority: ${pkg.priority}")
     }
 }
 
-private fun printSortedCargoQueueForFirstWarehouse(
-    warehouses: List<Warehouse>
-) {
+private fun printSortedCargoQueueForFirstWarehouse(warehouses: List<Warehouse>) {
     val warehouse = warehouses.firstOrNull() ?: return
     warehouse.sortCargoQueueByWeightDescending()
 
-    println("\n[SORTED CARGO QUEUE - DESCENDING BY WEIGHT]")
-    println("------------------------------------------------------------")
-    println(" Warehouse: ${warehouse.id} (${warehouse.name})")
-    warehouse.cargoQueue.take(PAD_MEDIUM).forEach { pkg ->
-        println("   [${pkg.id}] -> ${pkg.weight} kg")
+    println("\n--- SORTED CARGO QUEUE (DESCENDING BY WEIGHT) ---")
+    println("  Warehouse: ${warehouse.id} (${warehouse.name})")
+    warehouse.cargoQueue.take(QUEUE_DISPLAY_LIMIT).forEach { pkg ->
+        println("    [${pkg.id}] -> ${pkg.weight} kg")
     }
-    if (warehouse.cargoQueue.size > PAD_MEDIUM)
-
-        println("   ... and ${warehouse.cargoQueue.size - QUEUE_DISPLAY_LIMIT} more.")
-    println("------------------------------------------------------------")
+    if (warehouse.cargoQueue.size > QUEUE_DISPLAY_LIMIT) {
+        println("    ... and ${warehouse.cargoQueue.size - QUEUE_DISPLAY_LIMIT} more.")
+    }
 }
