@@ -6,21 +6,17 @@ import di.repositoryModule
 import di.routingModule
 import di.useCaseModule
 import di.validatorModule
-
 import domain.repository.PackageRepository
 import domain.repository.RouteRepository
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
-
 import domain.usecase.analytics.CalculatePricingUseCase
 import domain.usecase.routing.FindBidirectionalRouteUseCase
 import domain.usecase.routing.FindFewestHopsRouteUseCase
 import domain.usecase.routing.FindOptimalPathUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
-
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
-
 
 fun main() = runBlocking {
     val koin = startKoin {
@@ -66,30 +62,19 @@ fun main() = runBlocking {
     runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
     runGreedyFleetDemo(vehicles)
     runInvalidInputDemo()
+    runKnapsackDispatchDemo(warehouses)
+
     printSystemFooter()
 }
 
 private fun printSystemHeader() {
-    println(
-        """
-        
-    ========================================================================
-                                                                          
-              BYTEBLOOM ACADEMY: LOGISTICS & ROUTING ENGINE        
-                                                                          
-    ========================================================================
-    """.trimIndent()
-    )
+    println("\n============================================================")
+    println("      BYTEBLOOM ACADEMY: LOGISTICS & ROUTING ENGINE         ")
+    println("============================================================")
 }
 
 private fun printSystemFooter() {
-    println(
-        """
-        
-    ========================================================================
-                   SYSTEM EXECUTION COMPLETED SUCCESSFULLY              
-    ========================================================================
-    
-    """.trimIndent()
-    )
+    println("\n============================================================")
+    println("          SYSTEM EXECUTION COMPLETED SUCCESSFULLY           ")
+    println("============================================================\n")
 }
