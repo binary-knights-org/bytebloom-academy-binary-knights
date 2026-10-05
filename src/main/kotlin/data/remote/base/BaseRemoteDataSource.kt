@@ -23,7 +23,9 @@ abstract class BaseRemoteDataSource {
         var delayMs = initialDelayMs
 
         for (attempt in 1..(maxRetries + 1)) {
-            val result = runCatching { block() }
+            val result = runCatching {
+                block()
+            }
 
             if (result.isSuccess) {
                 logSuccess(attempt)
@@ -44,16 +46,27 @@ abstract class BaseRemoteDataSource {
         error("Unreachable")
     }
 
-    private fun shouldAbortRetry(error: Throwable, attempt: Int, maxRetries: Int): Boolean {
+    private fun shouldAbortRetry(
+        error: Throwable,
+        attempt: Int,
+        maxRetries: Int
+    ): Boolean {
         return when {
             !isRetryable(error) -> {
                 logger.warning(
-                    "[Telemetry] Attempt Number: $attempt | Non-retryable error: " +
-                            "${error::class.simpleName} | Eventual Outcome: ABORTED")
+                    "[Telemetry] Attempt Number: $attempt | " +
+                            "Non-retryable error: ${error::class.simpleName} | " +
+                            "Eventual Outcome: ABORTED"
+                )
                 true
             }
             attempt > maxRetries -> {
-                logger.severe("[Telemetry] Attempt Number: $attempt | Max retries reached | Eventual Outcome: FAILED")
+                logger.severe(
+                    "[Telemetry] Attempt Number: $attempt | " +
+                            "Max retries reached | " +
+                            "Eventual Outcome: FAILED"
+                )
+
                 true
             }
             else -> false
@@ -61,11 +74,20 @@ abstract class BaseRemoteDataSource {
     }
 
     private fun logSuccess(attempt: Int) {
-        logger.info("[Telemetry] Attempt Number: $attempt | Eventual Outcome: SUCCESS")
+        logger.info(
+            "[Telemetry] Attempt Number: $attempt | " +
+                    "Eventual Outcome: SUCCESS"
+        )
     }
 
-    private fun logRetryAttempt(attempt: Int, delayMs: Long) {
-        logger.info("[Telemetry] Attempt Number: $attempt failed. Calculated backoff delay: ${delayMs}ms. Retrying...")
+    private fun logRetryAttempt(
+        attempt: Int,
+        delayMs: Long
+    ) {
+        logger.info(
+            "[Telemetry] Attempt Number: $attempt failed. " +
+                    "Calculated backoff delay: ${delayMs}ms. Retrying..."
+        )
     }
 
     private fun isRetryable(throwable: Throwable): Boolean {
