@@ -57,7 +57,8 @@ internal suspend fun runCargoDemos(
 private fun printTopShipments(packages: List<Package>, limit: Int) {
     println("\n--- TOP $limit PRIORITY SHIPMENTS ---")
     packages.take(limit).forEachIndexed { index, pkg ->
-        println("  ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id} | ${pkg.weight} kg | Priority: ${pkg.priority}")
+        println("  ${index + 1}. [${pkg.id}] To: ${pkg.destinationHub.id} " +
+                "| ${pkg.weight} kg | Priority: ${pkg.priority}")
     }
 }
 
