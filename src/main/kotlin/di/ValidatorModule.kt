@@ -8,19 +8,20 @@ import domain.validator.vehicle.CreateVehicleValidator
 import domain.validator.vehicle.UpdateVehicleValidator
 import domain.validator.warehouse.CreateWarehouseValidator
 import domain.validator.warehouse.UpdateWarehouseValidator
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val validatorModule = module {
 
-    single { CreatePackageValidator() }
-    single { UpdatePackageValidator() }
+    singleOf(::CreatePackageValidator)
+    singleOf(::UpdatePackageValidator)
 
-    single { CreateRouteValidator() }
-    single { UpdateRouteValidator() }
+    singleOf(::CreateRouteValidator)
+    singleOf(::UpdateRouteValidator)
 
-    single { CreateVehicleValidator() }
-    single { UpdateVehicleValidator() }
+    singleOf(::CreateVehicleValidator)
+    singleOf(::UpdateVehicleValidator)
 
-    single { CreateWarehouseValidator() }
-    single { UpdateWarehouseValidator() }
+    singleOf(::CreateWarehouseValidator)
+    singleOf(::UpdateWarehouseValidator)
 }
