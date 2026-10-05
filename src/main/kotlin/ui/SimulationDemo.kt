@@ -26,7 +26,9 @@ internal fun runBreakdownSimulationDemo() {
     println("\n--- CONSISTENT HASHING & FAILOVER SIMULATION ---")
     printAssignments(result.before, "Initial Assignment (System Healthy)")
 
-    println("\n  ALERT: Vehicle ${result.breakdownEvent.brokenVehicle.id} (Slot ${result.breakdownEvent.slot}) went offline!")
+    val brokenId = result.breakdownEvent.brokenVehicle.id
+    val slot = result.breakdownEvent.slot
+    println("\n  ALERT: Vehicle $brokenId (Slot $slot) went offline!")
     println("  Initiating failover protocol...\n")
 
     printAssignments(result.after, "Re-routing Assignment (After Breakdown)")
@@ -50,7 +52,10 @@ private fun printVerificationReport(report: VerificationReport) {
     println("\n--- FAILOVER VERIFICATION REPORT ---")
     println("  Packages Migrated: ${report.migratedPackageIds.size}")
     if (report.migratedPackageIds.isNotEmpty()) {
-        println("  Packages safely moved from ${report.brokenVehicleId} to fallback ${report.fallbackVehicleId}.")
+        val broken = report.brokenVehicleId
+        val fallback = report.fallbackVehicleId
+        println("  Packages safely moved from $broken to fallback $fallback.")
+
         val movedList = report.migratedPackageIds.take(MIGRATED_DISPLAY_LIMIT).joinToString(", ")
         val extra = if (report.migratedPackageIds.size > MIGRATED_DISPLAY_LIMIT) "..." else ""
         println("  Moved IDs: $movedList$extra")
@@ -94,13 +99,13 @@ suspend fun printCommandPatternTest(
         dispatchVehicleUseCase, firstWarehouse, firstVehicle, secondVehicle, thirdVehicle
     )
 
-    printCommandExecution(commandInvoker, dispatch1, firstWarehouse, firstVehicle, "Command 1")
-    printCommandExecution(commandInvoker, dispatch2, firstWarehouse, secondVehicle, "Command 2")
-    printUndo(commandInvoker, firstWarehouse, secondVehicle, "Undo Command 2")
-    printUndo(commandInvoker, firstWarehouse, firstVehicle, "Undo Command 1")
-    printRedo(commandInvoker, firstWarehouse, firstVehicle, "Redo Command 1")
-    printRedo(commandInvoker, firstWarehouse, secondVehicle, "Redo Command 2")
-    printHistoryClearance(commandInvoker, dispatch3, firstWarehouse, thirdVehicle)
+    printCommandExecution(commandInvoker, dispatch1, firstWarehouse, "Command 1")
+    printCommandExecution(commandInvoker, dispatch2, firstWarehouse, "Command 2")
+    printUndo(commandInvoker, firstWarehouse, "Undo Command 2")
+    printUndo(commandInvoker, firstWarehouse, "Undo Command 1")
+    printRedo(commandInvoker, firstWarehouse, "Redo Command 1")
+    printRedo(commandInvoker, firstWarehouse, "Redo Command 2")
+    printHistoryClearance(commandInvoker, dispatch3)
 }
 
 private fun createDispatchCommands(
@@ -117,33 +122,42 @@ private suspend fun printCommandExecution(
     commandInvoker: CommandInvoker,
     command: DispatchVehicleCommand,
     warehouse: Warehouse,
-    vehicle: Vehicle,
     title: String
 ) {
     val executed = commandInvoker.executeCommand(command)
-    println("  $title -> Executed: $executed | Queue: ${warehouse.cargoQueue.size} | Undo Stack: ${commandInvoker.undoHistorySize} | Redo Stack: ${commandInvoker.redoHistorySize}")
+    val undo = commandInvoker.undoHistorySize
+    val redo = commandInvoker.redoHistorySize
+    println("  $title -> Executed: $executed | Queue: ${warehouse.cargoQueue.size} " +
+            "| Undo Stack: $undo | Redo Stack: $redo")
 }
 
 private suspend fun printUndo(
-    commandInvoker: CommandInvoker, warehouse: Warehouse, vehicle: Vehicle, title: String
+    commandInvoker: CommandInvoker, warehouse: Warehouse, title: String
 ) {
     val undone = commandInvoker.undo()
-    println("  $title -> Undone: $undone | Queue: ${warehouse.cargoQueue.size} | Undo Stack: ${commandInvoker.undoHistorySize} | Redo Stack: ${commandInvoker.redoHistorySize}")
+    val undo = commandInvoker.undoHistorySize
+    val redo = commandInvoker.redoHistorySize
+    println("  $title -> Undone: $undone | Queue: ${warehouse.cargoQueue.size} " +
+            "| Undo Stack: $undo | Redo Stack: $redo")
 }
 
 private suspend fun printRedo(
-    commandInvoker: CommandInvoker, warehouse: Warehouse, vehicle: Vehicle, title: String
+    commandInvoker: CommandInvoker, warehouse: Warehouse, title: String
 ) {
     val redone = commandInvoker.redo()
-    println("  $title -> Redone: $redone | Queue: ${warehouse.cargoQueue.size} | Undo Stack: ${commandInvoker.undoHistorySize} | Redo Stack: ${commandInvoker.redoHistorySize}")
+    val undo = commandInvoker.undoHistorySize
+    val redo = commandInvoker.redoHistorySize
+    println("  $title -> Redone: $redone | Queue: ${warehouse.cargoQueue.size} " +
+            "| Undo Stack: $undo | Redo Stack: $redo")
 }
 
 private suspend fun printHistoryClearance(
-    commandInvoker: CommandInvoker, command: DispatchVehicleCommand, warehouse: Warehouse, vehicle: Vehicle
+    commandInvoker: CommandInvoker, command: DispatchVehicleCommand
 ) {
     commandInvoker.undo()
     val executed = commandInvoker.executeCommand(command)
-    println("  New Command Execution -> Executed: $executed | Redo Cleared: ${commandInvoker.redoHistorySize == 0}")
+    val cleared = commandInvoker.redoHistorySize == 0
+    println("  New Command Execution -> Executed: $executed | Redo Cleared: $cleared")
 }
 
 suspend fun runSimulationDemos(
