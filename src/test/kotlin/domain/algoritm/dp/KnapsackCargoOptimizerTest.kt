@@ -60,6 +60,24 @@ class KnapsackCargoOptimizerTest {
         destinationHub = destination
     )
 
+    private val packageF = Package(
+        id = "F",
+        weight = 2.0,
+        priority = Priority.URGENT,
+        originHub = origin,
+        destinationHub = destination,
+        volumeM3 = 8.0
+    )
+
+    private val packageE = Package(
+        id = "E",
+        weight = 8.0,
+        priority = Priority.URGENT,
+        originHub = origin,
+        destinationHub = destination,
+        volumeM3 = 2.0
+    )
+
     private val packages = listOf(packageA, packageB, packageC, packageD)
 
     @Test
@@ -70,5 +88,27 @@ class KnapsackCargoOptimizerTest {
         )
 
         assertThat(result).containsExactly(packageA,packageC)
+    }
+
+    @Test
+    fun `should select  package E when  package F exceeds volume constraint`() {
+        val result = knapsackCargoOptimizer.optimize2D(
+            packages = listOf(packageF, packageE),
+            maxCapacityKg = 10.0,
+            maxVolumeM3 = 8.0
+        )
+
+        assertThat(result).containsExactly(packageE)
+    }
+
+    @Test
+    fun `should select both packages when only weight constraint is applied`() {
+        val packages = listOf(packageF, packageE)
+        val weightOnlyResult = knapsackCargoOptimizer(
+            packages = packages,
+            maxCapacityKg = 10.0
+        )
+
+        assertThat(weightOnlyResult).containsExactly(packageF, packageE)
     }
 }
