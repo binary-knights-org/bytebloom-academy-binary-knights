@@ -154,12 +154,13 @@ class KnapsackCargoOptimizer {
         maxCapacityKg: Double,
         maxVolumeM3: Double
     ) {
-        if (maxCapacityKg < MIN_CAPACITY_KG || maxVolumeM3 < MIN_VOLUME_M3) { throw InvalidCargoInputException() }
-        if (packages.any { it.weight < MIN_PACKAGE_WEIGHT_KG }) { throw InvalidCargoInputException() }
-        if (packages.any { it.volumeM3 == null }) { throw InvalidCargoInputException() }
+        if (maxCapacityKg < MIN_CAPACITY_KG || maxVolumeM3 < MIN_VOLUME_M3
+        ) { throw InvalidCargoInputException() }
+
         if (
-            packages.any {
-                val volume = it.volumeM3
+            packages.any { it.weight < MIN_PACKAGE_WEIGHT_KG } ||
+            packages.any { it.volumeM3 == null } ||
+            packages.any { val volume = it.volumeM3
                 volume != null && volume < MIN_PACKAGE_VOLUME_M3
             }
         ) { throw InvalidCargoInputException() }
