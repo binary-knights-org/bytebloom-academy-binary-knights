@@ -10,12 +10,14 @@ sealed class DomainException(message: String) : Exception(message) {
         const val NO_UPDATE_FIELDS = "At least one field must be provided for update."
 
         const val INVALID_PACKAGE_WEIGHT = "Weight must be greater than 0.0"
+        const val INVALID_PACKAGE_VOLUME = "volumeM3 must be greater than 0.0"
         const val SAME_ORIGIN_DESTINATION = "Destination hub must be different from origin hub."
 
         const val INVALID_ROUTE_DISTANCE = "distanceKm must be greater than 0.0."
         const val INVALID_ROUTE_DELAY = "typicalDelayMin must not be negative."
 
         const val INVALID_VEHICLE_CAPACITY = "maxCapacityKg must be greater than 0.0"
+        const val INVALID_VEHICLE_VOLUME_CAPACITY = "maxVolumeM3 must be greater than 0.0"
         const val INVALID_VEHICLE_COST = "costPerKm must be greater than 0.0"
 
         const val BLANK_WAREHOUSE_NAME = "Warehouse name cannot be blank."
@@ -36,17 +38,18 @@ class EntityValidationException(val violations: List<ValidationError>) :
 class ResourceNotFoundException(message: String = RESOURCE_NOT_FOUND) : DomainException(message)
 class DataUnavailableException(message: String = DATA_UNAVAILABLE) : DomainException(message)
 class OperationFailedException(message: String = OPERATION_FAILED) : DomainException(message)
-
+class InvalidCargoInputException(message: String = INVALID_CARGO) : DomainException(message)
 class InvalidPackageWeightException(message: String = INVALID_PACKAGE_WEIGHT) : DomainException(message)
+class InvalidPackageVolumeException(message: String = INVALID_PACKAGE_VOLUME) : DomainException(message)
 class SameOriginAndDestinationException(message: String = SAME_ORIGIN_DESTINATION) : DomainException(message)
 class InvalidRouteDistanceException(message: String = INVALID_ROUTE_DISTANCE) : DomainException(message)
 class InvalidRouteDelayException(message: String = INVALID_ROUTE_DELAY) : DomainException(message)
 class InvalidVehicleCapacityException(message: String = INVALID_VEHICLE_CAPACITY) : DomainException(message)
+class InvalidVehicleVolumeCapacityException(message: String = INVALID_VEHICLE_VOLUME_CAPACITY) : DomainException(message)
 class InvalidVehicleCostException(message: String = INVALID_VEHICLE_COST) : DomainException(message)
 class InvalidWarehouseTextException(message: String = BLANK_WAREHOUSE_NAME) : DomainException(message)
 class InvalidLatitudeException(message: String = INVALID_LATITUDE) : DomainException(message)
 class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainException(message)
-class InvalidCargoInputException(message: String = INVALID_CARGO) : DomainException(message)
 class IllegalStateTransitionException(message: String) : RuntimeException(message)
 class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
 class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
