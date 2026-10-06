@@ -108,24 +108,20 @@ private fun printOptimizationComparison(
     vehicle: Vehicle
 ) {
     println("\n--- OPTIMIZATION COMPARISON ---")
+
     println("\nWeight Only (1D Knapsack):")
-    weightOnlyPackages.forEach { pkg -> println("  ${pkg.id} | ${pkg.weight} kg | ${pkg.volumeM3} m³") }
-
-    val weightOnlyTotalWeight = weightOnlyPackages.sumOf { it.weight }
-    val weightOnlyTotalVolume = weightOnlyPackages.sumOf { it.volumeM3 ?: 0.0 }
-
-    println("  Total: $weightOnlyTotalWeight kg | " + "$weightOnlyTotalVolume m³")
+    printSelectedCargo(selectedPackages = weightOnlyPackages, maxCapacityKg = vehicle.maxCapacityKg)
 
     println("\nWeight + Volume (2D Knapsack):")
-    volumeAwarePackages.forEach { pkg ->
-        println("  ${pkg.id} | ${pkg.weight} kg | ${pkg.volumeM3} m³")
-    }
+    volumeAwarePackages.forEach { pkg -> println("  ${pkg.id} | ${pkg.weight} kg | ${pkg.volumeM3} m³") }
 
     val volumeAwareTotalWeight = volumeAwarePackages.sumOf { it.weight }
     val volumeAwareTotalVolume = volumeAwarePackages.sumOf { it.volumeM3 ?: 0.0 }
 
-    println("  Total: $volumeAwareTotalWeight kg / ${vehicle.maxCapacityKg} kg | " +
-                "$volumeAwareTotalVolume m³ / ${vehicle.maxVolumeM3} m³")
+    println(
+        "  Total: $volumeAwareTotalWeight kg / " + "${vehicle.maxCapacityKg} kg | " +
+                "$volumeAwareTotalVolume m³ / " + "${vehicle.maxVolumeM3} m³"
+    )
 }
 
 private fun printSelectedCargo(selectedPackages: List<Package>, maxCapacityKg: Double) {
