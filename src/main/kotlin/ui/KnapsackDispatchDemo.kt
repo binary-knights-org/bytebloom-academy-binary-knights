@@ -16,21 +16,39 @@ fun runKnapsackDispatchDemo(warehouses: List<Warehouse>) {
         id = "TRK-KNAP-01",
         maxCapacityKg = 40.0,
         costPerKm = 2.5,
-        currentHub = originWarehouse
+        currentHub = originWarehouse,
+        maxVolumeM3 = 7.0
     )
 
     println("\n--- KNAPSACK CARGO DISPATCH DEMO ---")
     printPackagePool(packagePool)
-    println("\nVehicle: ${vehicle.id} | Max Capacity: ${vehicle.maxCapacityKg} kg")
+    println(
+        "\nVehicle: ${vehicle.id} | " +
+                "Max Weight: ${vehicle.maxCapacityKg} kg | " +
+                "Max Volume: ${vehicle.maxVolumeM3} m³"
+    )
 
     val optimizer = KnapsackCargoOptimizer()
-    val selectedPackages = optimizer(
+    val weightOnlyPackages = optimizer(
         packages = packagePool,
         maxCapacityKg = vehicle.maxCapacityKg
     )
 
-    printSelectedCargo(selectedPackages, vehicle.maxCapacityKg)
-    dispatchSelectedPackages(selectedPackages, vehicle)
+    val volumeAwarePackages = vehicle.maxVolumeM3?.let { maxVolume ->
+        optimizer.optimize2D(
+            packages = packagePool,
+            maxCapacityKg = vehicle.maxCapacityKg,
+            maxVolumeM3 = maxVolume
+        )
+    } ?: emptyList()
+
+    printOptimizationComparison(
+        weightOnlyPackages = weightOnlyPackages,
+        volumeAwarePackages = volumeAwarePackages,
+        vehicle = vehicle
+    )
+
+    dispatchSelectedPackages(volumeAwarePackages, vehicle)
     printVehicleState(vehicle)
 }
 
@@ -44,28 +62,32 @@ private fun createSamplePackagePool(
             weight = 10.0,
             priority = Priority.STANDARD,
             originHub = origin,
-            destinationHub = destination
+            destinationHub = destination,
+            volumeM3 = 4.0
         ),
         Package(
             id = "PKG-KNAP-02",
             weight = 15.0,
             priority = Priority.STANDARD,
             originHub = origin,
-            destinationHub = destination
+            destinationHub = destination,
+            volumeM3 = 2.0
         ),
         Package(
             id = "PKG-KNAP-03",
             weight = 20.0,
             priority = Priority.STANDARD,
             originHub = origin,
-            destinationHub = destination
+            destinationHub = destination,
+            volumeM3 = 3.0
         ),
         Package(
             id = "PKG-KNAP-04",
             weight = 30.0,
             priority = Priority.STANDARD,
             originHub = origin,
-            destinationHub = destination
+            destinationHub = destination,
+            volumeM3 = 5.0
         )
     )
 }
@@ -74,8 +96,32 @@ private fun printPackagePool(packages: List<Package>) {
     println("Package Pool:")
     packages.forEach { pkg ->
         val stateName = pkg.getState()::class.simpleName
-        println("  ${pkg.id} | ${pkg.weight} kg | Priority: ${pkg.priority} | State: $stateName")
+
+        println("  ${pkg.id} | " + "${pkg.weight} kg | " +
+                    "${pkg.volumeM3} m³ | " + "Priority: ${pkg.priority} | " + "State: $stateName")
     }
+}
+
+private fun printOptimizationComparison(
+    weightOnlyPackages: List<Package>,
+    volumeAwarePackages: List<Package>,
+    vehicle: Vehicle
+) {
+    println("\n--- OPTIMIZATION COMPARISON ---")
+
+    println("\nWeight Only (1D Knapsack):")
+    printSelectedCargo(selectedPackages = weightOnlyPackages, maxCapacityKg = vehicle.maxCapacityKg)
+
+    println("\nWeight + Volume (2D Knapsack):")
+    volumeAwarePackages.forEach { pkg -> println("  ${pkg.id} | ${pkg.weight} kg | ${pkg.volumeM3} m³") }
+
+    val volumeAwareTotalWeight = volumeAwarePackages.sumOf { it.weight }
+    val volumeAwareTotalVolume = volumeAwarePackages.sumOf { it.volumeM3 ?: 0.0 }
+
+    println(
+        "  Total: $volumeAwareTotalWeight kg / " + "${vehicle.maxCapacityKg} kg | " +
+                "$volumeAwareTotalVolume m³ / " + "${vehicle.maxVolumeM3} m³"
+    )
 }
 
 private fun printSelectedCargo(selectedPackages: List<Package>, maxCapacityKg: Double) {

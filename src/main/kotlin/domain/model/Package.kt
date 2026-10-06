@@ -1,5 +1,6 @@
 package domain.model
 
+import domain.model.exception.InvalidPackageVolumeException
 import domain.model.exception.InvalidPackageWeightException
 import domain.model.exception.SameOriginAndDestinationException
 import domain.state.CreatedState
@@ -11,12 +12,14 @@ data class Package(
     val weight: Double,
     val priority: Priority,
     val originHub: Warehouse,
-    val destinationHub: Warehouse
+    val destinationHub: Warehouse,
+    val volumeM3: Double? = null
 ) {
     private var currentState: ShipmentState = CreatedState()
 
     init {
         validateWeight()
+        validateVolume()
         validateHubs()
     }
 
@@ -24,9 +27,7 @@ data class Package(
         currentState = state
     }
 
-    fun getState(): ShipmentState {
-        return currentState
-    }
+    fun getState(): ShipmentState = currentState
 
     fun assignToVehicle() {
         currentState = currentState.assignToVehicle()
@@ -50,6 +51,12 @@ data class Package(
         }
     }
 
+    private fun validateVolume() {
+        if (volumeM3 != null && volumeM3 <= MIN_VOLUME_M3) {
+            throw InvalidPackageVolumeException()
+        }
+    }
+
     private fun validateHubs() {
         if (originHub.id == destinationHub.id) {
             throw SameOriginAndDestinationException(
@@ -61,5 +68,6 @@ data class Package(
     companion object {
         const val PACKAGE_ID_PREFIX = "PKG-"
         const val MIN_WEIGHT = 0.0
+        const val MIN_VOLUME_M3 = 0.0
     }
 }
