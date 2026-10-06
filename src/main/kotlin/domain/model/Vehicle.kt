@@ -2,23 +2,31 @@ package domain.model
 
 import domain.model.exception.InvalidVehicleCapacityException
 import domain.model.exception.InvalidVehicleCostException
+import domain.model.exception.InvalidVehicleVolumeCapacityException
 import kotlin.uuid.Uuid
 
 data class Vehicle(
     val id: String = "$VEHICLE_ID_PREFIX${Uuid.random()}",
     val maxCapacityKg: Double,
     val costPerKm: Double,
-    val currentHub: Warehouse
+    val currentHub: Warehouse,
+    val maxVolumeM3: Double? = null
 ) {
-
     init {
         validateCapacity()
+        validateVolumeCapacity()
         validateCost()
     }
 
     private fun validateCapacity() {
         if (maxCapacityKg <= MIN_CAPACITY_KG) {
             throw InvalidVehicleCapacityException()
+        }
+    }
+
+    private fun validateVolumeCapacity() {
+        if (maxVolumeM3 != null && maxVolumeM3 <= MIN_VOLUME_CAPACITY_M3) {
+            throw InvalidVehicleVolumeCapacityException()
         }
     }
 
@@ -29,6 +37,7 @@ data class Vehicle(
     }
 
     private val mutableLoadedCargo = mutableListOf<Package>()
+
     val loadedCargo: List<Package> = mutableLoadedCargo
 
     val currentLoadKg: Double
@@ -47,9 +56,10 @@ data class Vehicle(
         mutableLoadedCargo.addAll(packages)
     }
 
-    companion object{
+    companion object {
         const val VEHICLE_ID_PREFIX = "TRK-"
         const val MIN_CAPACITY_KG = 0.0
+        const val MIN_VOLUME_CAPACITY_M3 = 0.0
         const val MIN_COST_PER_KM = 0.0
     }
 }
