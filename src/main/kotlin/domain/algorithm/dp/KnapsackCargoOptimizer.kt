@@ -315,7 +315,6 @@ class KnapsackCargoOptimizer {
         private const val MIN_VOLUME_M3 = 0.0
 
         private const val MIN_PACKAGE_WEIGHT_KG = 0.0
-        private const val MIN_PACKAGE_VOLUME_M3 = 0.0
 
         private const val URGENT_PRIORITY_VALUE = 3
         private const val STANDARD_PRIORITY_VALUE = 2
