@@ -7,7 +7,7 @@ import kotlin.math.roundToInt
 
 class KnapsackCargoOptimizer {
 
-    // 1D Knapsack - Existing
+    // 1D Knapsack
 
     operator fun invoke(
         packages: List<Package>,
