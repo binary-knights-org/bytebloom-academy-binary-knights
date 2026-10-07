@@ -1,49 +1,58 @@
 package edu.logiroute.logiroute
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import bytebloom_academy_binary_knights.frontend.logiroute.generated.resources.Res
-import bytebloom_academy_binary_knights.frontend.logiroute.generated.resources.compose_multiplatform
-import org.jetbrains.compose.resources.painterResource
-
+import androidx.compose.ui.unit.dp
+import edu.logiroute.logiroute.ui.components.PackagePriorityBadge
+import edu.logiroute.logiroute.ui.components.WarehouseSummaryCard
+import edu.logiroute.logiroute.ui.data.activeWarehouse
+import edu.logiroute.logiroute.ui.data.emptyWarehouse
+import edu.logiroute.logiroute.ui.data.lowPriorityPackage
+import edu.logiroute.logiroute.ui.data.standardPriorityPackage
+import edu.logiroute.logiroute.ui.data.urgentPriorityPackage
 
 @Composable
-@Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
+        val packages = listOf(
+            urgentPriorityPackage,
+            standardPriorityPackage,
+            lowPriorityPackage
+        )
+
+
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
         ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+            packages.forEach { packageItem ->
+                PackagePriorityBadge(
+                    packageItem = packageItem,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
             }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { "Hello \"DDDDDDDDDDDDDD " }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+
+            WarehouseSummaryCard(
+                warehouse = activeWarehouse,
+                modifier = Modifier.padding(bottom = 16.dp) ,
+
+            )
+
+            WarehouseSummaryCard(
+                warehouse = emptyWarehouse
+            )
         }
     }
 }
