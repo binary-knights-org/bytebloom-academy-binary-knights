@@ -10,32 +10,26 @@ class DispatchVehicleUseCase(
     private val vehicleRepository: VehicleRepository,
     private val warehouseRepository: WarehouseRepository
 ) {
-     suspend operator fun invoke(vehicle: Vehicle, warehouse: Warehouse): List<Package> {
+    suspend operator fun invoke(vehicle: Vehicle, warehouse: Warehouse): List<Package> {
         val targetWarehouse = warehouseRepository.getAll()
             .firstOrNull { it.id == warehouse.id }
+            ?: return emptyList()
 
         val targetVehicle = vehicleRepository.getAll()
-            .firstOrNull { it.id == vehicle.id && it.currentHub.id == targetWarehouse?.id }
+            .firstOrNull {
+                it.id == vehicle.id &&
+                        it.currentHub.id == targetWarehouse.id
+            }
+            ?: return emptyList()
 
-        if (targetWarehouse == null || targetVehicle == null) {
-            return emptyList()
-        }
+        val loadedPackages = mutableListOf<Package>()
 
-        val queueCopy = ArrayList(targetWarehouse.cargoQueue)
-        val loaded = queueCopy.fold(
-            mutableListOf<Package>()
-        ) { loaded, pkg ->
-
+        for (pkg in targetWarehouse.cargoQueue.toList()) {
             if (targetVehicle.loadPackage(pkg)) {
                 targetWarehouse.removePackage(pkg)
-                loaded.add(pkg)
+                loadedPackages.add(pkg)
             }
-
-            loaded
         }
-        return loaded
+        return loadedPackages
     }
 }
-
-
-
