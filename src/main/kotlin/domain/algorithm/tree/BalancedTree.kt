@@ -6,8 +6,11 @@ class BalancedTree private constructor(
     constructor() : this(TreeNode.Empty)
 
     override fun insert(id: String): BalancedTree {
-        val ids = collectIds(root) + id
-        val sortedIds = ids.sorted()
+        val existingIds = collectIds(root)
+
+        if (id in existingIds) return this
+
+        val sortedIds = (existingIds + id).sorted()
         return BalancedTree(buildBalancedTree(sortedIds))
     }
 
