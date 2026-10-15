@@ -3,25 +3,28 @@ package domain.usecase.vehicle
 import com.google.common.truth.Truth.assertThat
 import domain.model.Package
 import domain.model.Priority
+import domain.model.RegionalZone
 import domain.model.Vehicle
 import domain.model.Warehouse
-import domain.model.RegionalZone
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class DispatchVehicleUseCaseTest {
 
     private val vehicleRepository = mockk<VehicleRepository>()
     private val warehouseRepository = mockk<WarehouseRepository>()
-    private val useCase = DispatchVehicleUseCase(vehicleRepository, warehouseRepository)
+
+    private val useCase = DispatchVehicleUseCase(
+        vehicleRepository,
+        warehouseRepository
+    )
 
     private val origin = Warehouse(
+        id = "WH-ORIGIN",
         name = "Origin",
         regionalZone = RegionalZone.NORTH,
         latitude = 0.0,
@@ -29,6 +32,7 @@ class DispatchVehicleUseCaseTest {
     )
 
     private val destination = Warehouse(
+        id = "WH-DESTINATION",
         name = "Destination",
         regionalZone = RegionalZone.SOUTH,
         latitude = 1.0,
@@ -50,59 +54,191 @@ class DispatchVehicleUseCaseTest {
         currentHub = warehouse
     )
 
-    private val package1 = Package(
-        weight = 10.0,
+    private fun createPackage(
+        id: String,
+        weight: Double
+    ) = Package(
+        id = id,
+        weight = weight,
         priority = Priority.STANDARD,
         originHub = origin,
         destinationHub = destination
     )
 
+    private fun mockRepositories(
+        warehouses: List<Warehouse> = listOf(warehouse),
+        vehicles: List<Vehicle> = listOf(vehicle)
+    ) {
+        coEvery { warehouseRepository.getAll() } returns warehouses
+        coEvery { vehicleRepository.getAll() } returns vehicles
+    }
+
     @Test
-    fun `should dispatch packages that vehicle can load`() = runTest {
-        // Given
-        warehouse.addPackage(package1)
+    fun `should return package when dispatch succeeds`() = runTest {
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories()
 
-        coEvery { warehouseRepository.getAll() } returns listOf(warehouse)
-        coEvery { vehicleRepository.getAll() } returns listOf(vehicle)
+        val result = useCase(vehicle, warehouse)
 
-        // When
-        val loaded = useCase(vehicle, warehouse)
+        assertThat(result).containsExactly(pkg)
+    }
 
-        // Then
-        assertThat(loaded).containsExactly(package1)
+    @Test
+    fun `should add dispatched package to vehicle cargo`() = runTest {
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories()
+
+        useCase(vehicle, warehouse)
+
+        assertThat(vehicle.loadedCargo).containsExactly(pkg)
+    }
+
+    @Test
+    fun `should update vehicle load after dispatch`() = runTest {
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories()
+
+        useCase(vehicle, warehouse)
+
+        assertThat(vehicle.currentLoadKg).isEqualTo(10.0)
+    }
+
+    @Test
+    fun `should remove dispatched package from warehouse queue`() = runTest {
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories()
+
+        useCase(vehicle, warehouse)
+
+        assertThat(warehouse.cargoQueue).isEmpty()
+    }
+
+    @Test
+    fun `should not exceed vehicle weight capacity`() = runTest {
+        val firstPackage = createPackage("PKG-1", 30.0)
+        val secondPackage = createPackage("PKG-2", 25.0)
+
+        warehouse.addPackage(firstPackage)
+        warehouse.addPackage(secondPackage)
+        mockRepositories()
+
+        val result = useCase(vehicle, warehouse)
+
+        assertThat(result).containsExactly(firstPackage)
+    }
+
+    @Test
+    fun `should keep package in queue when vehicle capacity is insufficient`() = runTest {
+        val firstPackage = createPackage("PKG-1", 30.0)
+        val secondPackage = createPackage("PKG-2", 25.0)
+
+        warehouse.addPackage(firstPackage)
+        warehouse.addPackage(secondPackage)
+        mockRepositories()
+
+        useCase(vehicle, warehouse)
+
+        assertThat(warehouse.cargoQueue).containsExactly(secondPackage)
     }
 
     @Test
     fun `should return empty list when warehouse does not exist`() = runTest {
-        // Given
-        coEvery { warehouseRepository.getAll() } returns emptyList()
-        coEvery { vehicleRepository.getAll() } returns listOf(vehicle)
+        mockRepositories(warehouses = emptyList())
 
-        // When
-        val loaded = useCase(vehicle, warehouse)
+        val result = useCase(vehicle, warehouse)
 
-        // Then
-        assertThat(loaded).isEmpty()
+        assertThat(result).isEmpty()
     }
 
     @Test
-    fun `should propagate exception when getting warehouses fails`() = runTest {
-        // Given
-        val expectedException = IllegalStateException("Failed to get warehouses")
+    fun `should return empty list when vehicle does not exist`() = runTest {
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories(vehicles = emptyList())
 
-        coEvery { warehouseRepository.getAll() } throws expectedException
+        val result = useCase(vehicle, warehouse)
 
-        // When
-        val thrown = Assertions.assertThrows(
-            IllegalStateException::class.java
-        ) {
-            runBlocking {
-                useCase(vehicle, warehouse)
-            }
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should preserve queued packages when vehicle does not exist`() = runTest {
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories(vehicles = emptyList())
+
+        useCase(vehicle, warehouse)
+
+        assertThat(warehouse.cargoQueue).containsExactly(pkg)
+    }
+
+    @Test
+    fun `should not dispatch when vehicle belongs to another warehouse`() = runTest {
+        val otherWarehouse = Warehouse(
+            id = "WH-OTHER",
+            name = "Other Hub",
+            regionalZone = RegionalZone.SOUTH,
+            latitude = 2.0,
+            longitude = 2.0
+        )
+
+        val misplacedVehicle = Vehicle(
+            id = "TRK-1",
+            maxCapacityKg = 50.0,
+            costPerKm = 1.0,
+            currentHub = otherWarehouse
+        )
+
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories(vehicles = listOf(misplacedVehicle))
+
+        val result = useCase(misplacedVehicle, warehouse)
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should preserve queue when vehicle belongs to another warehouse`() = runTest {
+        val otherWarehouse = Warehouse(
+            id = "WH-OTHER",
+            name = "Other Hub",
+            regionalZone = RegionalZone.SOUTH,
+            latitude = 2.0,
+            longitude = 2.0
+        )
+
+        val misplacedVehicle = Vehicle(
+            id = "TRK-1",
+            maxCapacityKg = 50.0,
+            costPerKm = 1.0,
+            currentHub = otherWarehouse
+        )
+
+        val pkg = createPackage("PKG-1", 10.0)
+        warehouse.addPackage(pkg)
+        mockRepositories(vehicles = listOf(misplacedVehicle))
+
+        useCase(misplacedVehicle, warehouse)
+
+        assertThat(warehouse.cargoQueue).containsExactly(pkg)
+    }
+
+    @Test
+    fun `should propagate warehouse repository exception`() = runTest {
+        coEvery {
+            warehouseRepository.getAll()
+        } throws IllegalStateException("Failed to get warehouses")
+
+        val result = runCatching {
+            useCase(vehicle, warehouse)
         }
 
-        // Then
-        assertThat(thrown.message)
+        assertThat(result.exceptionOrNull()?.message)
             .isEqualTo("Failed to get warehouses")
     }
 }
