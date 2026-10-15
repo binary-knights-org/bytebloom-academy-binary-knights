@@ -6,6 +6,8 @@ import domain.model.Package
 import domain.model.Priority
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import domain.model.exception.InvalidCargoInputException
+import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.Test
 
 class KnapsackCargoOptimizerTest {
@@ -110,5 +112,57 @@ class KnapsackCargoOptimizerTest {
         )
 
         assertThat(weightOnlyResult).containsExactly(packageF, packageE)
+    }
+
+    @Test
+    fun `should return empty list when no packages are provided`() {
+        val result = knapsackCargoOptimizer(
+            packages = emptyList(),
+            maxCapacityKg = 10.0
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should return empty list when capacity is zero and no packages can fit`() {
+        val result = knapsackCargoOptimizer(
+            packages = packages,
+            maxCapacityKg = 0.0
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should reject negative weight capacity`() {
+        assertThrows(InvalidCargoInputException::class.java) {
+            knapsackCargoOptimizer(
+                packages = packages,
+                maxCapacityKg = -1.0
+            )
+        }
+    }
+
+    @Test
+    fun `should reject negative volume capacity`() {
+        assertThrows(InvalidCargoInputException::class.java) {
+            knapsackCargoOptimizer.optimize2D(
+                packages = listOf(packageF, packageE),
+                maxCapacityKg = 10.0,
+                maxVolumeM3 = -1.0
+            )
+        }
+    }
+
+    @Test
+    fun `should reject packages without volume in two dimensional optimization`() {
+        assertThrows(InvalidCargoInputException::class.java) {
+            knapsackCargoOptimizer.optimize2D(
+                packages = packages,
+                maxCapacityKg = 10.0,
+                maxVolumeM3 = 8.0
+            )
+        }
     }
 }
