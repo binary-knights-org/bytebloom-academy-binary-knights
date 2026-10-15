@@ -9,6 +9,8 @@ import data.mapper.vehicles.toRaw
 import domain.model.Vehicle
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class VehicleRepositoryImpl(
     private val remoteDataSource: RemoteVehicleDataSource,
@@ -63,21 +65,24 @@ class VehicleRepositoryImpl(
             }
         )
 
-    private suspend fun fetchVehiclesFromSource(): List<Vehicle> {
-        val warehousesById = warehouseRepository.getAll().associateBy { it.id }
 
-        return runCatching {
-            remoteDataSource
-                .getRawVehicles()
-                .mapNotNull { it.toDomain(warehousesById) }
-        }.getOrElse { error ->
-            if (error is NetworkUnavailableException) {
-                localDataSource
-                    .getAllVehicles()
-                    .mapNotNull { it.toDomain(warehousesById) }
-            } else {
-                throw translateDataError(error, "fetch", "vehicles")
-            }
+    private suspend fun fetchVehiclesFromSource(): List<Vehicle> = coroutineScope {
+        val warehousesById = async { warehouseRepository.getAll().associateBy { it.id } }
+        val remoteResult = runCatching {
+            remoteDataSource.getRawVehicles()
         }
+
+        remoteResult
+            .map { raw -> raw.mapNotNull { it.toDomain(warehousesById.await()) } }
+            .getOrElse { error ->
+                if (error is NetworkUnavailableException) {
+                    localDataSource
+                        .getAllVehicles()
+                        .mapNotNull { it.toDomain(warehousesById.await()) }
+                } else {
+                    throw translateDataError(error, "fetch", "vehicles")
+                }
+            }
     }
+
 }

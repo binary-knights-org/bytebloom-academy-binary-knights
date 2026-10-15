@@ -9,6 +9,8 @@ import data.mapper.routes.toRaw
 import domain.model.Route
 import domain.repository.RouteRepository
 import domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class RouteRepositoryImpl(
     private val remoteDataSource: RemoteRouteDataSource,
@@ -63,21 +65,22 @@ class RouteRepositoryImpl(
             }
         )
 
-    private suspend fun fetchRoutesFromSource(): List<Route> {
-        val warehousesById = warehouseRepository.getAll().associateBy { it.id }
-
-        return runCatching {
-            remoteDataSource
-                .getRawRoutes()
-                .mapNotNull { it.toDomain(warehousesById) }
-        }.getOrElse { error ->
-            if (error is NetworkUnavailableException) {
-                localDataSource
-                    .getAllRoutes()
-                    .mapNotNull { it.toDomain(warehousesById) }
-            } else {
-                throw translateDataError(error, "fetch", "routes")
-            }
+    private suspend fun fetchRoutesFromSource(): List<Route> = coroutineScope {
+        val warehousesById = async { warehouseRepository.getAll().associateBy { it.id } }
+        val remoteResult = runCatching {
+            remoteDataSource.getRawRoutes()
         }
+
+        remoteResult
+            .map { raw -> raw.mapNotNull { it.toDomain(warehousesById.await()) } }
+            .getOrElse { error ->
+                if (error is NetworkUnavailableException) {
+                    localDataSource
+                        .getAllRoutes()
+                        .mapNotNull { it.toDomain(warehousesById.await()) }
+                } else {
+                    throw translateDataError(error, "fetch", "routes")
+                }
+            }
     }
 }

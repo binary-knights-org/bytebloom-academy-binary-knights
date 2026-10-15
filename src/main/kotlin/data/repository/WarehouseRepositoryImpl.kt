@@ -20,6 +20,8 @@ import domain.model.Route
 import domain.model.Vehicle
 import domain.model.Warehouse
 import domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 data class RemoteDataSources(
     val warehouse: RemoteWarehouseDataSource,
@@ -89,28 +91,37 @@ class WarehouseRepositoryImpl(
 
     private suspend fun fetchAndLinkWarehouses(): List<Warehouse> {
         return runCatching {
-            val loadedWarehouses = remoteSources.warehouse.getRawWarehouses().map { it.toDomain() }
-            val warehousesById = loadedWarehouses.associateBy { it.id }
-
-            val packages = remoteSources.packageSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) }
-            val vehicles = remoteSources.vehicle.getRawVehicles().mapNotNull { it.toDomain(warehousesById) }
-            val routes = remoteSources.route.getRawRoutes().mapNotNull { it.toDomain(warehousesById) }
-
-            linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
+            loadFromRemote()
         }.getOrElse { error ->
             if (error is NetworkUnavailableException) {
-                val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
-                val warehousesById = loadedWarehouses.associateBy { it.id }
-
-                val packages = localSources.packageSource.getAllPackages().mapNotNull { it.toDomain(warehousesById) }
-                val vehicles = localSources.vehicle.getAllVehicles().mapNotNull { it.toDomain(warehousesById) }
-                val routes = localSources.route.getAllRoutes().mapNotNull { it.toDomain(warehousesById) }
-
-                linkWarehouseData(loadedWarehouses, packages, vehicles, routes)
+                loadFromLocal()
             } else {
                 throw translateDataError(error, "fetch", "warehouse data")
             }
         }
+    }
+
+    private suspend fun loadFromRemote(): List<Warehouse> = coroutineScope {
+        val loadedWarehouses = remoteSources.warehouse.getRawWarehouses().map { it.toDomain() }
+        val warehousesById = loadedWarehouses.associateBy { it.id }
+
+        val packages = async { remoteSources.packageSource.getRawPackages().mapNotNull { it.toDomain(warehousesById) } }
+        val vehicles = async { remoteSources.vehicle.getRawVehicles().mapNotNull { it.toDomain(warehousesById) } }
+        val routes   = async { remoteSources.route.getRawRoutes().mapNotNull { it.toDomain(warehousesById) } }
+
+        linkWarehouseData(loadedWarehouses, packages.await(), vehicles.await(), routes.await())
+    }
+
+    private suspend fun loadFromLocal(): List<Warehouse> = coroutineScope {
+
+        val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
+        val warehousesById = loadedWarehouses.associateBy { it.id }
+
+        val packages = async { localSources.packageSource.getAllPackages().mapNotNull { it.toDomain(warehousesById) } }
+        val vehicles = async { localSources.vehicle.getAllVehicles().mapNotNull { it.toDomain(warehousesById) } }
+        val routes   = async { localSources.route.getAllRoutes().mapNotNull { it.toDomain(warehousesById) } }
+
+        linkWarehouseData(loadedWarehouses, packages.await(), vehicles.await(), routes.await())
     }
 
     private fun linkWarehouseData(

@@ -9,6 +9,8 @@ import data.mapper.packages.toRaw
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class PackageRepositoryImpl(
     private val remoteDataSource: RemotePackageDataSource,
@@ -63,21 +65,22 @@ class PackageRepositoryImpl(
             }
         )
 
-    private suspend fun fetchPackagesFromSource(): List<Package> {
-        val warehousesById = warehouseRepository.getAll().associateBy { it.id }
-
-        return runCatching {
-            remoteDataSource
-                .getRawPackages()
-                .mapNotNull { it.toDomain(warehousesById) }
-        }.getOrElse { error ->
-            if (error is NetworkUnavailableException) {
-                localDataSource
-                    .getAllPackages()
-                    .mapNotNull { it.toDomain(warehousesById) }
-            } else {
-                throw translateDataError(error, "fetch", "packages")
-            }
+    private suspend fun fetchPackagesFromSource(): List<Package> = coroutineScope {
+        val warehousesById = async { warehouseRepository.getAll().associateBy { it.id } }
+        val remoteResult = runCatching {
+            remoteDataSource.getRawPackages()
         }
+
+        remoteResult
+            .map { raw -> raw.mapNotNull { it.toDomain(warehousesById.await()) } }
+            .getOrElse { error ->
+                if (error is NetworkUnavailableException) {
+                    localDataSource
+                        .getAllPackages()
+                        .mapNotNull { it.toDomain(warehousesById.await()) }
+                } else {
+                    throw translateDataError(error, "fetch", "packages")
+                }
+            }
     }
 }
