@@ -7,7 +7,7 @@ import data.local.datasource.CsvWarehouseDataSource
 class CsvWarehouseDataSourceImpl(
     private val csvHandler: CsvFileHandler,
 ) : CsvWarehouseDataSource {
-    override fun getAllWarehouses(): List<WarehouseRaw> {
+     override suspend fun getAllWarehouses(): List<WarehouseRaw> {
         return try {
             val lines = csvHandler.readLines()
             lines.mapNotNull { parseLine(it) }

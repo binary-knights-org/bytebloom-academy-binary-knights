@@ -7,7 +7,7 @@ import data.local.datasource.CsvRouteDataSource
 class CsvRouteDataSourceImpl(
     private val csvHandler: CsvFileHandler
 ) : CsvRouteDataSource {
-    override fun getAllRoutes(): List<RouteRaw> {
+    override suspend fun getAllRoutes(): List<RouteRaw> {
         return try {
             val lines = csvHandler.readLines()
             lines.mapNotNull { parseLine(it) }

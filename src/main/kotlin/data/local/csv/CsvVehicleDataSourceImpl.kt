@@ -8,7 +8,7 @@ class CsvVehicleDataSourceImpl(
     private val csvHandler: CsvFileHandler,
 ) : CsvVehicleDataSource {
 
-    override fun getAllVehicles(): List<VehicleRaw> {
+    override suspend fun getAllVehicles(): List<VehicleRaw> {
         return try {
             val lines = csvHandler.readLines()
             lines.mapNotNull { parseLine(it) }
