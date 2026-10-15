@@ -29,8 +29,12 @@ class KnapsackCargoOptimizer {
         packages: List<Package>,
         maxCapacityKg: Double
     ) {
-        if (maxCapacityKg < MIN_CAPACITY_KG) { throw InvalidCargoInputException() }
-        if (packages.any { it.weight < MIN_PACKAGE_WEIGHT_KG }) { throw InvalidCargoInputException() }
+        if (!maxCapacityKg.isFinite() || maxCapacityKg < MIN_CAPACITY_KG) {
+            throw InvalidCargoInputException()
+        }
+        if (packages.any { !it.weight.isFinite() || it.weight < MIN_PACKAGE_WEIGHT_KG }) {
+            throw InvalidCargoInputException()
+        }
     }
 
     private fun buildValueGrid(
@@ -155,11 +159,23 @@ class KnapsackCargoOptimizer {
         maxVolumeM3: Double
     ) {
         if (
+            !maxCapacityKg.isFinite() ||
             maxCapacityKg < MIN_CAPACITY_KG ||
+            !maxVolumeM3.isFinite() ||
             maxVolumeM3 < MIN_VOLUME_M3
-        ) { throw InvalidCargoInputException() }
+        ) {
+            throw InvalidCargoInputException()
+        }
 
-        if (packages.any { it.volumeM3 == null }) { throw InvalidCargoInputException() }
+        if (packages.any { pkg ->
+                !pkg.weight.isFinite() ||
+                        pkg.weight < MIN_PACKAGE_WEIGHT_KG ||
+                        pkg.volumeM3 == null ||
+                        !pkg.volumeM3.isFinite() ||
+                        pkg.volumeM3 < MIN_VOLUME_M3
+            }) {
+            throw InvalidCargoInputException()
+        }
     }
 
     private fun build2DValueGrid(
