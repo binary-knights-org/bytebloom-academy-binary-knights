@@ -60,75 +60,77 @@ class BreakdownSimulationLogic {
         return migratedIds
     }
 
-    private fun validateResult(result: SimulationResult) {
+    private fun validateResult(result: SimulationResult): List<String> {
+        val error = mutableListOf<String>()
         for (pkg in result.packages) {
-            when {
-                (isPackageMigrated(pkg, result)) -> validateRerouting(pkg, result)
-                else -> validateStability(pkg, result)
-            }
-        }
+            if (isPackageMigrated(pkg, result)) {
+                validateRerouting(pkg, result)?.let(error::add)
+            } else validateStability(pkg, result)?.let(error::add)
     }
+    return error
+}
 
-    private fun isPackageMigrated(pkg: Package, result: SimulationResult): Boolean {
-        return result.before[pkg] === result.breakdownEvent.brokenVehicle
-    }
+private fun isPackageMigrated(pkg: Package, result: SimulationResult): Boolean {
+    return result.before[pkg] === result.breakdownEvent.brokenVehicle
+}
 
-    private fun validateRerouting(pkg: Package, result: SimulationResult) {
-        val isNowOnFallback = result.after[pkg] === result.breakdownEvent.fallbackVehicle
-        if (isNowOnFallback) {
-            "FAIL: Package ${pkg.id} did not land on the correct fallback vehicle!"
-        }
-    }
+private fun validateRerouting(pkg: Package, result: SimulationResult): String? {
+    val isNowOnFallback = result.after[pkg] === result.breakdownEvent.fallbackVehicle
+    return if (!isNowOnFallback) {
+        "Package ${pkg.id} did not land on the correct fallback vehicle."
+    } else null
+}
 
-    private fun validateStability(pkg: Package, result: SimulationResult) {
-        val truckBefore = result.before[pkg]
-        val truckAfter = result.after[pkg]
-        if (truckBefore === truckAfter) {
-            "FAIL: Package ${pkg.id} on a healthy vehicle was incorrectly moved!"
-        }
-    }
+private fun validateStability(pkg: Package, result: SimulationResult): String? {
+    val truckBefore = result.before[pkg]
+    val truckAfter = result.after[pkg]
+    return if (truckBefore !== truckAfter) {
+        "Package ${pkg.id} on a healthy vehicle was incorrectly moved."
+    } else null
+}
 
-    fun createReport(result: SimulationResult): VerificationReport {
-        validateResult(result)
+fun createReport(result: SimulationResult): VerificationReport {
+    val errors = validateResult(result)
 
-        return VerificationReport(
-            migratedPackageIds = extractMigratedPackageIds(result),
-            brokenVehicleId = result.breakdownEvent.brokenVehicle.id,
-            fallbackVehicleId = result.breakdownEvent.fallbackVehicle.id
-        )
-    }
+    return VerificationReport(
+        migratedPackageIds = extractMigratedPackageIds(result),
+        brokenVehicleId = result.breakdownEvent.brokenVehicle.id,
+        fallbackVehicleId = result.breakdownEvent.fallbackVehicle.id,
+        validationError = errors
+    )
+}
 
-    fun runSimulation(): SimulationResult {
-        val originHub = Warehouse("WH-HUB-A", "Central Hub", RegionalZone.CENTRAL, HUB_LAT, HUB_LNG)
-        val destinationHub = Warehouse("WH-HUB-B", "Destination Hub", RegionalZone.NORTH, HUB_LAT + 1, HUB_LNG + 1)
-        val ring = setupRing(originHub)
-        val packages = createPackages(originHub, destinationHub, PACKAGE_COUNT)
+fun runSimulation(): SimulationResult {
+    val originHub = Warehouse("WH-HUB-A", "Central Hub", RegionalZone.CENTRAL, HUB_LAT, HUB_LNG)
+    val destinationHub = Warehouse("WH-HUB-B", "Destination Hub", RegionalZone.NORTH, HUB_LAT + 1, HUB_LNG + 1)
+    val ring = setupRing(originHub)
+    val packages = createPackages(originHub, destinationHub, PACKAGE_COUNT)
 
-        val context = buildBreakdownContext(ring, TARGET_BROKEN_SLOT)
-        val assignmentsBefore = performAssignment(ring, packages)
+    val context = buildBreakdownContext(ring, TARGET_BROKEN_SLOT)
+    val assignmentsBefore = performAssignment(ring, packages)
 
-        ring.removeVehicle(context.slot)
+    ring.removeVehicle(context.slot)
 
-        val assignmentsAfter = performAssignment(ring, packages)
+    val assignmentsAfter = performAssignment(ring, packages)
 
-        return SimulationResult(packages, assignmentsBefore, assignmentsAfter, context)
-    }
+    return SimulationResult(packages, assignmentsBefore, assignmentsAfter, context)
+}
 
-    private companion object {
-        const val PACKAGE_COUNT = 30
-        const val TARGET_BROKEN_SLOT = 40
+private companion object {
+    const val PACKAGE_COUNT = 30
+    const val TARGET_BROKEN_SLOT = 40
 
-        const val SLOT_A = 15
-        const val SLOT_B = 40
-        const val SLOT_C = 65
-        const val SLOT_D = 90
+    const val SLOT_A = 15
+    const val SLOT_B = 40
+    const val SLOT_C = 65
+    const val SLOT_D = 90
 
-        const val DEFAULT_WEIGHT = 10.0
-        val DEFAULT_PRIORITY = Priority.STANDARD
-        const val DEFAULT_CAPACITY = 1000.0
-        const val DEFAULT_SPEED = 2.0
+    const val DEFAULT_WEIGHT = 10.0
+    val DEFAULT_PRIORITY = Priority.STANDARD
+    const val DEFAULT_CAPACITY = 1000.0
+    const val DEFAULT_SPEED = 2.0
 
-        const val HUB_LAT = 32.07
-        const val HUB_LNG = -116.21
-    }
+    const val HUB_LAT = 32.07
+    const val HUB_LNG = -116.21
+}
 }
