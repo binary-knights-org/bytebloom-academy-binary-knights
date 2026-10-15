@@ -50,7 +50,7 @@ class WarehouseRepositoryCancellationTest {
         )
         coEvery { remotePackage.getRawPackages() } coAnswers {
             siblingStarted.await()
-            throw IllegalStateException("boom")
+            error("boom")
         }
         coEvery { remoteVehicle.getRawVehicles() } coAnswers {
             try {
