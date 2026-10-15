@@ -10,15 +10,30 @@ class AssignPackageToQueueCommand(
     private val warehouse: Warehouse
 ) : Command {
 
+    private var previousQueue: List<Package> = emptyList()
+    private var wasExecuted = false
+
     override val description: String
         get() = "AssignPackageToQueueCommand(package=${pkg.id}, warehouse=${warehouse.id})"
 
     override suspend  fun execute(): Boolean {
-        assignPackageToCargoQueueUseCase(warehouse, pkg)
-        return true
+        previousQueue = warehouse.cargoQueue.toList()
+        return try {
+            assignPackageToCargoQueueUseCase(warehouse, pkg)
+            wasExecuted = true
+            true
+        } catch (exception: Exception){
+            warehouse.restoreCargoQueue(previousQueue)
+            wasExecuted = false
+            throw exception
+        }
     }
 
     override suspend  fun undo(): Boolean {
-        return warehouse.removePackage(pkg)
+        if (!wasExecuted) return false
+
+        warehouse.restoreCargoQueue(previousQueue)
+        wasExecuted = true
+        return true
     }
 }
