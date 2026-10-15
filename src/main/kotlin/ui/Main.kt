@@ -4,6 +4,7 @@ import di.networkModule
 import di.pricingModule
 import di.repositoryModule
 import di.routingModule
+import di.telemetryModule
 import di.useCaseModule
 import di.validatorModule
 import domain.repository.PackageRepository
@@ -15,6 +16,7 @@ import domain.usecase.routing.FindBidirectionalRouteUseCase
 import domain.usecase.routing.FindFewestHopsRouteUseCase
 import domain.usecase.routing.FindOptimalPathUseCase
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
+import domain.usecase.telemetry.TrackActiveFleetUseCase
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
 
@@ -26,7 +28,8 @@ fun main() = runBlocking {
             validatorModule,
             pricingModule,
             routingModule,
-            useCaseModule
+            useCaseModule,
+            telemetryModule
         )
     }.koin
 
@@ -36,6 +39,7 @@ fun main() = runBlocking {
     val packageRepository = koin.get<PackageRepository>()
     val vehicleRepository = koin.get<VehicleRepository>()
     val routeRepository = koin.get<RouteRepository>()
+    val trackActiveFleetUseCase = koin.get<TrackActiveFleetUseCase>()
 
     printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
 
@@ -63,6 +67,7 @@ fun main() = runBlocking {
     runGreedyFleetDemo(vehicles)
     runInvalidInputDemo()
     runKnapsackDispatchDemo(warehouses)
+    runTelemetryStreamingDemo(trackActiveFleetUseCase)
 
     printSystemFooter()
 }

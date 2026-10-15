@@ -29,6 +29,10 @@ sealed class DomainException(message: String) : Exception(message) {
 
         const val INSUFFICIENT_VEHICLE_CAPACITY = "Package weight exceeds available vehicle capacity."
         const val INVALID_DISPATCH_PRIORITY = "Package priority is not compatible with this dispatch pipeline."
+
+        const val BLANK_VEHICLE_ID = "Vehicle ID cannot be blank."
+        const val INVALID_SPEED = "Speed must not be negative."
+        const val INVALID_FUEL_PERCENTAGE = "Fuel percentage must be between 0.0 and 100.0."
     }
 }
 
@@ -53,3 +57,6 @@ class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainExc
 class IllegalStateTransitionException(message: String) : RuntimeException(message)
 class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
 class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
+class InvalidVehicleIdException(message: String = BLANK_VEHICLE_ID) : DomainException(message)
+class InvalidSpeedException(message: String = INVALID_SPEED) : DomainException(message)
+class InvalidFuelPercentageException(message: String = INVALID_FUEL_PERCENTAGE) : DomainException(message)

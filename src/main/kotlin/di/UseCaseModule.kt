@@ -38,6 +38,7 @@ import domain.usecase.vehicle.SuggestBestVehicleForPackageUseCase
 import domain.usecase.warehouse.GetOverloadedWarehousesUseCase
 import domain.usecase.warehouse.GetWarehouseLoadFactorUseCase
 import domain.usecase.warehouse.TraceHubLineageUseCase
+import domain.usecase.telemetry.TrackActiveFleetUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -90,4 +91,5 @@ val useCaseModule = module {
     factoryOf(::FindBidirectionalRouteUseCase)
 
     factoryOf(::CompareRoutingStrategiesUseCase)
+    factoryOf(::TrackActiveFleetUseCase)
 }
