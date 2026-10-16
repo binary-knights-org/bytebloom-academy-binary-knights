@@ -11,6 +11,7 @@ import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import java.util.logging.Logger
 
 class VehicleRepositoryImpl(
     private val remoteDataSource: RemoteVehicleDataSource,
@@ -18,6 +19,7 @@ class VehicleRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : VehicleRepository {
 
+    private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
     private var vehicles: List<Vehicle>? = null
 
     override suspend fun getAll(): List<Vehicle> =
@@ -76,6 +78,7 @@ class VehicleRepositoryImpl(
             .map { raw -> raw.mapNotNull { it.toDomain(warehousesById.await()) } }
             .getOrElse { error ->
                 if (error is NetworkUnavailableException) {
+                    logger.warning("Remote unavailable, falling back to local CSV for vehicles")
                     localDataSource
                         .getAllVehicles()
                         .mapNotNull { it.toDomain(warehousesById.await()) }

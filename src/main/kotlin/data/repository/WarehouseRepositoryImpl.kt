@@ -22,6 +22,7 @@ import domain.model.Warehouse
 import domain.repository.WarehouseRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import java.util.logging.Logger
 
 data class RemoteDataSources(
     val warehouse: RemoteWarehouseDataSource,
@@ -41,7 +42,7 @@ class WarehouseRepositoryImpl(
     private val remoteSources: RemoteDataSources,
     private val localSources: LocalDataSources
 ) : WarehouseRepository {
-
+    private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
     private var warehouses: List<Warehouse>? = null
 
     override suspend fun getAll(): List<Warehouse> =
@@ -113,6 +114,7 @@ class WarehouseRepositoryImpl(
     }
 
     private suspend fun loadFromLocal(): List<Warehouse> = coroutineScope {
+        logger.warning("Remote unavailable, falling back to local CSV for warehouses")
 
         val loadedWarehouses = localSources.warehouse.getAllWarehouses().map { it.toDomain() }
         val warehousesById = loadedWarehouses.associateBy { it.id }

@@ -11,6 +11,7 @@ import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import java.util.logging.Logger
 
 class PackageRepositoryImpl(
     private val remoteDataSource: RemotePackageDataSource,
@@ -18,6 +19,7 @@ class PackageRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : PackageRepository {
 
+    private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
     private var packages: List<Package>? = null
 
     override suspend fun getAll(): List<Package> =
@@ -75,6 +77,7 @@ class PackageRepositoryImpl(
             .map { raw -> raw.mapNotNull { it.toDomain(warehousesById.await()) } }
             .getOrElse { error ->
                 if (error is NetworkUnavailableException) {
+                    logger.warning("Remote unavailable, falling back to local CSV for packages")
                     localDataSource
                         .getAllPackages()
                         .mapNotNull { it.toDomain(warehousesById.await()) }

@@ -11,6 +11,7 @@ import domain.repository.RouteRepository
 import domain.repository.WarehouseRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import java.util.logging.Logger
 
 class RouteRepositoryImpl(
     private val remoteDataSource: RemoteRouteDataSource,
@@ -18,6 +19,7 @@ class RouteRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : RouteRepository {
 
+    private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
     private var routes: List<Route>? = null
 
     override suspend fun getAll(): List<Route> =
@@ -75,6 +77,7 @@ class RouteRepositoryImpl(
             .map { raw -> raw.mapNotNull { it.toDomain(warehousesById.await()) } }
             .getOrElse { error ->
                 if (error is NetworkUnavailableException) {
+                    logger.warning("Remote unavailable, falling back to local CSV for routes")
                     localDataSource
                         .getAllRoutes()
                         .mapNotNull { it.toDomain(warehousesById.await()) }
