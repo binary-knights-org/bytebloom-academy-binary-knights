@@ -2,7 +2,7 @@ package data.remote.base
 
 import data.exception.NetworkUnavailableException
 import io.ktor.util.network.UnresolvedAddressException
-import io.ktor.utils.io.CancellationException
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
