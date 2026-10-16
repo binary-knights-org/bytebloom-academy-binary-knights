@@ -19,7 +19,7 @@ class RouteRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : RouteRepository {
 
-    private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
+    private val logger = Logger.getLogger(RouteRepositoryImpl::class.java.simpleName)
     private var routes: List<Route>? = null
 
     override suspend fun getAll(): List<Route> =

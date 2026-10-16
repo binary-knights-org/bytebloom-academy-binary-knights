@@ -42,7 +42,7 @@ class WarehouseRepositoryImpl(
     private val remoteSources: RemoteDataSources,
     private val localSources: LocalDataSources
 ) : WarehouseRepository {
-    private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
+    private val logger = Logger.getLogger(WarehouseRepositoryImpl::class.java.simpleName)
     private var warehouses: List<Warehouse>? = null
 
     override suspend fun getAll(): List<Warehouse> =

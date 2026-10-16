@@ -19,7 +19,7 @@ class VehicleRepositoryImpl(
     private val warehouseRepository: WarehouseRepository
 ) : VehicleRepository {
 
-    private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
+    private val logger = Logger.getLogger(VehicleRepositoryImpl::class.java.simpleName)
     private var vehicles: List<Vehicle>? = null
 
     override suspend fun getAll(): List<Vehicle> =
