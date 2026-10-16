@@ -48,12 +48,13 @@ class TrackActiveFleetUseCase(
             }
             update.speedKmh <= criteria.lowSpeedThresholdKmh -> {
                 val deficitRatio = ((NOMINAL_CRUISE_SPEED_KMH - update.speedKmh) / NOMINAL_CRUISE_SPEED_KMH)
-                    .coerceIn(0.1, 1.0)
+                    .coerceIn(MIN_SPEED_DEFICIT_RATIO, MAX_SPEED_DEFICIT_RATIO)
                 val calculatedDelay = (deficitRatio * MAX_TRAFFIC_DELAY_MIN).toInt().coerceAtLeast(MIN_SPEED_DELAY_MIN)
                 calculatedDelay to "Low transit speed (${update.speedKmh.toInt()} km/h). Traffic congestion detected."
             }
             update.fuelPercentage <= criteria.lowFuelThresholdPercent -> {
-                LOW_FUEL_DETOUR_DELAY_MIN to "Low fuel level (${update.fuelPercentage.toInt()}%). Detour for refueling required."
+                LOW_FUEL_DETOUR_DELAY_MIN to
+                    "Low fuel level (${update.fuelPercentage.toInt()}%). Detour for refueling required."
             }
             else -> return null
         }
@@ -76,5 +77,7 @@ class TrackActiveFleetUseCase(
         private const val MIN_SPEED_DELAY_MIN = 5
         private const val STATIONARY_DELAY_MIN = 35
         private const val LOW_FUEL_DETOUR_DELAY_MIN = 20
+        private const val MIN_SPEED_DEFICIT_RATIO = 0.1
+        private const val MAX_SPEED_DEFICIT_RATIO = 1.0
     }
 }
