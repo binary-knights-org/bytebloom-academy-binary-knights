@@ -3,12 +3,14 @@ package data.local.csv
 import data.exception.CsvFileNotFoundException
 import data.local.dataholder.RouteRaw
 import data.local.datasource.CsvRouteDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CsvRouteDataSourceImpl(
     private val csvHandler: CsvFileHandler
 ) : CsvRouteDataSource {
-    override fun getAllRoutes(): List<RouteRaw> {
-        return try {
+    override suspend fun getAllRoutes(): List<RouteRaw> = withContext(Dispatchers.IO){
+        try {
             val lines = csvHandler.readLines()
             lines.mapNotNull { parseLine(it) }
         } catch (_: CsvFileNotFoundException) {

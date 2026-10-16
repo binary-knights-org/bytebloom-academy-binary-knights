@@ -3,5 +3,5 @@ package data.local.datasource
 import data.local.dataholder.RouteRaw
 
 interface CsvRouteDataSource {
-    fun getAllRoutes(): List<RouteRaw>
+    suspend fun getAllRoutes(): List<RouteRaw>
 }

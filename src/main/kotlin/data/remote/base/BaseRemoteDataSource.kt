@@ -2,7 +2,10 @@ package data.remote.base
 
 import data.exception.NetworkUnavailableException
 import io.ktor.util.network.UnresolvedAddressException
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -24,7 +27,7 @@ abstract class BaseRemoteDataSource {
 
         for (attempt in 1..(maxRetries + 1)) {
             val result = runCatching {
-                block()
+                withContext(Dispatchers.IO) { block() }
             }
 
             if (result.isSuccess) {
@@ -33,6 +36,8 @@ abstract class BaseRemoteDataSource {
             }
 
             val error = result.exceptionOrNull()!!
+
+            if (error is CancellationException) throw error
 
             if (shouldAbortRetry(error, attempt, maxRetries)) {
                 return Result.failure(error)

@@ -3,12 +3,14 @@ package data.local.csv
 import data.exception.CsvFileNotFoundException
 import data.local.dataholder.WarehouseRaw
 import data.local.datasource.CsvWarehouseDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CsvWarehouseDataSourceImpl(
     private val csvHandler: CsvFileHandler,
 ) : CsvWarehouseDataSource {
-    override fun getAllWarehouses(): List<WarehouseRaw> {
-        return try {
+     override suspend fun getAllWarehouses(): List<WarehouseRaw> = withContext(Dispatchers.IO) {
+         try {
             val lines = csvHandler.readLines()
             lines.mapNotNull { parseLine(it) }
         } catch (_: CsvFileNotFoundException) {
