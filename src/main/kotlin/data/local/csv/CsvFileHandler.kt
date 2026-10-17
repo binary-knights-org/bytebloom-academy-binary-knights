@@ -43,18 +43,7 @@ class CsvFileHandler(
     }
 
     fun appendLine(line: String) {
-        validateBeforeAppend(line)
-
-        runCatching {
-            file.appendText("$line\n")
-        }.getOrElse { e ->
-            throw CsvWriteException(e)
-        }
-    }
-
-    private fun validateBeforeAppend(line: String) {
-        if (line.isBlank()) throw CsvEmptyLineException()
-        if (!file.exists()) throw CsvFileNotFoundException(filePath)
+        appendLines(listOf(line))
     }
 
     fun appendLines(lines: List<String>) {
@@ -73,9 +62,7 @@ class CsvFileHandler(
 
     private fun validateBeforeAppend(lines: List<String>) {
         if (!file.exists()) throw CsvFileNotFoundException(filePath)
-
-        val validLines = lines.filter { it.isNotBlank() }
-        if (validLines.isEmpty()) throw CsvEmptyLineException()
+        if (lines.none { it.isNotBlank() }) throw CsvEmptyLineException()
     }
 
     fun clearFile() {
