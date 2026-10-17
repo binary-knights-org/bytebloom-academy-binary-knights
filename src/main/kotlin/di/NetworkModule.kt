@@ -14,6 +14,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import io.github.jan.supabase.logging.LogLevel
 
 val networkModule = module {
 
@@ -30,7 +31,8 @@ private fun setupSupabaseClient(supabaseSpecs: SupabaseSpecs): SupabaseClient {
     return createSupabaseClient(
         supabaseUrl = supabaseSpecs.supabaseUrl,
         supabaseKey = supabaseSpecs.supabaseKey,
-    ){
+    ) {
+        defaultLogLevel = LogLevel.NONE
         install(Postgrest)
     }
 }
