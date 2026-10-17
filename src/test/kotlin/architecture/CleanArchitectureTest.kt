@@ -7,7 +7,6 @@ import com.lemonappdev.konsist.api.ext.list.withPackage
 import com.lemonappdev.konsist.api.verify.assertTrue
 import kotlin.test.Test
 
-
 class CleanArchitectureTest {
 
     @Test
@@ -19,7 +18,17 @@ class CleanArchitectureTest {
 
                 domain.doesNotDependOn(data)
             }
+    }
 
+    @Test
+    fun `data layer should not depend on ui layer`() {
+        Konsist.scopeFromProduction()
+            .assertArchitecture {
+                val data = Layer("Data", "data..")
+                val ui = Layer("UI", "ui..")
+
+                data.doesNotDependOn(ui)
+            }
     }
 
     @Test
@@ -30,21 +39,18 @@ class CleanArchitectureTest {
             .assertTrue { file ->
                 file.imports.all { import ->
                     import.name.startsWith("domain.") ||
-                            import.name.startsWith("kotlin.") ||
-                            import.name.startsWith("java.")
+                        import.name.startsWith("kotlin.") ||
+                        import.name.startsWith("java.")
                 }
             }
     }
-
 
     @Test
     fun `usecases should have names ending with UseCase`() {
         Konsist.scopeFromProduction()
             .classes()
             .withPackage("domain.usecase..")
-            .assertTrue {
-                it.name.endsWith("UseCase")
-            }
+            .assertTrue { it.name.endsWith("UseCase") }
     }
 
     @Test
@@ -52,10 +58,7 @@ class CleanArchitectureTest {
         Konsist.scopeFromProduction()
             .classes()
             .withPackage("domain.validator..")
-            .assertTrue {
-                it.name.endsWith("Validator")
-            }
-
+            .assertTrue { it.name.endsWith("Validator") }
     }
 
     @Test
@@ -66,14 +69,14 @@ class CleanArchitectureTest {
             .assertTrue {
                 it.functions().any { function ->
                     function.name == "invoke" &&
-                            function.hasOperatorModifier &&
-                            function.hasPublicOrDefaultModifier
+                        function.hasOperatorModifier &&
+                        function.hasPublicOrDefaultModifier
                 }
             }
     }
 
     @Test
-    fun `DTO classes should end with Dto and be annotated with @Serializable`() {
+    fun `DTO classes should end with Dto and be annotated with Serializable`() {
         Konsist.scopeFromProduction()
             .classes()
             .withPackage("data.remote.dto..")
@@ -81,6 +84,4 @@ class CleanArchitectureTest {
                 it.name.endsWith("Dto") && it.hasAnnotationWithName("Serializable")
             }
     }
-
-
 }
