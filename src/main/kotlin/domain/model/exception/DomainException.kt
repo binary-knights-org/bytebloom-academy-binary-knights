@@ -29,6 +29,11 @@ sealed class DomainException(message: String) : Exception(message) {
 
         const val INSUFFICIENT_VEHICLE_CAPACITY = "Package weight exceeds available vehicle capacity."
         const val INVALID_DISPATCH_PRIORITY = "Package priority is not compatible with this dispatch pipeline."
+        const val INSUFFICIENT_HISTORICAL_PACKAGES = "At least 5 historical packages are required."
+
+        const val INVALID_KNN_WEIGHT = "Package weight must be finite and greater than 0.0."
+
+        const val INVALID_HISTORICAL_PACKAGE_WEIGHT = "Historical package weights must be finite and greater than 0.0."
     }
 }
 
@@ -53,3 +58,12 @@ class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainExc
 class IllegalStateTransitionException(message: String) : RuntimeException(message)
 class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
 class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
+class InsufficientHistoricalPackagesException(message: String = INSUFFICIENT_HISTORICAL_PACKAGES) :
+    DomainException(message)
+
+
+class InvalidKnnWeightException(message: String = INVALID_KNN_WEIGHT) :
+    DomainException(message)
+
+class InvalidHistoricalPackageWeightException(message: String = INVALID_HISTORICAL_PACKAGE_WEIGHT) :
+    DomainException(message)
