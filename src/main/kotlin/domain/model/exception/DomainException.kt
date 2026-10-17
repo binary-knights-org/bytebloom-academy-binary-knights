@@ -1,69 +1,138 @@
 package domain.model.exception
-
-import domain.model.validation.ValidationError
-
+import  domain.model.validation.ValidationError
 sealed class DomainException(message: String) : Exception(message) {
     companion object {
-        const val RESOURCE_NOT_FOUND = "Requested resource was not found."
-        const val DATA_UNAVAILABLE = "Data source is currently unavailable."
+        const val RESOURCE_NOT_FOUND =
+            "Requested resource was not found."
+        const val DATA_UNAVAILABLE =
+            "Data source is currently unavailable."
         const val OPERATION_FAILED = "Operation failed."
-        const val NO_UPDATE_FIELDS = "At least one field must be provided for update."
-
-        const val INVALID_PACKAGE_WEIGHT = "Weight must be greater than 0.0"
-        const val INVALID_PACKAGE_VOLUME = "volumeM3 must be greater than 0.0"
-        const val SAME_ORIGIN_DESTINATION = "Destination hub must be different from origin hub."
-
-        const val INVALID_ROUTE_DISTANCE = "distanceKm must be greater than 0.0."
-        const val INVALID_ROUTE_DELAY = "typicalDelayMin must not be negative."
-
-        const val INVALID_VEHICLE_CAPACITY = "maxCapacityKg must be greater than 0.0"
-        const val INVALID_VEHICLE_VOLUME_CAPACITY = "maxVolumeM3 must be greater than 0.0"
-        const val INVALID_VEHICLE_COST = "costPerKm must be greater than 0.0"
-
-        const val BLANK_WAREHOUSE_NAME = "Warehouse name cannot be blank."
-        const val BLANK_REGIONAL_ZONE = "Warehouse regional zone cannot be blank."
-        const val INVALID_LATITUDE = "Latitude must be between -90.0 and 90.0."
-        const val INVALID_LONGITUDE = "Longitude must be between -180.0 and 180.0."
-
-        const val INVALID_CARGO = "Invalid input provided for cargo optimization."
-
-        const val INSUFFICIENT_VEHICLE_CAPACITY = "Package weight exceeds available vehicle capacity."
-        const val INVALID_DISPATCH_PRIORITY = "Package priority is not compatible with this dispatch pipeline."
-        const val INSUFFICIENT_HISTORICAL_PACKAGES = "At least 5 historical packages are required."
-
-        const val INVALID_KNN_WEIGHT = "Package weight must be finite and greater than 0.0."
-
-        const val INVALID_HISTORICAL_PACKAGE_WEIGHT = "Historical package weights must be finite and greater than 0.0."
+        const val NO_UPDATE_FIELDS =
+            "At least one field must be provided for update."
+        const val INVALID_PACKAGE_WEIGHT =
+            "Weight must be greater than 0.0"
+        const val INVALID_PACKAGE_VOLUME =
+            "volumeM3 must be greater than 0.0"
+        const val SAME_ORIGIN_DESTINATION =
+            "Destination hub must be different from origin hub."
+        const val INVALID_ROUTE_DISTANCE =
+            "distanceKm must be greater than 0.0."
+        const val INVALID_ROUTE_DELAY =
+            "typicalDelayMin must not be negative."
+        const val INVALID_VEHICLE_CAPACITY =
+            "maxCapacityKg must be greater than 0.0"
+        const val INVALID_VEHICLE_VOLUME_CAPACITY =
+            "maxVolumeM3 must be greater than 0.0"
+        const val INVALID_VEHICLE_COST =
+            "costPerKm must be greater than 0.0"
+        const val BLANK_WAREHOUSE_NAME =
+            "Warehouse name cannot be blank."
+        const val BLANK_REGIONAL_ZONE =
+            "Warehouse regional zone cannot be blank."
+        const val INVALID_LATITUDE =
+            "Latitude must be between -90.0 and 90.0."
+        const val INVALID_LONGITUDE =
+            "Longitude must be between -180.0 and 180.0."
+        const val INVALID_CARGO =
+            "Invalid input provided for cargo optimization."
+        const val INSUFFICIENT_VEHICLE_CAPACITY =
+            "Package weight exceeds available vehicle capacity."
+        const val INVALID_DISPATCH_PRIORITY =
+            "Package priority is not compatible with this dispatch pipeline."
+        const val INSUFFICIENT_HISTORICAL_PACKAGES =
+            "At least 5 historical packages are required."
+        const val INVALID_KNN_WEIGHT =
+            "Package weight must be finite and greater than 0.0."
+        const val INVALID_HISTORICAL_PACKAGE_WEIGHT =
+            "Historical package weights must be finite and greater than 0.0."
     }
 }
 
-class EntityValidationException(val violations: List<ValidationError>) :
-    DomainException("Validation failed: ${violations.joinToString("; ") { it.message }}")
+class EntityValidationException(
+    val violations: List<ValidationError>
+) : DomainException("Entity validation failed.")
 
-class ResourceNotFoundException(message: String = RESOURCE_NOT_FOUND) : DomainException(message)
-class DataUnavailableException(message: String = DATA_UNAVAILABLE) : DomainException(message)
-class OperationFailedException(message: String = OPERATION_FAILED) : DomainException(message)
-class InvalidCargoInputException(message: String = INVALID_CARGO) : DomainException(message)
-class InvalidPackageWeightException(message: String = INVALID_PACKAGE_WEIGHT) : DomainException(message)
-class InvalidPackageVolumeException(message: String = INVALID_PACKAGE_VOLUME) : DomainException(message)
-class SameOriginAndDestinationException(message: String = SAME_ORIGIN_DESTINATION) : DomainException(message)
-class InvalidRouteDistanceException(message: String = INVALID_ROUTE_DISTANCE) : DomainException(message)
-class InvalidRouteDelayException(message: String = INVALID_ROUTE_DELAY) : DomainException(message)
-class InvalidVehicleCapacityException(message: String = INVALID_VEHICLE_CAPACITY) : DomainException(message)
-class InvalidVehicleVolumeCapacityException(message: String = INVALID_VEHICLE_VOLUME_CAPACITY):DomainException(message)
-class InvalidVehicleCostException(message: String = INVALID_VEHICLE_COST) : DomainException(message)
-class InvalidWarehouseTextException(message: String = BLANK_WAREHOUSE_NAME) : DomainException(message)
-class InvalidLatitudeException(message: String = INVALID_LATITUDE) : DomainException(message)
-class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainException(message)
-class IllegalStateTransitionException(message: String) : RuntimeException(message)
-class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
-class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
-class InsufficientHistoricalPackagesException(message: String = INSUFFICIENT_HISTORICAL_PACKAGES) :
-    DomainException(message)
+class ResourceNotFoundException(
+    message: String = DomainException.RESOURCE_NOT_FOUND
+) : DomainException(message)
 
+class DataUnavailableException(
+    message: String = DomainException.DATA_UNAVAILABLE
+) : DomainException(message)
 
-class InvalidKnnWeightException(message: String = INVALID_KNN_WEIGHT) :
-    DomainException(message)
+class OperationFailedException(
+    message: String = DomainException.OPERATION_FAILED
+) : DomainException(message)
 
-class InvalidHistoricalPackageWeightException(message: String = INVALID_HISTORICAL_PACKAGE_WEIGHT) :
-    DomainException(message)
+class InvalidCargoInputException(
+    message: String = DomainException.INVALID_CARGO
+) : DomainException(message)
+
+class InvalidPackageWeightException(
+    message: String = DomainException.INVALID_PACKAGE_WEIGHT
+) : DomainException(message)
+
+class InvalidPackageVolumeException(
+    message: String = DomainException.INVALID_PACKAGE_VOLUME
+) : DomainException(message)
+
+class SameOriginAndDestinationException(
+    message: String = DomainException.SAME_ORIGIN_DESTINATION
+) : DomainException(message)
+
+class InvalidRouteDistanceException(
+    message: String = DomainException.INVALID_ROUTE_DISTANCE
+) : DomainException(message)
+
+class InvalidRouteDelayException(
+    message: String = DomainException.INVALID_ROUTE_DELAY
+) : DomainException(message)
+
+class InvalidVehicleCapacityException(
+    message: String = DomainException.INVALID_VEHICLE_CAPACITY
+) : DomainException(message)
+
+class InvalidVehicleVolumeCapacityException(
+    message: String = DomainException.INVALID_VEHICLE_VOLUME_CAPACITY
+) : DomainException(message)
+
+class InvalidVehicleCostException(
+    message: String = DomainException.INVALID_VEHICLE_COST
+) : DomainException(message)
+
+class InvalidWarehouseTextException(
+    message: String
+) : DomainException(message)
+
+class InvalidLatitudeException(
+    message: String = DomainException.INVALID_LATITUDE
+) : DomainException(message)
+
+class InvalidLongitudeException(
+    message: String = DomainException.INVALID_LONGITUDE
+) : DomainException(message)
+
+class IllegalStateTransitionException(
+    message: String
+) : RuntimeException(message)
+
+class InsufficientVehicleCapacityException(
+    message: String = DomainException.INSUFFICIENT_VEHICLE_CAPACITY
+) : DomainException(message)
+
+class InvalidDispatchPriorityException(
+    message: String = DomainException.INVALID_DISPATCH_PRIORITY
+) : DomainException(message)
+
+class InsufficientHistoricalPackagesException(
+    message: String = DomainException.INSUFFICIENT_HISTORICAL_PACKAGES
+) : DomainException(message)
+
+class InvalidKnnWeightException(
+    message: String = DomainException.INVALID_KNN_WEIGHT
+) : DomainException(message)
+
+class InvalidHistoricalPackageWeightException(
+    message: String =
+        DomainException.INVALID_HISTORICAL_PACKAGE_WEIGHT
+) : DomainException(message)
