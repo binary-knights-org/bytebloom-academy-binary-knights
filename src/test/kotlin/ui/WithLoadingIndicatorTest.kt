@@ -23,8 +23,7 @@ class WithLoadingIndicatorTest {
             kotlinx.coroutines.runBlocking {
                 withLoadingIndicator("Loading") { stopLoading ->
                     stopLoading()
-                    throw IllegalStateException("Operation failed")
-                }
+                    error("Operation failed")                }
             }
         }
 

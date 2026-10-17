@@ -11,14 +11,23 @@ internal class PackageClassificationCli(
         println("[PACKAGE CLASSIFICATION - KNN]")
 
         val latitude = readCoordinate("Enter destination latitude: ")
-            ?: return
+        val longitude = latitude?.let {
+            readCoordinate("Enter destination longitude: ")
+        }
+        val weight = longitude?.let {
+            readCoordinate("Enter package weight (kg): ")
+        }
 
-        val longitude = readCoordinate("Enter destination longitude: ")
-            ?: return
+        if (latitude != null && longitude != null && weight != null) {
+            classifyPackage(latitude, longitude, weight)
+        }
+    }
 
-        val weight = readCoordinate("Enter package weight (kg): ")
-            ?: return
-
+    private suspend fun classifyPackage(
+        latitude: Double,
+        longitude: Double,
+        weight: Double
+    ) {
         val result = withLoadingIndicator("Classifying package") {
             val historicalPackages = packageRepository.getAll()
 

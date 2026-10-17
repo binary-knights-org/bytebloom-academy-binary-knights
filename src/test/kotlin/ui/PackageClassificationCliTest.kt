@@ -1,6 +1,5 @@
 package ui
 
-import domain.model.Package
 import domain.repository.PackageRepository
 import domain.usecase.analytics.ClassifyPackageSectorUseCase
 import io.mockk.coEvery
