@@ -31,7 +31,7 @@ abstract class BaseRemoteDataSource {
             }
 
             if (result.isSuccess) {
-                logSuccess(attempt)
+               // logSuccess(attempt)
                 return result
             }
 
@@ -78,12 +78,12 @@ abstract class BaseRemoteDataSource {
         }
     }
 
-    private fun logSuccess(attempt: Int) {
+   /* private fun logSuccess(attempt: Int) {
         logger.info(
             "[Telemetry] Attempt Number: $attempt | " +
                     "Eventual Outcome: SUCCESS"
         )
-    }
+    }*/
 
     private fun logRetryAttempt(
         attempt: Int,
