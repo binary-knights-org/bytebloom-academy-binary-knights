@@ -3,6 +3,7 @@ package di
 import domain.usecase.analytics.AnalyzeTreePerformanceUseCase
 import domain.usecase.analytics.CalculateNetworkResilienceScoreUseCase
 import domain.usecase.analytics.CalculatePricingUseCase
+import domain.usecase.analytics.ClassifyPackageSectorUseCase
 import domain.usecase.crud.packages.CreatePackageUseCase
 import domain.usecase.crud.packages.DeletePackageUseCase
 import domain.usecase.crud.packages.GetPackageByIdUseCase
@@ -39,6 +40,7 @@ import domain.usecase.warehouse.GetOverloadedWarehousesUseCase
 import domain.usecase.warehouse.GetWarehouseLoadFactorUseCase
 import domain.usecase.warehouse.TraceHubLineageUseCase
 import domain.usecase.telemetry.TrackActiveFleetUseCase
+import domain.algorithm.knn.KNearestNeighbors
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -67,6 +69,7 @@ val useCaseModule = module {
     factoryOf(::AnalyzeTreePerformanceUseCase)
     factoryOf(::CalculateNetworkResilienceScoreUseCase)
     factoryOf(::CalculatePricingUseCase)
+    factoryOf(::ClassifyPackageSectorUseCase)
 
     factoryOf(::AssignPackageToCargoQueueUseCase)
     factoryOf(::CalculateAveragePackageWeightUseCase)
@@ -92,4 +95,5 @@ val useCaseModule = module {
 
     factoryOf(::CompareRoutingStrategiesUseCase)
     factoryOf(::TrackActiveFleetUseCase)
+    factoryOf(::KNearestNeighbors)
 }

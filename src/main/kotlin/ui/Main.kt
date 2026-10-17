@@ -4,21 +4,16 @@ import di.networkModule
 import di.pricingModule
 import di.repositoryModule
 import di.routingModule
-import di.telemetryModule
 import di.useCaseModule
 import di.validatorModule
-import domain.repository.PackageRepository
-import domain.repository.RouteRepository
-import domain.repository.VehicleRepository
+import di.telemetryModule
 import domain.repository.WarehouseRepository
-import domain.usecase.analytics.CalculatePricingUseCase
-import domain.usecase.routing.FindBidirectionalRouteUseCase
-import domain.usecase.routing.FindFewestHopsRouteUseCase
+import domain.usecase.analytics.ClassifyPackageSectorUseCase
 import domain.usecase.routing.FindOptimalPathUseCase
-import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
-import domain.usecase.telemetry.TrackActiveFleetUseCase
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
+import domain.usecase.telemetry.TrackActiveFleetUseCase
+import domain.repository.PackageRepository
 
 fun main() = runBlocking {
     val koin = startKoin {
@@ -36,50 +31,33 @@ fun main() = runBlocking {
     printSystemHeader()
 
     val warehouseRepository = koin.get<WarehouseRepository>()
-    val packageRepository = koin.get<PackageRepository>()
-    val vehicleRepository = koin.get<VehicleRepository>()
-    val routeRepository = koin.get<RouteRepository>()
-    val trackActiveFleetUseCase = koin.get<TrackActiveFleetUseCase>()
-
-    printParsingReport(vehicleRepository, warehouseRepository, packageRepository, routeRepository)
-
-    val warehouses = buildDomainGraph(warehouseRepository)
-    val vehicles = vehicleRepository.getAll()
-
-    val assignPackagesToVehicleUseCase = koin.get<AssignPackagesToVehicleUseCase>()
     val findOptimalPathUseCase = koin.get<FindOptimalPathUseCase>()
-    val findFewestHopsRouteUseCase = koin.get<FindFewestHopsRouteUseCase>()
-    val findBidirectionalRouteUseCase = koin.get<FindBidirectionalRouteUseCase>()
-    val calculatePricingUseCase = koin.get<CalculatePricingUseCase>()
-
-    runCargoDemos(packageRepository, warehouses)
-    runPackageConsolidationDemo(assignPackagesToVehicleUseCase)
-    runPricingAndDecoratorDemos(warehouses, calculatePricingUseCase)
-    runBreakdownSimulationDemo()
-    runRoutingAndComparisonDemos(
-        warehouseRepository,
-        warehouses,
-        findOptimalPathUseCase,
-        findFewestHopsRouteUseCase,
-        findBidirectionalRouteUseCase
+    val packageClassificationCli = PackageClassificationCli(
+        packageRepository = koin.get<PackageRepository>(),
+        classifyPackageSectorUseCase =
+            koin.get<ClassifyPackageSectorUseCase>()
     )
-    runSimulationDemos(vehicleRepository, warehouseRepository, warehouses)
-    runGreedyFleetDemo(vehicles)
-    runInvalidInputDemo()
-    runKnapsackDispatchDemo(warehouses)
-    runTelemetryStreamingDemo(trackActiveFleetUseCase)
+
+    val cliShell = AsyncCliShell(
+        warehouseRepository = warehouseRepository,
+        findOptimalPathUseCase = findOptimalPathUseCase,
+        trackActiveFleetUseCase = koin.get<TrackActiveFleetUseCase>(),
+        packageClassificationCli = packageClassificationCli
+    )
+
+    cliShell.run()
 
     printSystemFooter()
 }
 
 private fun printSystemHeader() {
-    println("\n============================================================")
-    println("      BYTEBLOOM ACADEMY: LOGISTICS & ROUTING ENGINE         ")
-    println("============================================================")
+    println("\u001B[34m"+"\n============================================================")
+    println("\u001B[34m"+"      BYTEBLOOM ACADEMY: LOGISTICS & ROUTING ENGINE         ")
+    println("\u001B[34m"+"============================================================")
 }
 
 private fun printSystemFooter() {
-    println("\n============================================================")
-    println("          SYSTEM EXECUTION COMPLETED SUCCESSFULLY           ")
-    println("============================================================\n")
+    println("\u001B[34m"+"\n============================================================")
+    println("\u001B[34m"+"          SYSTEM EXECUTION COMPLETED SUCCESSFULLY           ")
+    println("\u001B[34m"+"============================================================\n")
 }

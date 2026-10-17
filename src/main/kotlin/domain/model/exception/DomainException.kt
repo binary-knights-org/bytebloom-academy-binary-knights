@@ -2,49 +2,31 @@ package domain.model.exception
 import  domain.model.validation.ValidationError
 sealed class DomainException(message: String) : Exception(message) {
     companion object {
-        const val RESOURCE_NOT_FOUND =
-            "Requested resource was not found."
-        const val DATA_UNAVAILABLE =
-            "Data source is currently unavailable."
+        const val RESOURCE_NOT_FOUND = "Requested resource was not found."
+        const val DATA_UNAVAILABLE = "Data source is currently unavailable."
         const val OPERATION_FAILED = "Operation failed."
-        const val NO_UPDATE_FIELDS =
-            "At least one field must be provided for update."
-        const val INVALID_PACKAGE_WEIGHT =
-            "Weight must be greater than 0.0"
-        const val INVALID_PACKAGE_VOLUME =
-            "volumeM3 must be greater than 0.0"
-        const val SAME_ORIGIN_DESTINATION =
-            "Destination hub must be different from origin hub."
-        const val INVALID_ROUTE_DISTANCE =
-            "distanceKm must be greater than 0.0."
-        const val INVALID_ROUTE_DELAY =
-            "typicalDelayMin must not be negative."
-        const val INVALID_VEHICLE_CAPACITY =
-            "maxCapacityKg must be greater than 0.0"
-        const val INVALID_VEHICLE_VOLUME_CAPACITY =
-            "maxVolumeM3 must be greater than 0.0"
-        const val INVALID_VEHICLE_COST =
-            "costPerKm must be greater than 0.0"
-        const val BLANK_WAREHOUSE_NAME =
-            "Warehouse name cannot be blank."
-        const val BLANK_REGIONAL_ZONE =
-            "Warehouse regional zone cannot be blank."
-        const val INVALID_LATITUDE =
-            "Latitude must be between -90.0 and 90.0."
-        const val INVALID_LONGITUDE =
-            "Longitude must be between -180.0 and 180.0."
-        const val INVALID_CARGO =
-            "Invalid input provided for cargo optimization."
-        const val INSUFFICIENT_VEHICLE_CAPACITY =
-            "Package weight exceeds available vehicle capacity."
-        const val INVALID_DISPATCH_PRIORITY =
-            "Package priority is not compatible with this dispatch pipeline."
-        const val INSUFFICIENT_HISTORICAL_PACKAGES =
-            "At least 5 historical packages are required."
-        const val INVALID_KNN_WEIGHT =
-            "Package weight must be finite and greater than 0.0."
-        const val INVALID_HISTORICAL_PACKAGE_WEIGHT =
-            "Historical package weights must be finite and greater than 0.0."
+        const val NO_UPDATE_FIELDS = "At least one field must be provided for update."
+        const val INVALID_PACKAGE_WEIGHT = "Weight must be greater than 0.0"
+        const val INVALID_PACKAGE_VOLUME = "volumeM3 must be greater than 0.0"
+        const val SAME_ORIGIN_DESTINATION = "Destination hub must be different from origin hub."
+        const val INVALID_ROUTE_DISTANCE = "distanceKm must be greater than 0.0."
+        const val INVALID_ROUTE_DELAY = "typicalDelayMin must not be negative."
+        const val INVALID_VEHICLE_CAPACITY = "maxCapacityKg must be greater than 0.0"
+        const val INVALID_VEHICLE_VOLUME_CAPACITY = "maxVolumeM3 must be greater than 0.0"
+        const val INVALID_VEHICLE_COST = "costPerKm must be greater than 0.0"
+        const val BLANK_WAREHOUSE_NAME = "Warehouse name cannot be blank."
+        const val BLANK_REGIONAL_ZONE = "Warehouse regional zone cannot be blank."
+        const val INVALID_LATITUDE = "Latitude must be between -90.0 and 90.0."
+        const val INVALID_LONGITUDE = "Longitude must be between -180.0 and 180.0."
+        const val INVALID_CARGO = "Invalid input provided for cargo optimization."
+        const val INSUFFICIENT_VEHICLE_CAPACITY = "Package weight exceeds available vehicle capacity."
+        const val INVALID_DISPATCH_PRIORITY = "Package priority is not compatible with this dispatch pipeline."
+        const val INSUFFICIENT_HISTORICAL_PACKAGES = "At least 5 historical packages are required."
+        const val INVALID_KNN_WEIGHT = "Package weight must be finite and greater than 0.0."
+        const val INVALID_HISTORICAL_PACKAGE_WEIGHT = "Historical package weights must be finite and greater than 0.0."
+        const val BLANK_VEHICLE_ID = "Vehicle ID cannot be blank."
+        const val INVALID_SPEED = "Speed must not be negative."
+        const val INVALID_FUEL_PERCENTAGE = "Fuel percentage must be between 0.0 and 100.0."
     }
 }
 
@@ -101,7 +83,7 @@ class InvalidVehicleCostException(
 ) : DomainException(message)
 
 class InvalidWarehouseTextException(
-    message: String
+    message: String = DomainException.BLANK_WAREHOUSE_NAME
 ) : DomainException(message)
 
 class InvalidLatitudeException(
@@ -135,4 +117,16 @@ class InvalidKnnWeightException(
 class InvalidHistoricalPackageWeightException(
     message: String =
         DomainException.INVALID_HISTORICAL_PACKAGE_WEIGHT
+) : DomainException(message)
+
+class InvalidVehicleIdException(
+    message: String = BLANK_VEHICLE_ID
+) : DomainException(message)
+
+class InvalidSpeedException(
+    message: String = INVALID_SPEED
+) : DomainException(message)
+
+class InvalidFuelPercentageException(
+    message: String = INVALID_FUEL_PERCENTAGE
 ) : DomainException(message)
