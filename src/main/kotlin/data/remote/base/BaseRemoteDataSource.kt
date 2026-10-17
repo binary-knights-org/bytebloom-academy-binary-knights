@@ -22,7 +22,6 @@ abstract class BaseRemoteDataSource {
         factor: Double = 2.0,
         block: suspend () -> T
     ): Result<T> {
-
         var delayMs = initialDelayMs
 
         for (attempt in 1..(maxRetries + 1)) {
@@ -31,11 +30,10 @@ abstract class BaseRemoteDataSource {
             }
 
             if (result.isSuccess) {
-               // logSuccess(attempt)
                 return result
             }
 
-            val error = result.exceptionOrNull()!!
+            val error = result.exceptionOrNull() ?: return result
 
             if (error is CancellationException) throw error
 
@@ -55,35 +53,28 @@ abstract class BaseRemoteDataSource {
         error: Throwable,
         attempt: Int,
         maxRetries: Int
-    ): Boolean {
-        return when {
+    ): Boolean =
+        when {
             !isRetryable(error) -> {
                 logger.warning(
                     "[Telemetry] Attempt Number: $attempt | " +
-                            "Non-retryable error: ${error::class.simpleName} | " +
-                            "Eventual Outcome: ABORTED"
+                        "Non-retryable error: ${error::class.simpleName} | " +
+                        "Eventual Outcome: ABORTED"
                 )
                 true
             }
+
             attempt > maxRetries -> {
                 logger.severe(
                     "[Telemetry] Attempt Number: $attempt | " +
-                            "Max retries reached | " +
-                            "Eventual Outcome: FAILED"
+                        "Max retries reached | " +
+                        "Eventual Outcome: FAILED"
                 )
-
                 true
             }
+
             else -> false
         }
-    }
-
-   /* private fun logSuccess(attempt: Int) {
-        logger.info(
-            "[Telemetry] Attempt Number: $attempt | " +
-                    "Eventual Outcome: SUCCESS"
-        )
-    }*/
 
     private fun logRetryAttempt(
         attempt: Int,
@@ -91,15 +82,14 @@ abstract class BaseRemoteDataSource {
     ) {
         logger.info(
             "[Telemetry] Attempt Number: $attempt failed. " +
-                    "Calculated backoff delay: ${delayMs}ms. Retrying..."
+                "Calculated backoff delay: ${delayMs}ms. Retrying..."
         )
     }
 
-    private fun isRetryable(throwable: Throwable): Boolean {
-        return throwable is NetworkUnavailableException ||
-                throwable is SocketTimeoutException ||
-                throwable is ConnectException ||
-                throwable is IOException ||
-                throwable is UnresolvedAddressException
-    }
+    private fun isRetryable(throwable: Throwable): Boolean =
+        throwable is NetworkUnavailableException ||
+            throwable is SocketTimeoutException ||
+            throwable is ConnectException ||
+            throwable is IOException ||
+            throwable is UnresolvedAddressException
 }
