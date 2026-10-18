@@ -1,4 +1,4 @@
-package ui
+package ui.cli
 
 import domain.model.telemetry.FleetTrackingCriteria
 import domain.repository.WarehouseRepository

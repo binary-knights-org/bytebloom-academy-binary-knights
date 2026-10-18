@@ -1,4 +1,4 @@
-package ui
+package ui.demo
 
 import domain.algorithm.greedy.GreedyFleetDispatcher
 import domain.model.RegionalZone

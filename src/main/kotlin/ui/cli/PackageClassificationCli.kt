@@ -1,4 +1,4 @@
-package ui
+package ui.cli
 
 import domain.repository.PackageRepository
 import domain.usecase.analytics.ClassifyPackageSectorUseCase

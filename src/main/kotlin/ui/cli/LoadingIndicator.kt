@@ -1,4 +1,4 @@
-package ui
+package ui.cli
 
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope

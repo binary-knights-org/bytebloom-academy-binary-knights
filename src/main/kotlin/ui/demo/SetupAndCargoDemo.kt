@@ -1,6 +1,7 @@
-package ui
+package ui.demo
 
-import domain.algorithm.sorting.sortPackagesByImportance
+import domain.algorithm.sorting.CargoWeightQuickSorter
+import domain.algorithm.sorting.ImportanceSelectionSorter
 import domain.model.Package
 import domain.model.Warehouse
 import domain.repository.PackageRepository
@@ -9,7 +10,6 @@ import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
 
 internal const val TOP_SHIPMENTS_LIMIT = 3
-
 private const val QUEUE_DISPLAY_LIMIT = 5
 
 internal suspend fun printParsingReport(
@@ -49,7 +49,8 @@ internal suspend fun runCargoDemos(
     packageRepository: PackageRepository,
     warehouses: List<Warehouse>
 ) {
-    val sortedPackages = sortPackagesByImportance(packageRepository.getAll())
+    val importanceSorter = ImportanceSelectionSorter()
+    val sortedPackages = importanceSorter.sortPackagesByImportance(packageRepository.getAll())
     printTopShipments(sortedPackages, TOP_SHIPMENTS_LIMIT)
     printSortedCargoQueueForFirstWarehouse(warehouses)
 }
@@ -64,14 +65,17 @@ private fun printTopShipments(packages: List<Package>, limit: Int) {
 
 private fun printSortedCargoQueueForFirstWarehouse(warehouses: List<Warehouse>) {
     val warehouse = warehouses.firstOrNull() ?: return
-    warehouse.sortCargoQueueByWeightDescending()
+
+    val mutableCargoQueue = warehouse.cargoQueue.toMutableList()
+    val cargoSorter = CargoWeightQuickSorter()
+    cargoSorter.sortDescendingByWeight(mutableCargoQueue)
 
     println("\n--- SORTED CARGO QUEUE (DESCENDING BY WEIGHT) ---")
     println("  Warehouse: ${warehouse.id} (${warehouse.name})")
-    warehouse.cargoQueue.take(QUEUE_DISPLAY_LIMIT).forEach { pkg ->
+    mutableCargoQueue.take(QUEUE_DISPLAY_LIMIT).forEach { pkg ->
         println("    [${pkg.id}] -> ${pkg.weight} kg")
     }
-    if (warehouse.cargoQueue.size > QUEUE_DISPLAY_LIMIT) {
-        println("    ... and ${warehouse.cargoQueue.size - QUEUE_DISPLAY_LIMIT} more.")
+    if (mutableCargoQueue.size > QUEUE_DISPLAY_LIMIT) {
+        println("    ... and ${mutableCargoQueue.size - QUEUE_DISPLAY_LIMIT} more.")
     }
 }

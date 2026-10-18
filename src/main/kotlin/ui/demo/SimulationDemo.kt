@@ -1,4 +1,4 @@
-package ui
+package ui.demo
 
 import domain.algorithm.ring.BreakdownSimulationLogic
 import domain.command.CommandInvoker
@@ -135,7 +135,8 @@ private suspend fun printCommandExecution(
     val executed = commandInvoker.executeCommand(command)
     val undo = commandInvoker.undoHistorySize
     val redo = commandInvoker.redoHistorySize
-    println("  $title -> Executed: $executed | Queue: ${warehouse.cargoQueue.size} | Undo Stack: $undo | Redo Stack: $redo")
+    println("  $title -> Executed: $executed | Queue: ${warehouse.cargoQueue.size} " +
+            "| Undo Stack: $undo | Redo Stack: $redo")
 }
 
 private suspend fun printUndo(

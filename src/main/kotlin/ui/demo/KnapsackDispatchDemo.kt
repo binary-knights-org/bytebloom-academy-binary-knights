@@ -1,4 +1,4 @@
-package ui
+package ui.demo
 
 import domain.algorithm.dp.KnapsackCargoOptimizer
 import domain.dispatch.StandardDispatchProcessor

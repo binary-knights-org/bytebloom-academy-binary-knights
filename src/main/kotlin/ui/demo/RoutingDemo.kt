@@ -1,4 +1,4 @@
-package ui
+package ui.demo
 
 import domain.algorithm.pathfinding.BidirectionalBfsRouter
 import domain.algorithm.pathfinding.LeastHopRouter
