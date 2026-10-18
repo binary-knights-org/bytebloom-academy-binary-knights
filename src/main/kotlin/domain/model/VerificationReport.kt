@@ -5,7 +5,4 @@ data class VerificationReport(
     val brokenVehicleId: String,
     val fallbackVehicleId: String,
     val validationError: List<String> = emptyList(),
-){
-    val isValid: Boolean
-        get() = validationError.isEmpty()
-}
+)

@@ -95,10 +95,9 @@ private fun createSamplePackagePool(
 private fun printPackagePool(packages: List<Package>) {
     println("Package Pool:")
     packages.forEach { pkg ->
-        val stateName = pkg.getState()::class.simpleName
+        val stateName = pkg.currentState::class.simpleName
 
-        println("  ${pkg.id} | " + "${pkg.weight} kg | " +
-                    "${pkg.volumeM3} m³ | " + "Priority: ${pkg.priority} | " + "State: $stateName")
+        println("  ${pkg.id} | ${pkg.weight} kg | ${pkg.volumeM3} m³ | Priority: ${pkg.priority} | State: $stateName")
     }
 }
 
@@ -119,8 +118,8 @@ private fun printOptimizationComparison(
     val volumeAwareTotalVolume = volumeAwarePackages.sumOf { it.volumeM3 ?: 0.0 }
 
     println(
-        "  Total: $volumeAwareTotalWeight kg / " + "${vehicle.maxCapacityKg} kg | " +
-                "$volumeAwareTotalVolume m³ / " + "${vehicle.maxVolumeM3} m³"
+        "  Total: $volumeAwareTotalWeight kg / ${vehicle.maxCapacityKg} kg | " +
+                "$volumeAwareTotalVolume m³ / ${vehicle.maxVolumeM3} m³"
     )
 }
 
@@ -142,9 +141,9 @@ private fun dispatchSelectedPackages(
     println("\nDispatching Selected Cargo...")
 
     selectedPackages.forEach { pkg ->
-        val previousState = pkg.getState()::class.simpleName
+        val previousState = pkg.currentState::class.simpleName
         val notification = dispatchProcessor.dispatch(pkg = pkg, vehicle = vehicle)
-        val newState = pkg.getState()::class.simpleName
+        val newState = pkg.currentState::class.simpleName
 
         println("  ${pkg.id}: $previousState -> $newState")
         notification?.let {

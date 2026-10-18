@@ -1,64 +1,59 @@
+
 package data.local.csv
 
-import data.exception.CsvFileNotFoundException
 import data.local.dataholder.VehicleRaw
 import data.local.datasource.CsvVehicleDataSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class CsvVehicleDataSourceImpl(
-    private val csvHandler: CsvFileHandler,
-) : CsvVehicleDataSource {
+    csvHandler: CsvFileHandler,
+) : BaseCsvDataSource<VehicleRaw>(csvHandler), CsvVehicleDataSource {
 
-    override suspend fun getAllVehicles(): List<VehicleRaw> = withContext(Dispatchers.IO) {
-        try {
-            val lines = csvHandler.readLines()
-            lines.mapNotNull { parseLine(it) }
-        } catch (_: CsvFileNotFoundException) {
-            emptyList()
-        }
-    }
+    override suspend fun getAllVehicles(): List<VehicleRaw> = readAll()
 
-    fun parseLine(line: String): VehicleRaw? {
-        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
-
-        if (fields.size != EXPECTED_VEHICLE_FIELDS) {
-            return null
-        }
-
-        return mapFieldsToVehicle(fields)
-    }
+    override fun parseLine(line: String): VehicleRaw? =
+        splitFields(line)
+            .takeIf { it.size == EXPECTED_VEHICLE_FIELDS }
+            ?.let(::mapFieldsToVehicle)
 
     private fun mapFieldsToVehicle(fields: List<String>): VehicleRaw? {
-        val rawVehicleId = fields[INDEX_VEHICLE_ID].trim().uppercase()
-        val rawCurrentHubId = fields[INDEX_CURRENT_HUB_ID].trim().uppercase()
+        val rawVehicleId = fields[INDEX_VEHICLE_ID].uppercase()
+        val rawCurrentHubId = fields[INDEX_CURRENT_HUB_ID].uppercase()
+        val maxCapacity = fields[INDEX_MAX_CAPACITY].toDoubleOrNull()
+        val costPerKm = fields[INDEX_COST_PER_KM].toDoubleOrNull()
 
-        if (rawVehicleId.isBlank() || rawCurrentHubId.isBlank()) return null
+        if (maxCapacity == null || costPerKm == null) return null
 
-        val vehicleId = if (rawVehicleId.startsWith("TRK-")) rawVehicleId else "TRK-$rawVehicleId"
-        val currentHubId = if (rawCurrentHubId.startsWith("WH-")) rawCurrentHubId else "WH-$rawCurrentHubId"
+        val hasEmptyText = listOf(
+            rawVehicleId,
+            rawCurrentHubId
+        ).any(String::isBlank)
 
-        val maxCapacity = fields[INDEX_MAX_CAPACITY].trim().toDoubleOrNull()
-        val costPerKm = fields[INDEX_COST_PER_KM].trim().toDoubleOrNull()
-
-        return when {
-            maxCapacity == null || costPerKm == null -> null
-            else -> VehicleRaw(
-                vehicleIds = listOf(vehicleId),
-                currentHubId = currentHubId,
-                maxCapacityKg = maxCapacity,
-                costPerKm = costPerKm
-            )
-        }
+        return fields
+            .takeIf { !hasEmptyText }
+            ?.let {
+                VehicleRaw(
+                    vehicleIds = listOf(
+                        normalizePrefix(rawVehicleId, VEHICLE_PREFIX)
+                    ),
+                    currentHubId = normalizePrefix(
+                        rawCurrentHubId,
+                        WAREHOUSE_PREFIX
+                    ),
+                    maxCapacityKg = maxCapacity,
+                    costPerKm = costPerKm
+                )
+            }
     }
 
     private companion object {
         const val EXPECTED_VEHICLE_FIELDS = 4
-        const val CSV_DELIMITER = ","
 
         const val INDEX_VEHICLE_ID = 0
         const val INDEX_CURRENT_HUB_ID = 1
         const val INDEX_MAX_CAPACITY = 2
         const val INDEX_COST_PER_KM = 3
+
+        const val VEHICLE_PREFIX = "TRK-"
+        const val WAREHOUSE_PREFIX = "WH-"
     }
 }

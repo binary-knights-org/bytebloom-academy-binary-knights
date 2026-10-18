@@ -28,15 +28,17 @@ internal class PackageClassificationCli(
         longitude: Double,
         weight: Double
     ) {
-        val result = withLoadingIndicator("Classifying package") {
-            val historicalPackages = packageRepository.getAll()
+        val result = runCatching {
+            withLoadingIndicator("Classifying package") {
+                val historicalPackages = packageRepository.getAll()
 
-            classifyPackageSectorUseCase(
-                latitude = latitude,
-                longitude = longitude,
-                weight = weight,
-                historicalPackages = historicalPackages
-            )
+                classifyPackageSectorUseCase(
+                    latitude = latitude,
+                    longitude = longitude,
+                    weight = weight,
+                    historicalPackages = historicalPackages
+                )
+            }
         }
 
         result
@@ -64,4 +66,3 @@ internal class PackageClassificationCli(
         return value
     }
 }
-

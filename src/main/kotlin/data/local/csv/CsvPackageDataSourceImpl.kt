@@ -1,78 +1,79 @@
+
 package data.local.csv
 
-import data.exception.CsvFileNotFoundException
 import data.local.dataholder.PackageRaw
 import data.local.datasource.CsvPackageDataSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class CsvPackageDataSourceImpl(
-    private val csvHandler: CsvFileHandler,
-) : CsvPackageDataSource {
-    override suspend fun getAllPackages(): List<PackageRaw> = withContext(Dispatchers.IO) {
+    csvHandler: CsvFileHandler,
+) : BaseCsvDataSource<PackageRaw>(csvHandler), CsvPackageDataSource {
 
-         try {
-            val lines = csvHandler.readLines()
-            lines.mapNotNull { parseLine(it) }
-        } catch (_: CsvFileNotFoundException) {
-            emptyList()
-        }
-    }
+    override suspend fun getAllPackages(): List<PackageRaw> = readAll()
 
-    fun parseLine(line: String): PackageRaw? {
-        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
-        if (fields.size != EXPECTED_PACKAGE_FIELDS) {
-            return null
-        }
-        return mapFieldsToPackage(fields)
-    }
+    override fun parseLine(line: String): PackageRaw? =
+        splitFields(line)
+            .takeIf { it.size == EXPECTED_PACKAGE_FIELDS }
+            ?.let(::mapFieldsToPackage)
 
-    private fun mapFieldsToPackage(fields: List<String>): PackageRaw? {
-        val packageId = fields[INDEX_ID].trim().uppercase()
-        val rawOriginHub = fields[INDEX_ORIGIN_HUB].trim().uppercase()
-        val rawDestHub = fields[INDEX_DESTINATION_HUB].trim().uppercase()
-        val priorityRaw = fields[INDEX_PRIORITY].trim()
+    private fun mapFieldsToPackage(
+        fields: List<String>
+    ): PackageRaw? {
+        val packageId = fields[INDEX_ID].uppercase()
+        val originHub = fields[INDEX_ORIGIN_HUB].uppercase()
+        val destinationHub = fields[INDEX_DESTINATION_HUB].uppercase()
+        val priority = fields[INDEX_PRIORITY]
         val weight = parseWeight(fields[INDEX_WEIGHT])
 
-        val hasEmptyText = listOf(packageId, rawOriginHub, rawDestHub, priorityRaw).any { it.isBlank() }
-        if (hasEmptyText || weight <= MIN_WEIGHT) return null
+        val hasEmptyText = listOf(
+            packageId,
+            originHub,
+            destinationHub,
+            priority
+        ).any(String::isBlank)
 
-        val originHubId = if (rawOriginHub.startsWith("WH-")) rawOriginHub else "WH-$rawOriginHub"
-        val destinationHubId = if (rawDestHub.startsWith("WH-")) rawDestHub else "WH-$rawDestHub"
-
-        return PackageRaw(
-            packageId = packageId,
-            weight = weight,
-            originHubId = originHubId,
-            destinationHubId = destinationHubId,
-            priority = parsePriority(priorityRaw)
-        )
-    }
-
-    private fun parseWeight(weight: String): Double {
-        val cleanWeight = weight.replace(WEIGHT_UNIT_KG, "", ignoreCase = true).trim()
-        return cleanWeight.toDoubleOrNull() ?: INVALID_WEIGHT_DEFAULT
-    }
-
-    private fun parsePriority(priorityRaw: String): String {
-        return when (val upperPriority = priorityRaw.uppercase()) {
-            PRIORITY_URGENT, PRIORITY_STANDARD, PRIORITY_LOW -> upperPriority
-
-            else -> DEFAULT_PRIORITY
+        return fields
+            .takeIf { !hasEmptyText && weight > MIN_WEIGHT }
+            ?.let {
+                PackageRaw(
+                    packageId = packageId,
+                    weight = weight,
+                    originHubId = normalizePrefix(originHub, WAREHOUSE_PREFIX),
+                    destinationHubId = normalizePrefix(
+                        destinationHub,
+                        WAREHOUSE_PREFIX
+                    ),
+                    priority = parsePriority(priority)
+                )
+            }
         }
-    }
+
+    private fun parseWeight(weight: String): Double =
+        weight.replace(WEIGHT_UNIT_KG, "", ignoreCase = true)
+            .trim()
+            .toDoubleOrNull()
+            ?: INVALID_WEIGHT_DEFAULT
+
+    private fun parsePriority(priorityRaw: String): String =
+        priorityRaw.uppercase().let { priority ->
+            when (priority) {
+                PRIORITY_URGENT, PRIORITY_STANDARD, PRIORITY_LOW -> priority
+                else -> DEFAULT_PRIORITY
+            }
+        }
 
     private companion object {
         const val EXPECTED_PACKAGE_FIELDS = 5
-        const val CSV_DELIMITER = ","
         const val WEIGHT_UNIT_KG = "kg"
         const val INVALID_WEIGHT_DEFAULT = -1.0
+
         const val INDEX_ID = 0
         const val INDEX_WEIGHT = 1
         const val INDEX_ORIGIN_HUB = 2
         const val INDEX_DESTINATION_HUB = 3
         const val INDEX_PRIORITY = 4
         const val MIN_WEIGHT = 0.0
+
+        const val WAREHOUSE_PREFIX = "WH-"
 
         const val PRIORITY_URGENT = "URGENT"
         const val PRIORITY_STANDARD = "STANDARD"

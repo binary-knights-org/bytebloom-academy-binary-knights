@@ -1,12 +1,11 @@
 package ui
 
-import domain.algorithm.ring.DeterministicHashingEngine
-import domain.algorithm.ring.breakdown.BreakdownSimulationLogic
-import domain.algorithm.ring.breakdown.VerificationReport
+import domain.algorithm.ring.BreakdownSimulationLogic
 import domain.command.CommandInvoker
 import domain.command.DispatchVehicleCommand
 import domain.model.Package
 import domain.model.Vehicle
+import domain.model.VerificationReport
 import domain.model.Warehouse
 import domain.repository.VehicleRepository
 import domain.repository.WarehouseRepository
@@ -14,10 +13,12 @@ import domain.usecase.analytics.AnalyzeTreePerformanceUseCase
 import domain.usecase.analytics.CalculateNetworkResilienceScoreUseCase
 import domain.usecase.vehicle.DispatchVehicleUseCase
 import java.util.Locale
+import kotlin.math.abs
 
 private const val DISPLAY_LIMIT = 3
 private const val MIGRATED_DISPLAY_LIMIT = 5
 private const val DEFAULT_PACKAGE_COUNT = 1000
+private const val RING_SIZE = 100
 
 internal fun runBreakdownSimulationDemo() {
     val simulationLogic = BreakdownSimulationLogic()
@@ -40,7 +41,7 @@ internal fun runBreakdownSimulationDemo() {
 private fun printAssignments(assignments: Map<Package, Vehicle>, title: String) {
     println("  $title:")
     assignments.entries.take(DISPLAY_LIMIT).forEach { (pkg, vehicle) ->
-        val slot = DeterministicHashingEngine.calculateSlot(pkg)
+        val slot = abs(pkg.id.hashCode()) % RING_SIZE
         println("    [${pkg.id}] -> Slot %02d -> Assigned to: ${vehicle.id}".format(slot))
     }
     if (assignments.size > DISPLAY_LIMIT) {
@@ -63,7 +64,8 @@ private fun printVerificationReport(report: VerificationReport) {
 }
 
 fun printTreePerformanceAnalysis(
-    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase, count: Int = 1000
+    analyzeTreePerformanceUseCase: AnalyzeTreePerformanceUseCase,
+    count: Int = DEFAULT_PACKAGE_COUNT
 ) {
     println("\n--- INDEX TREE PERFORMANCE ANALYSIS ---")
 
@@ -82,7 +84,9 @@ fun printTreePerformanceAnalysis(
 }
 
 suspend fun printCommandPatternTest(
-    dispatchVehicleUseCase: DispatchVehicleUseCase, firstWarehouse: Warehouse, firstVehicle: Vehicle
+    dispatchVehicleUseCase: DispatchVehicleUseCase,
+    firstWarehouse: Warehouse,
+    firstVehicle: Vehicle
 ) {
     println("\n--- COMMAND PATTERN DISPATCH TEST ---")
 
@@ -109,7 +113,11 @@ suspend fun printCommandPatternTest(
 }
 
 private fun createDispatchCommands(
-    useCase: DispatchVehicleUseCase, warehouse: Warehouse, v1: Vehicle, v2: Vehicle, v3: Vehicle
+    useCase: DispatchVehicleUseCase,
+    warehouse: Warehouse,
+    v1: Vehicle,
+    v2: Vehicle,
+    v3: Vehicle
 ): Triple<DispatchVehicleCommand, DispatchVehicleCommand, DispatchVehicleCommand> {
     return Triple(
         DispatchVehicleCommand(useCase, v1, warehouse),
@@ -127,32 +135,34 @@ private suspend fun printCommandExecution(
     val executed = commandInvoker.executeCommand(command)
     val undo = commandInvoker.undoHistorySize
     val redo = commandInvoker.redoHistorySize
-    println("  $title -> Executed: $executed | Queue: ${warehouse.cargoQueue.size} " +
-            "| Undo Stack: $undo | Redo Stack: $redo")
+    println("  $title -> Executed: $executed | Queue: ${warehouse.cargoQueue.size} | Undo Stack: $undo | Redo Stack: $redo")
 }
 
 private suspend fun printUndo(
-    commandInvoker: CommandInvoker, warehouse: Warehouse, title: String
+    commandInvoker: CommandInvoker,
+    warehouse: Warehouse,
+    title: String
 ) {
     val undone = commandInvoker.undo()
     val undo = commandInvoker.undoHistorySize
     val redo = commandInvoker.redoHistorySize
-    println("  $title -> Undone: $undone | Queue: ${warehouse.cargoQueue.size} " +
-            "| Undo Stack: $undo | Redo Stack: $redo")
+    println("  $title -> Undone: $undone | Queue: ${warehouse.cargoQueue.size} | Undo Stack: $undo | Redo Stack: $redo")
 }
 
 private suspend fun printRedo(
-    commandInvoker: CommandInvoker, warehouse: Warehouse, title: String
+    commandInvoker: CommandInvoker,
+    warehouse: Warehouse,
+    title: String
 ) {
     val redone = commandInvoker.redo()
     val undo = commandInvoker.undoHistorySize
     val redo = commandInvoker.redoHistorySize
-    println("  $title -> Redone: $redone | Queue: ${warehouse.cargoQueue.size} " +
-            "| Undo Stack: $undo | Redo Stack: $redo")
+    println("  $title -> Redone: $redone | Queue: ${warehouse.cargoQueue.size} | Undo Stack: $undo | Redo Stack: $redo")
 }
 
 private suspend fun printHistoryClearance(
-    commandInvoker: CommandInvoker, command: DispatchVehicleCommand
+    commandInvoker: CommandInvoker,
+    command: DispatchVehicleCommand
 ) {
     commandInvoker.undo()
     val executed = commandInvoker.executeCommand(command)
@@ -161,7 +171,9 @@ private suspend fun printHistoryClearance(
 }
 
 suspend fun runSimulationDemos(
-    vehicleRepository: VehicleRepository, warehouseRepository: WarehouseRepository, warehouses: List<Warehouse>
+    vehicleRepository: VehicleRepository,
+    warehouseRepository: WarehouseRepository,
+    warehouses: List<Warehouse>
 ) {
     printTreePerformanceAnalysis(AnalyzeTreePerformanceUseCase(), DEFAULT_PACKAGE_COUNT)
     printCommandPatternTest(
@@ -173,7 +185,8 @@ suspend fun runSimulationDemos(
 }
 
 private fun printNetworkResilienceAnalysis(
-    calculateNetworkResilienceScoreUseCase: CalculateNetworkResilienceScoreUseCase, graph: List<Warehouse>
+    calculateNetworkResilienceScoreUseCase: CalculateNetworkResilienceScoreUseCase,
+    graph: List<Warehouse>
 ) {
     println("\n--- NETWORK RESILIENCE ANALYSIS ---")
     val resilienceScore = calculateNetworkResilienceScoreUseCase(graph)

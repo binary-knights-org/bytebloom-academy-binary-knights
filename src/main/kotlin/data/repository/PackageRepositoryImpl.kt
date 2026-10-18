@@ -1,89 +1,56 @@
 package data.repository
 
-import data.exception.NetworkUnavailableException
-import data.exception.translateDataError
 import data.local.datasource.CsvPackageDataSource
-import data.remote.datasource.RemotePackageDataSource
 import data.mapper.packages.toDomain
 import data.mapper.packages.toRaw
+import data.remote.datasource.RemotePackageDataSource
 import domain.model.Package
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import java.util.logging.Logger
 
 class PackageRepositoryImpl(
     private val remoteDataSource: RemotePackageDataSource,
     private val localDataSource: CsvPackageDataSource,
     private val warehouseRepository: WarehouseRepository
-) : PackageRepository {
+) : BaseRepositoryImpl<Package>("package"), PackageRepository {
 
     private val logger = Logger.getLogger(PackageRepositoryImpl::class.java.simpleName)
-    private var packages: List<Package>? = null
 
     override suspend fun getAll(): List<Package> =
-        packages ?: fetchPackagesFromSource().also { packages = it }
+        cache ?: fetchPackagesFromSource().also { cache = it }
 
     override suspend fun getById(id: String): Package? =
         getAll().find { it.id == id }
 
-    override suspend fun create(item: Package): Boolean =
-        runCatching {
+    override suspend fun create(item: Package): Package {
+        val rawResult = executeWriteOp("create") {
             remoteDataSource.createRawPackage(item.toRaw())
-        }.fold(
-            onSuccess = { isCreated ->
-                if (isCreated) packages = null
-                isCreated
-            },
-            onFailure = { error ->
-                throw translateDataError(error, "create", "package")
-            }
-        )
-
-    override suspend fun update(item: Package): Boolean =
-        runCatching {
-            remoteDataSource.updateRawPackage(item.id, item.toRaw())
-        }.fold(
-            onSuccess = { isUpdated ->
-                if (isUpdated) packages = null
-                isUpdated
-            },
-            onFailure = { error ->
-                throw translateDataError(error, "update", "package")
-            }
-        )
-
-    override suspend fun delete(id: String): Boolean =
-        runCatching {
-            remoteDataSource.deleteRawPackage(id)
-        }.fold(
-            onSuccess = { isDeleted ->
-                if (isDeleted) packages = null
-                isDeleted
-            },
-            onFailure = { error ->
-                throw translateDataError(error, "delete", "package")
-            }
-        )
-
-    private suspend fun fetchPackagesFromSource(): List<Package> = coroutineScope {
-        val warehousesById = async { warehouseRepository.getAll().associateBy { it.id } }
-        val remoteResult = runCatching {
-            remoteDataSource.getRawPackages()
         }
-
-        remoteResult
-            .map { raw -> raw.mapNotNull { it.toDomain(warehousesById.await()) } }
-            .getOrElse { error ->
-                if (error is NetworkUnavailableException) {
-                    logger.warning("Remote unavailable, falling back to local CSV for packages")
-                    localDataSource
-                        .getAllPackages()
-                        .mapNotNull { it.toDomain(warehousesById.await()) }
-                } else {
-                    throw translateDataError(error, "fetch", "packages")
-                }
-            }
+        val warehousesById = warehouseRepository.getAll().associateBy { it.id }
+        return rawResult.toDomain(warehousesById) ?: item
     }
+
+    override suspend fun update(item: Package): Package {
+        val rawResult = executeWriteOp("update") {
+            remoteDataSource.updateRawPackage(item.id, item.toRaw())
+        }
+        val warehousesById = warehouseRepository.getAll().associateBy { it.id }
+        return rawResult.toDomain(warehousesById) ?: item
+    }
+
+    override suspend fun delete(id: String) {
+        executeWriteOp("delete") {
+            remoteDataSource.deleteRawPackage(id)
+        }
+    }
+
+    private suspend fun fetchPackagesFromSource(): List<Package> =
+        fetchWithFallback(
+            warehouseRepository = warehouseRepository,
+            remoteFetch = { remoteDataSource.getRawPackages() },
+            localFetch = { localDataSource.getAllPackages() },
+            mapToDomain = { raw, map -> raw.toDomain(map) },
+            logger = logger
+        )
 }

@@ -1,58 +1,50 @@
+
 package data.local.csv
 
-import data.exception.CsvFileNotFoundException
 import data.local.dataholder.WarehouseRaw
 import data.local.datasource.CsvWarehouseDataSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class CsvWarehouseDataSourceImpl(
-    private val csvHandler: CsvFileHandler,
-) : CsvWarehouseDataSource {
-     override suspend fun getAllWarehouses(): List<WarehouseRaw> = withContext(Dispatchers.IO) {
-         try {
-            val lines = csvHandler.readLines()
-            lines.mapNotNull { parseLine(it) }
-        } catch (_: CsvFileNotFoundException) {
-            emptyList()
-        }
-    }
+    csvHandler: CsvFileHandler,
+) : BaseCsvDataSource<WarehouseRaw>(csvHandler), CsvWarehouseDataSource {
 
-    fun parseLine(line: String): WarehouseRaw? {
-        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
-        if (fields.size != EXPECTED_WAREHOUSE_FIELDS) {
-            return null
-        }
-        return mapFieldsToWarehouse(fields)
-    }
+    override suspend fun getAllWarehouses(): List<WarehouseRaw> = readAll()
+
+    override fun parseLine(line: String): WarehouseRaw? =
+        splitFields(line)
+            .takeIf { it.size == EXPECTED_WAREHOUSE_FIELDS }
+            ?.let(::mapFieldsToWarehouse)
 
     private fun mapFieldsToWarehouse(fields: List<String>): WarehouseRaw? {
-        val rawHubId = fields[INDEX_ID].trim().uppercase()
-        val hubName = fields[INDEX_NAME].trim().uppercase()
-        val regionalZone = fields[INDEX_REGIONAL_ZONE].trim().uppercase()
+        val rawHubId = fields[INDEX_ID].uppercase()
+        val hubName = fields[INDEX_NAME].uppercase()
+        val regionalZone = fields[INDEX_REGIONAL_ZONE].uppercase()
+        val latitude = fields[INDEX_LATITUDE].toDoubleOrNull()
+        val longitude = fields[INDEX_LONGITUDE].toDoubleOrNull()
 
-        if (rawHubId.isBlank() || hubName.isBlank() || regionalZone.isBlank()) return null
+        if (latitude == null || longitude == null) return null
 
-        val hubId = if (rawHubId.startsWith("WH-")) rawHubId else "WH-$rawHubId"
+        val hasEmptyText = listOf(
+            rawHubId,
+            hubName,
+            regionalZone
+        ).any(String::isBlank)
 
-        val latitude = fields[INDEX_LATITUDE].trim().toDoubleOrNull()
-        val longitude = fields[INDEX_LONGITUDE].trim().toDoubleOrNull()
-
-        return when {
-            latitude == null || longitude == null -> null
-            else -> WarehouseRaw(
-                hubId = hubId,
-                hubName = hubName,
-                regionalZone = regionalZone,
-                latitude = latitude,
-                longitude = longitude
-            )
-        }
+        return fields
+            .takeIf { !hasEmptyText }
+            ?.let {
+                WarehouseRaw(
+                    hubId = normalizePrefix(rawHubId, WAREHOUSE_PREFIX),
+                    hubName = hubName,
+                    regionalZone = regionalZone,
+                    latitude = latitude,
+                    longitude = longitude
+                )
+            }
     }
 
     private companion object {
         const val EXPECTED_WAREHOUSE_FIELDS = 5
-        const val CSV_DELIMITER = ","
 
         const val INDEX_ID = 0
         const val INDEX_NAME = 1
@@ -60,5 +52,6 @@ class CsvWarehouseDataSourceImpl(
         const val INDEX_LATITUDE = 3
         const val INDEX_LONGITUDE = 4
 
+        const val WAREHOUSE_PREFIX = "WH-"
     }
 }
