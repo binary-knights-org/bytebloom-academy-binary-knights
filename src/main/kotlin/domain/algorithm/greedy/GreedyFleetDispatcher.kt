@@ -13,15 +13,6 @@ class GreedyFleetDispatcher {
         val uncoveredZones = targetZones.toMutableSet()
         val selectedVehicles = mutableListOf<VehicleCoverage>()
 
-        /*
-         * Greedy checks the available vehicles at each selection step.
-         * In the worst case, up to N vehicles are checked for up to N selections,
-         * resulting in O(N²) time complexity.
-         *
-         * A brute-force set-covering approach would examine vehicle subsets,
-         * resulting in O(2^N) time complexity.
-        */
-
         while (uncoveredZones.isNotEmpty()) {
 
             val bestVehicle = vehicleCoverages

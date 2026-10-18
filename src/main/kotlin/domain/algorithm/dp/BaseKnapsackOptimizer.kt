@@ -1,9 +1,13 @@
 package domain.algorithm.dp
 
+import domain.model.Package
 import domain.model.Priority
 import kotlin.math.roundToInt
 
 abstract class BaseKnapsackOptimizer {
+
+    protected fun calculatePackageValue(pkg: Package): Int =
+        priorityValue(pkg.priority) * toCapacityUnits(pkg.weight)
 
     protected fun priorityValue(priority: Priority): Int = when (priority) {
         Priority.URGENT -> URGENT_PRIORITY_VALUE

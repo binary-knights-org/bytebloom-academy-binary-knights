@@ -1,6 +1,7 @@
 package domain.pricing
 
 class FragileStrategy : DispatchStrategy {
+
     override fun calculateTransitCost(weight: Double, distance: Double): Double {
         return SAFETY_FEE + (weight * WEIGHT_MULTIPLIER) + (distance * DISTANCE_MULTIPLIER)
     }

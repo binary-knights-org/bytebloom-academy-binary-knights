@@ -1,6 +1,5 @@
-package domain.algorithm.ring.breakdown
+package domain.algorithm.ring
 
-import domain.algorithm.ring.PackageAssignmentRing
 import domain.model.BreakdownEvent
 import domain.model.Package
 import domain.model.Priority
@@ -60,10 +59,10 @@ class BreakdownSimulationLogic {
 
     private fun buildBreakdownContext(ring: PackageAssignmentRing, brokenSlot: Int): BreakdownEvent {
         val ringMap = ring.getRingMap()
-        val brokenVehicle = ringMap[brokenSlot] ?: error("No vehicle at slot $brokenSlot")
+        val brokenVehicle = ringMap[brokenSlot] ?: throw EmptyRingException("No vehicle at slot $brokenSlot")
 
         val nextSlot = ringMap.higherKey(brokenSlot) ?: ringMap.firstKey()
-        val fallbackVehicle = ringMap[nextSlot] ?: error("No fallback vehicle available")
+        val fallbackVehicle = ringMap[nextSlot] ?: throw EmptyRingException("No fallback vehicle available")
 
         return BreakdownEvent(brokenSlot, brokenVehicle, fallbackVehicle)
     }
@@ -73,18 +72,17 @@ class BreakdownSimulationLogic {
         return packages.associateWith { pkg ->
             val slot = calculateSlot(pkg)
             findResponsibleVehicle(ringMap, slot)
-                ?: error("No active vehicle available for slot $slot")
         }
     }
 
     private fun calculateSlot(pkg: Package): Int = abs(pkg.id.hashCode()) % RING_SIZE
 
-    private fun findResponsibleVehicle(ringMap: NavigableMap<Int, Vehicle>, packageSlot: Int): Vehicle? {
+    private fun findResponsibleVehicle(ringMap: NavigableMap<Int, Vehicle>, packageSlot: Int): Vehicle {
         if (ringMap.isEmpty()) {
             throw EmptyRingException()
         }
         val assignedSlot = ringMap.ceilingKey(packageSlot) ?: ringMap.firstKey()
-        return ringMap[assignedSlot]
+        return ringMap.getValue(assignedSlot)
     }
 
     private fun extractMigratedPackageIds(result: SimulationResult): List<String> =

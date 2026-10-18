@@ -34,11 +34,11 @@ class AssignPackageToQueueCommand(
         )
     }
 
-    override suspend  fun undo(): Boolean {
+    override suspend fun undo(): Boolean {
         if (!wasExecuted) return false
 
         warehouse.restoreCargoQueue(previousQueue)
-        wasExecuted = true
+        wasExecuted = false
         return true
     }
 }

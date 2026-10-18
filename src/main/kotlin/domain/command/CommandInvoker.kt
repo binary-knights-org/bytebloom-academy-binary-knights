@@ -1,11 +1,9 @@
 package domain.command
 
-import java.util.Stack
-
 class CommandInvoker {
 
-    private val undoStack = Stack<Command>()
-    private val redoStack = Stack<Command>()
+    private val undoStack = ArrayDeque<Command>()
+    private val redoStack = ArrayDeque<Command>()
 
     val undoHistorySize: Int
         get() = undoStack.size
@@ -17,38 +15,38 @@ class CommandInvoker {
         val success = command.execute()
 
         if (success) {
-            undoStack.push(command)
+            undoStack.addLast(command)
             redoStack.clear()
         }
 
         return success
     }
 
-    suspend  fun undo(): Boolean {
+    suspend fun undo(): Boolean {
         if (undoStack.isEmpty()) return false
 
-        val lastCommand = undoStack.pop()
+        val lastCommand = undoStack.removeLast()
         val success = lastCommand.undo()
 
         if (success) {
-            redoStack.push(lastCommand)
+            redoStack.addLast(lastCommand)
         } else {
-            undoStack.push(lastCommand)
+            undoStack.addLast(lastCommand)
         }
 
         return success
     }
 
-    suspend  fun redo(): Boolean {
+    suspend fun redo(): Boolean {
         if (redoStack.isEmpty()) return false
 
-        val lastCommand = redoStack.pop()
+        val lastCommand = redoStack.removeLast()
         val success = lastCommand.execute()
 
         if (success) {
-            undoStack.push(lastCommand)
+            undoStack.addLast(lastCommand)
         } else {
-            redoStack.push(lastCommand)
+            redoStack.addLast(lastCommand)
         }
 
         return success
@@ -58,11 +56,9 @@ class CommandInvoker {
 
     fun canRedo(): Boolean = redoStack.isNotEmpty()
 
-    fun getUndoHistoryDescriptions(): List<String> {
-        return undoStack.map { it.description }
-    }
+    fun getUndoHistoryDescriptions(): List<String> =
+        undoStack.map { it.description }
 
-    fun getRedoHistoryDescriptions(): List<String> {
-        return redoStack.map { it.description }
-    }
+    fun getRedoHistoryDescriptions(): List<String> =
+        redoStack.map { it.description }
 }

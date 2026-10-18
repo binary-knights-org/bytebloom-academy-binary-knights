@@ -1,6 +1,4 @@
-package domain.algorithm.ring.breakdown
-
-import domain.model.Vehicle
+package domain.model
 
 data class BreakdownEvent(
     val slot: Int,

@@ -1,4 +1,4 @@
-package domain.algorithm.ring.breakdown
+package domain.model
 
 data class VerificationReport(
     val migratedPackageIds: List<String>,

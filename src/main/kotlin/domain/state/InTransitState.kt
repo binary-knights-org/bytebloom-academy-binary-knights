@@ -1,26 +1,9 @@
 package domain.state
 
-import domain.model.exception.IllegalStateTransitionException
-
 class InTransitState : ShipmentState {
+    override fun markDelivered(): ShipmentState = DeliveredState()
+    override fun markFailed(): ShipmentState = DeliveryFailedState()
 
-    override fun assignToVehicle(): ShipmentState {
-        throw IllegalStateTransitionException(
-            "Package is already in transit"
-        )
-    }
-
-    override fun startTransit(): ShipmentState {
-        throw IllegalStateTransitionException(
-            "Package is already in transit"
-        )
-    }
-
-    override fun markDelivered(): ShipmentState {
-        return DeliveredState()
-    }
-
-    override fun markFailed(): ShipmentState {
-        return DeliveryFailedState()
-    }
+    override fun equals(other: Any?): Boolean = other is InTransitState
+    override fun hashCode(): Int = javaClass.hashCode()
 }

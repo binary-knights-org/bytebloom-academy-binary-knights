@@ -1,9 +1,9 @@
 package domain.model
 
-import domain.algorithm.sorting.sortPackagesDescendingByWeight
+import domain.algorithm.sorting.CargoWeightQuickSorter
 import domain.model.exception.InvalidLatitudeException
 import domain.model.exception.InvalidLongitudeException
-import domain.model.exception.InvalidWarehouseTextException
+import domain.model.exception.InvalidWarehouseNameException
 import kotlin.uuid.Uuid
 
 data class Warehouse(
@@ -21,7 +21,7 @@ data class Warehouse(
 
     private fun validateTextInputs() {
         if (name.isBlank()) {
-            throw InvalidWarehouseTextException()
+            throw InvalidWarehouseNameException()
         }
     }
 
@@ -57,7 +57,7 @@ data class Warehouse(
     }
 
     fun sortCargoQueueByWeightDescending() {
-        sortPackagesDescendingByWeight(_cargoQueue)
+        CargoWeightQuickSorter().sortDescendingByWeight(_cargoQueue)
     }
 
     fun restoreCargoQueue(packages: List<Package>) {

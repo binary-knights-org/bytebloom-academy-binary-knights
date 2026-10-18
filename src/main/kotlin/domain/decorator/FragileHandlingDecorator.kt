@@ -6,8 +6,9 @@ class FragileHandlingDecorator(
     component: PackageComponent,
     private val protectiveFee: Double = DEFAULT_PROTECTIVE_FEE
 ) : PackageDecorator(component) {
+
     override fun calculateTransitRate(baseTransitRate: Double): Double {
-        return super.calculateTransitRate(baseTransitRate) + protectiveFee
+        return component.calculateTransitRate(baseTransitRate) + protectiveFee
     }
 
     private companion object {

@@ -71,7 +71,7 @@ class Knapsack2DOptimizer : BaseKnapsackOptimizer() {
         val packageWeight = toCapacityUnits(currentPackage.weight)
         val packageVolume = currentPackage.volumeM3?.let(::toVolumeUnits)
             ?: throw InvalidCargoInputException()
-        val packageValue = priorityValue(currentPackage.priority) * packageWeight
+        val packageValue = calculatePackageValue(currentPackage)
 
         val currentRow = grid[packageIndex + GRID_SIZE_OFFSET]
         val previousRow = grid[packageIndex]

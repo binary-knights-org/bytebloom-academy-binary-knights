@@ -2,11 +2,9 @@ package domain.service
 
 import domain.model.telemetry.VehicleTelemetry
 import domain.repository.VehicleRepository
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.isActive
 import kotlin.random.Random
 
 class TelemetryStreamingService(
@@ -17,73 +15,82 @@ class TelemetryStreamingService(
         intervalMs: Long = DEFAULT_INTERVAL_MS,
         emissionCount: Int? = null
     ): Flow<VehicleTelemetry> = flow {
-        val activeVehicles = resolveInitialVehicleStates()
+        var activeVehicles = resolveInitialVehicleStates()
         var round = 0
 
-        while (currentCoroutineContext().isActive && shouldContinueStreaming(round, emissionCount)) {
-            for (state in activeVehicles) {
-                if (!currentCoroutineContext().isActive) break
+        while (shouldContinueStreaming(round, emissionCount)) {
+            val updatedVehicles = mutableListOf<SimulatedVehicleState>()
 
-                state.advance(random)
+            for (state in activeVehicles) {
+                val nextState = state.advance(random)
+                updatedVehicles.add(nextState)
+
                 val update = VehicleTelemetry(
-                    vehicleId = state.vehicleId,
-                    latitude = state.latitude,
-                    longitude = state.longitude,
-                    speedKmh = state.speedKmh,
-                    fuelPercentage = state.fuelPercentage,
+                    vehicleId = nextState.vehicleId,
+                    latitude = nextState.latitude,
+                    longitude = nextState.longitude,
+                    speedKmh = nextState.speedKmh,
+                    fuelPercentage = nextState.fuelPercentage,
                     timestamp = System.currentTimeMillis()
                 )
                 emit(update)
             }
 
+            activeVehicles = updatedVehicles
             round++
-            val hasMoreEmissions = shouldContinueStreaming(round, emissionCount)
-            if (intervalMs > 0 && currentCoroutineContext().isActive && hasMoreEmissions) {
+
+            if (intervalMs > 0 && shouldContinueStreaming(round, emissionCount)) {
                 delay(intervalMs)
             }
         }
     }
 
-    private fun shouldContinueStreaming(round: Int, emissionCount: Int?): Boolean {
-        return emissionCount == null || round < emissionCount
-    }
+    private fun shouldContinueStreaming(round: Int, emissionCount: Int?): Boolean =
+        emissionCount == null || round < emissionCount
 
     private suspend fun resolveInitialVehicleStates(): List<SimulatedVehicleState> {
-        val repoVehicles = runCatching { vehicleRepository?.getAll() }.getOrNull()
+        val repoVehicles = vehicleRepository?.getAll()
         if (!repoVehicles.isNullOrEmpty()) {
             return repoVehicles.mapIndexed { index, vehicle ->
                 SimulatedVehicleState(
                     vehicleId = vehicle.id,
                     latitude = vehicle.currentHub.latitude,
                     longitude = vehicle.currentHub.longitude,
-                    speedKmh = INITIAL_REPO_SPEED_KMH - (index * INITIAL_REPO_SPEED_STEP).coerceAtLeast(0.0),
+                    speedKmh = (INITIAL_REPO_SPEED_KMH - index * INITIAL_REPO_SPEED_STEP).coerceAtLeast(0.0),
                     fuelPercentage = (INITIAL_REPO_FUEL_PERCENT - index * INITIAL_REPO_FUEL_STEP)
                         .coerceIn(INITIAL_MIN_FUEL_PERCENT, MAX_FUEL_PERCENT)
                 )
             }
         }
 
-        return DEFAULT_FLEET_PRESETS.map { it.copy() }
+        return DEFAULT_FLEET_PRESETS
     }
 
     internal data class SimulatedVehicleState(
         val vehicleId: String,
-        var latitude: Double,
-        var longitude: Double,
-        var speedKmh: Double,
-        var fuelPercentage: Double
+        val latitude: Double,
+        val longitude: Double,
+        val speedKmh: Double,
+        val fuelPercentage: Double
     ) {
-        fun advance(random: Random) {
+        fun advance(random: Random): SimulatedVehicleState {
             val latDelta = random.nextDouble(MIN_COORDINATE_DELTA, MAX_COORDINATE_DELTA)
             val lonDelta = random.nextDouble(MIN_COORDINATE_DELTA, MAX_COORDINATE_DELTA)
-            latitude = (latitude + latDelta).coerceIn(MIN_LATITUDE, MAX_LATITUDE)
-            longitude = (longitude + lonDelta).coerceIn(MIN_LONGITUDE, MAX_LONGITUDE)
+            val newLat = (latitude + latDelta).coerceIn(MIN_LATITUDE, MAX_LATITUDE)
+            val newLon = (longitude + lonDelta).coerceIn(MIN_LONGITUDE, MAX_LONGITUDE)
 
             val speedVariation = random.nextDouble(MIN_SPEED_VARIATION, MAX_SPEED_VARIATION)
-            speedKmh = (speedKmh + speedVariation).coerceIn(MIN_SPEED_KMH, MAX_SPEED_KMH)
+            val newSpeed = (speedKmh + speedVariation).coerceIn(MIN_SPEED_KMH, MAX_SPEED_KMH)
 
             val fuelBurn = random.nextDouble(MIN_FUEL_BURN, MAX_FUEL_BURN)
-            fuelPercentage = (fuelPercentage - fuelBurn).coerceIn(MIN_FUEL_PERCENT, MAX_FUEL_PERCENT)
+            val newFuel = (fuelPercentage - fuelBurn).coerceIn(MIN_FUEL_PERCENT, MAX_FUEL_PERCENT)
+
+            return copy(
+                latitude = newLat,
+                longitude = newLon,
+                speedKmh = newSpeed,
+                fuelPercentage = newFuel
+            )
         }
     }
 

@@ -1,7 +1,4 @@
-package domain.algorithm.ring.breakdown
-
-import domain.model.Package
-import domain.model.Vehicle
+package domain.model
 
 data class SimulationResult(
     val packages: List<Package>,

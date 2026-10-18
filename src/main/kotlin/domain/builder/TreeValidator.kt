@@ -4,10 +4,8 @@ import domain.algorithm.tree.HubNode
 
 class TreeValidator {
 
-    fun hasNoCycles(root: HubNode.GlobalHub): Boolean {
-        val visitedIds = mutableSetOf<String>()
-        return visitNode(root, visitedIds)
-    }
+    fun hasNoCycles(root: HubNode.GlobalHub): Boolean =
+        visitNode(root, mutableSetOf())
 
     private fun visitNode(node: HubNode, visitedIds: MutableSet<String>): Boolean {
         if (!visitedIds.add(node.warehouse.id)) return false
@@ -19,30 +17,18 @@ class TreeValidator {
         }
     }
 
-    fun coversAllWarehouses(root: HubNode.GlobalHub, expectedCount: Int): Boolean {
-        return countNodes(root) == expectedCount
+    fun coversAllWarehouses(root: HubNode.GlobalHub, expectedCount: Int): Boolean =
+        countNodes(root) == expectedCount
+
+    private fun countNodes(node: HubNode): Int = 1 + when (node) {
+        is HubNode.GlobalHub -> node.children.sumOf { countNodes(it) }
+        is HubNode.RegionalCenter -> node.children.sumOf { countNodes(it) }
+        is HubNode.LocalDepot -> 0
     }
 
-    private fun countNodes(node: HubNode): Int {
-        return COUNT_SELF_NODE + when (node) {
-            is HubNode.GlobalHub -> node.children.sumOf { countNodes(it) }
-            is HubNode.RegionalCenter -> node.children.sumOf { countNodes(it) }
-            is HubNode.LocalDepot -> COUNT_LEAF_CHILDREN
-        }
-    }
+    fun verifyAllLocalDepotsReachRoot(root: HubNode.GlobalHub): Boolean =
+        collectLocalDepots(root).all { depot -> depot.parent.parent === root }
 
-    fun verifyAllLocalDepotsReachRoot(root: HubNode.GlobalHub): Boolean {
-        val allDepots = collectLocalDepots(root)
-        return allDepots.all { depot -> depot.parent.parent === root }
-    }
-
-    private fun collectLocalDepots(node: HubNode.GlobalHub): List<HubNode.LocalDepot> {
-        return node.children.flatMap { regionalCenter -> regionalCenter.children }
-    }
-
-    private companion object {
-        const val COUNT_SELF_NODE = 1
-        const val COUNT_LEAF_CHILDREN = 0
-    }
+    private fun collectLocalDepots(root: HubNode.GlobalHub): List<HubNode.LocalDepot> =
+        root.children.flatMap { it.children }
 }
-
