@@ -1,12 +1,11 @@
 package domain.usecase.crud.packages
 
-import domain.model.exception.EntityValidationException
-import domain.model.exception.OperationFailedException
 import domain.model.Package
+import domain.model.exception.EntityValidationException
 import domain.model.input.CreatePackageInput
 import domain.model.toPriority
-import domain.repository.PackageRepository
 import domain.model.validation.ValidationResult
+import domain.repository.PackageRepository
 import domain.validator.packages.CreatePackageValidator
 
 class CreatePackageUseCase(
@@ -15,8 +14,12 @@ class CreatePackageUseCase(
 ) {
     suspend operator fun invoke(input: CreatePackageInput): Result<Package> {
         val validation = validator.validate(input)
-        if (validation is ValidationResult.Invalid)
-            return Result.failure(EntityValidationException(validation.violations))
+
+        if (validation is ValidationResult.Invalid) {
+            return Result.failure(
+                EntityValidationException(validation.violations)
+            )
+        }
 
         return runCatching {
             Package(
@@ -26,20 +29,9 @@ class CreatePackageUseCase(
                 originHub = input.originHub,
                 destinationHub = input.destinationHub
             )
-        }.fold(
-            onSuccess = { pkg ->
-                runCatching { packageRepository.create(pkg) }.fold(
-                    onSuccess = { isCreated ->
-                        if (isCreated) {
-                            Result.success(pkg)
-                        } else {
-                            Result.failure(OperationFailedException())
-                        }
-                    },
-                    onFailure = { error -> Result.failure(error) }
-                )
-            },
-            onFailure = { error -> Result.failure(error) }
-        )
+        }.mapCatching { pkg ->
+            packageRepository.create(pkg)
+            pkg
+        }
     }
 }

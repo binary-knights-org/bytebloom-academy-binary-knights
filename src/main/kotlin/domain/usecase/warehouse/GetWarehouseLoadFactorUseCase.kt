@@ -2,12 +2,11 @@ package domain.usecase.warehouse
 
 import domain.repository.WarehouseRepository
 
-private const val ZERO_CAPACITY = 0.0
 
 class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
-    suspend  operator fun invoke(warehouseId: String): Double {
+    suspend operator fun invoke(warehouseId: String): Double {
         val warehouse = warehouseRepository.getAll()
             .firstOrNull { it.id == warehouseId } ?: return ZERO_CAPACITY
 
@@ -16,5 +15,9 @@ class GetWarehouseLoadFactorUseCase(
 
         return if (fleetCapacity == ZERO_CAPACITY) ZERO_CAPACITY
         else cargoWeight / fleetCapacity
+    }
+
+    private companion object {
+        const val ZERO_CAPACITY = 0.0
     }
 }

@@ -1,14 +1,13 @@
 package domain.usecase.crud.warehouse
 
-import domain.model.exception.OperationFailedException
+import domain.model.RegionalZone
+import domain.model.Warehouse
 import domain.model.exception.EntityValidationException
 import domain.model.exception.ResourceNotFoundException
-import domain.model.Warehouse
 import domain.model.input.UpdateWarehouseInput
-import domain.repository.WarehouseRepository
 import domain.model.validation.ValidationResult
+import domain.repository.WarehouseRepository
 import domain.validator.warehouse.UpdateWarehouseValidator
-import domain.model.RegionalZone
 
 class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -16,50 +15,28 @@ class UpdateWarehouseUseCase(
 ) {
     suspend operator fun invoke(input: UpdateWarehouseInput): Result<Warehouse> {
         val validation = validator.validate(input)
-        if (validation is ValidationResult.Invalid)
-            return Result.failure(EntityValidationException(validation.violations))
 
-        return runCatching { warehouseRepository.getById(input.id) }.fold(
-            onSuccess = { existing ->
-                if (existing == null) {
-                    Result.failure(ResourceNotFoundException())
-                } else {
-                    executeUpdate(existing, input)
-                }
-            },
-            onFailure = { error ->
-                Result.failure(error)
-            }
-        )
-    }
+        if (validation is ValidationResult.Invalid) {
+            return Result.failure(
+                EntityValidationException(validation.violations)
+            )
+        }
 
-    private suspend fun executeUpdate(existing: Warehouse, input: UpdateWarehouseInput): Result<Warehouse> {
         return runCatching {
-            existing.copy(
+            val existing = warehouseRepository.getById(input.id)
+                ?: throw ResourceNotFoundException()
+
+            val updated = existing.copy(
                 name = input.name ?: existing.name,
-                regionalZone = input.regionalZone?.let { RegionalZone.valueOf(it.trim().uppercase()) }
-                    ?: existing.regionalZone,
+                regionalZone = input.regionalZone?.let {
+                    RegionalZone.valueOf(it.trim().uppercase())
+                } ?: existing.regionalZone,
                 latitude = input.latitude ?: existing.latitude,
                 longitude = input.longitude ?: existing.longitude
             )
-        }.fold(
-            onSuccess = { updatedWarehouse ->
-                runCatching { warehouseRepository.update(updatedWarehouse) }.fold(
-                    onSuccess = { isUpdated ->
-                        if (isUpdated) {
-                            Result.success(updatedWarehouse)
-                        } else {
-                            Result.failure(OperationFailedException())
-                        }
-                    },
-                    onFailure = { error ->
-                        Result.failure(error)
-                    }
-                )
-            },
-            onFailure = { error ->
-                Result.failure(error)
-            }
-        )
+
+            warehouseRepository.update(updated)
+            updated
+        }
     }
 }
