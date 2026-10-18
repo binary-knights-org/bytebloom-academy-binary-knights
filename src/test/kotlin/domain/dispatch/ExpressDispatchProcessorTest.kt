@@ -76,7 +76,7 @@ class ExpressDispatchProcessorTest {
 
         processor.dispatch(pkg, vehicle)
 
-        assertTrue(pkg.getState() is AssignedToVehicleState)
+        assertTrue(pkg.currentState is AssignedToVehicleState)
     }
 
     @Test
@@ -109,7 +109,7 @@ class ExpressDispatchProcessorTest {
 
         runCatching { processor.dispatch(pkg, vehicle) }
 
-        assertTrue(pkg.getState() is CreatedState)
+        assertTrue(pkg.currentState is CreatedState)
     }
 
     @Test
@@ -142,7 +142,7 @@ class ExpressDispatchProcessorTest {
 
         runCatching { processor.dispatch(pkg, vehicle) }
 
-        assertTrue(pkg.getState() is CreatedState)
+        assertTrue(pkg.currentState is CreatedState)
     }
 
     @Test

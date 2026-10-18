@@ -18,9 +18,7 @@ class GetPackageByIdUseCaseTest {
 
     private val packageRepository = mockk<PackageRepository>()
 
-    private val useCase = GetPackageByIdUseCase(
-        packageRepository
-    )
+    private val useCase = GetPackageByIdUseCase(packageRepository)
 
     private val origin = Warehouse(
         id = "WH-1",
@@ -49,9 +47,7 @@ class GetPackageByIdUseCaseTest {
     @Test
     fun `should return package when package exists`() = runTest {
         // Given
-        coEvery {
-            packageRepository.getById("PKG-1")
-        } returns packageItem
+        coEvery { packageRepository.getById("PKG-1") } returns packageItem
 
         // When
         val result = useCase("PKG-1")
@@ -60,30 +56,22 @@ class GetPackageByIdUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(packageItem, result.getOrNull())
 
-        coVerify(exactly = 1) {
-            packageRepository.getById("PKG-1")
-        }
+        coVerify(exactly = 1) { packageRepository.getById("PKG-1") }
     }
 
     @Test
     fun `should return ResourceNotFoundException when package does not exist`() = runTest {
         // Given
-        coEvery {
-            packageRepository.getById("PKG-999")
-        } returns null
+        coEvery { packageRepository.getById("PKG-999") } returns null
 
         // When
         val result = useCase("PKG-999")
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is ResourceNotFoundException
-        )
+        assertTrue(result.exceptionOrNull() is ResourceNotFoundException)
 
-        coVerify(exactly = 1) {
-            packageRepository.getById("PKG-999")
-        }
+        coVerify(exactly = 1) { packageRepository.getById("PKG-999") }
     }
 
     @Test
@@ -91,9 +79,7 @@ class GetPackageByIdUseCaseTest {
         // Given
         val exception = RuntimeException("Database error")
 
-        coEvery {
-            packageRepository.getById("PKG-1")
-        } throws exception
+        coEvery { packageRepository.getById("PKG-1") } throws exception
 
         // When
         val result = useCase("PKG-1")
@@ -102,8 +88,6 @@ class GetPackageByIdUseCaseTest {
         assertTrue(result.isFailure)
         assertEquals(exception, result.exceptionOrNull())
 
-        coVerify(exactly = 1) {
-            packageRepository.getById("PKG-1")
-        }
+        coVerify(exactly = 1) { packageRepository.getById("PKG-1") }
     }
 }

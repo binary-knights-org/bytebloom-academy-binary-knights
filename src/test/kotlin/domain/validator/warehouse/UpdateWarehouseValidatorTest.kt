@@ -1,15 +1,22 @@
 package domain.validator.warehouse
 
+import domain.model.Warehouse
+import domain.model.exception.BlankRegionalZoneException
+import domain.model.exception.InvalidLatitudeException
+import domain.model.exception.InvalidLongitudeException
+import domain.model.exception.InvalidWarehouseNameException
+import domain.model.exception.NoUpdateFieldsException
 import domain.model.input.UpdateWarehouseInput
 import domain.model.validation.ValidationResult
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import kotlin.test.assertTrue
 
 class UpdateWarehouseValidatorTest {
 
     private val validator = UpdateWarehouseValidator()
 
     private val validWarehouseUpdate = UpdateWarehouseInput(
+        id = "WH-001",
         name = "Updated Warehouse",
         regionalZone = "CENTRAL",
         latitude = 37.91,
@@ -17,202 +24,135 @@ class UpdateWarehouseValidatorTest {
     )
 
     @Test
-    fun `should return valid for valid update`() {
-        // Given
+    fun `should return Valid for valid update`() {
         val input = validWarehouseUpdate
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Valid)
     }
 
     @Test
-    fun `should return no update fields violation when all fields are null`() {
-        // Given
-        val input = UpdateWarehouseInput()
+    fun `should return NoUpdateFieldsException when all optional fields are null`() {
+        val input = UpdateWarehouseInput(id = "WH-001")
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.NoUpdateFields)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is NoUpdateFieldsException })
     }
 
     @Test
-    fun `should return blank name violation when name is blank`() {
-        // Given
+    fun `should return InvalidWarehouseNameException when name is blank`() {
         val input = validWarehouseUpdate.copy(name = "   ")
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.BlankName)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is InvalidWarehouseNameException })
     }
 
     @Test
-    fun `should return blank regional zone violation when regional zone is blank`() {
-        // Given
+    fun `should return BlankRegionalZoneException when regional zone is blank`() {
         val input = validWarehouseUpdate.copy(regionalZone = "   ")
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.BlankRegionalZone)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is BlankRegionalZoneException })
     }
 
     @Test
-    fun `should return invalid latitude violation when latitude is below minimum`() {
-        // Given
+    fun `should return InvalidLatitudeException when latitude is below minimum`() {
         val input = validWarehouseUpdate.copy(
-            latitude = UpdateWarehouseValidator.MIN_LATITUDE - 0.1
+            latitude = Warehouse.MIN_LATITUDE - 0.1
         )
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.InvalidLatitude)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is InvalidLatitudeException })
     }
 
     @Test
-    fun `should return invalid latitude violation when latitude is above maximum`() {
-        // Given
+    fun `should return InvalidLatitudeException when latitude is above maximum`() {
         val input = validWarehouseUpdate.copy(
-            latitude = UpdateWarehouseValidator.MAX_LATITUDE + 0.1
+            latitude = Warehouse.MAX_LATITUDE + 0.1
         )
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.InvalidLatitude)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is InvalidLatitudeException })
     }
 
     @Test
-    fun `should return invalid longitude violation when longitude is below minimum`() {
-        // Given
+    fun `should return InvalidLongitudeException when longitude is below minimum`() {
         val input = validWarehouseUpdate.copy(
-            longitude = UpdateWarehouseValidator.MIN_LONGITUDE - 0.1
+            longitude = Warehouse.MIN_LONGITUDE - 0.1
         )
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.InvalidLongitude)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is InvalidLongitudeException })
     }
 
     @Test
-    fun `should return invalid longitude violation when longitude is above maximum`() {
-        // Given
+    fun `should return InvalidLongitudeException when longitude is above maximum`() {
         val input = validWarehouseUpdate.copy(
-            longitude = UpdateWarehouseValidator.MAX_LONGITUDE + 0.1
+            longitude = Warehouse.MAX_LONGITUDE + 0.1
         )
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.InvalidLongitude)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is InvalidLongitudeException })
     }
 
     @Test
     fun `should accept coordinate boundary values`() {
-        // Given
         val minBoundary = validWarehouseUpdate.copy(
-            latitude = UpdateWarehouseValidator.MIN_LATITUDE,
-            longitude = UpdateWarehouseValidator.MIN_LONGITUDE
+            latitude = Warehouse.MIN_LATITUDE,
+            longitude = Warehouse.MIN_LONGITUDE
         )
 
         val maxBoundary = validWarehouseUpdate.copy(
-            latitude = UpdateWarehouseValidator.MAX_LATITUDE,
-            longitude = UpdateWarehouseValidator.MAX_LONGITUDE
+            latitude = Warehouse.MAX_LATITUDE,
+            longitude = Warehouse.MAX_LONGITUDE
         )
 
-        // When
         val minResult = validator.validate(minBoundary)
         val maxResult = validator.validate(maxBoundary)
 
-        // Then
         assertTrue(minResult is ValidationResult.Valid)
         assertTrue(maxResult is ValidationResult.Valid)
     }
 
     @Test
     fun `should return all applicable violations when multiple fields are invalid`() {
-        // Given
         val input = UpdateWarehouseInput(
+            id = "WH-001",
             name = "   ",
             regionalZone = "   ",
-            latitude = UpdateWarehouseValidator.MAX_LATITUDE + 0.1,
-            longitude = UpdateWarehouseValidator.MIN_LONGITUDE - 0.1
+            latitude = Warehouse.MAX_LATITUDE + 0.1,
+            longitude = Warehouse.MIN_LONGITUDE - 0.1
         )
 
-        // When
         val validationResult = validator.validate(input)
 
-        // Then
         assertTrue(validationResult is ValidationResult.Invalid)
-
-        val violations = (validationResult as ValidationResult.Invalid).violations
-
-        assertTrue(
-            violations.contains(WarehouseValidationError.BlankName)
-        )
-        assertTrue(
-            violations.contains(WarehouseValidationError.BlankRegionalZone)
-        )
-        assertTrue(
-            violations.contains(WarehouseValidationError.InvalidLatitude)
-        )
-        assertTrue(
-            violations.contains(WarehouseValidationError.InvalidLongitude)
-        )
+        val violations = (validationResult).violations
+        assertTrue(violations.any { it is InvalidWarehouseNameException })
+        assertTrue(violations.any { it is BlankRegionalZoneException })
+        assertTrue(violations.any { it is InvalidLatitudeException })
+        assertTrue(violations.any { it is InvalidLongitudeException })
     }
 }

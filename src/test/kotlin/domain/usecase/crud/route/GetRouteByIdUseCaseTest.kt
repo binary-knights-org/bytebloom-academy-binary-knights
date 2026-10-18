@@ -18,25 +18,34 @@ class GetRouteByIdUseCaseTest {
     private val useCase = GetRouteByIdUseCase(routeRepository)
 
     private val originHub = Warehouse(
-        id = "WH-ORIGIN", name = "Origin Hub", regionalZone = RegionalZone.NORTH, latitude = 10.0, longitude = 20.0
+        id = "WH-ORIGIN",
+        name = "Origin Hub",
+        regionalZone = RegionalZone.NORTH,
+        latitude = 10.0,
+        longitude = 20.0
     )
 
     private val destinationHub = Warehouse(
-        id = "WH-DEST", name = "Destination Hub", regionalZone = RegionalZone.SOUTH, latitude = 30.0, longitude = 40.0
+        id = "WH-DEST",
+        name = "Destination Hub",
+        regionalZone = RegionalZone.SOUTH,
+        latitude = 30.0,
+        longitude = 40.0
     )
 
     private val existingRoute = Route(
-        id = "RT-001", distanceKm = 100.0, typicalDelayMin = 10, originHub = originHub, destinationHub = destinationHub
+        id = "RT-001",
+        distanceKm = 100.0,
+        typicalDelayMin = 10,
+        originHub = originHub,
+        destinationHub = destinationHub
     )
 
     @Test
-    fun `invoke when route exists then returns Result success with route`() = runTest {
+    fun `should return route when route exists`() = runTest {
         // Given
         val routeId = "RT-001"
-
-        coEvery {
-            routeRepository.getById(routeId)
-        } returns existingRoute
+        coEvery { routeRepository.getById(routeId) } returns existingRoute
 
         // When
         val result = useCase(routeId)
@@ -45,42 +54,32 @@ class GetRouteByIdUseCaseTest {
         assertThat(result.isSuccess).isTrue()
         assertThat(result.getOrNull()).isEqualTo(existingRoute)
 
-        coVerify(exactly = 1) {
-            routeRepository.getById(routeId)
-        }
+        coVerify(exactly = 1) { routeRepository.getById(routeId) }
     }
 
     @Test
-    fun `invoke when route does not exist then returns Result failure with ResourceNotFoundException`() = runTest {
+    fun `should return ResourceNotFoundException when route does not exist`() = runTest {
         // Given
         val routeId = "RT-NON-EXISTENT"
-
-        coEvery {
-            routeRepository.getById(routeId)
-        } returns null
+        coEvery { routeRepository.getById(routeId) } returns null
 
         // When
         val result = useCase(routeId)
 
         // Then
         assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(ResourceNotFoundException::class.java)
 
-        assertThat(result.exceptionOrNull() is ResourceNotFoundException)
-
-        coVerify(exactly = 1) {
-            routeRepository.getById(routeId)
-        }
+        coVerify(exactly = 1) { routeRepository.getById(routeId) }
     }
 
     @Test
-    fun `invoke when repo throws exception then returns the same exception`() = runTest {
+    fun `should return repository exception when fetching route fails`() = runTest {
         // Given
         val routeId = "RT-001"
         val exception = RuntimeException("Database timeout")
 
-        coEvery {
-            routeRepository.getById(routeId)
-        } throws exception
+        coEvery { routeRepository.getById(routeId) } throws exception
 
         // When
         val result = useCase(routeId)
@@ -89,8 +88,6 @@ class GetRouteByIdUseCaseTest {
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isEqualTo(exception)
 
-        coVerify(exactly = 1) {
-            routeRepository.getById(routeId)
-        }
+        coVerify(exactly = 1) { routeRepository.getById(routeId) }
     }
 }

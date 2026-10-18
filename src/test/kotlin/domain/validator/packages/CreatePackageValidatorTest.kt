@@ -2,6 +2,8 @@ package domain.validator.packages
 
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import domain.model.exception.InvalidPackageWeightException
+import domain.model.exception.SameOriginAndDestinationException
 import domain.model.input.CreatePackageInput
 import domain.model.validation.ValidationResult
 import org.junit.jupiter.api.Test
@@ -30,7 +32,6 @@ class CreatePackageValidatorTest {
 
     @Test
     fun `should return Valid when package input is valid`() {
-        // Given
         val input = CreatePackageInput(
             id = "PKG-1",
             weight = 10.0,
@@ -39,16 +40,13 @@ class CreatePackageValidatorTest {
             destinationHub = destination
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Valid)
     }
 
     @Test
-    fun `should return Invalid with InvalidWeight when weight is zero`() {
-        // Given
+    fun `should return Invalid with InvalidPackageWeightException when weight is zero`() {
         val input = CreatePackageInput(
             id = "PKG-1",
             weight = 0.0,
@@ -57,21 +55,14 @@ class CreatePackageValidatorTest {
             destinationHub = destination
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Invalid)
-
-        assertEquals(
-            listOf(PackageValidationError.InvalidWeight),
-            result.violations
-        )
+        assertTrue(result.violations.any { it is InvalidPackageWeightException })
     }
 
     @Test
-    fun `should return Invalid with SameOriginAndDestination when hubs are the same`() {
-        // Given
+    fun `should return Invalid with SameOriginAndDestinationException when hubs are the same`() {
         val input = CreatePackageInput(
             id = "PKG-1",
             weight = 10.0,
@@ -80,21 +71,14 @@ class CreatePackageValidatorTest {
             destinationHub = origin
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Invalid)
-
-        assertEquals(
-            listOf(PackageValidationError.SameOriginAndDestination),
-            result.violations
-        )
+        assertTrue(result.violations.any { it is SameOriginAndDestinationException })
     }
 
     @Test
     fun `should return both violations when weight is invalid and hubs are the same`() {
-        // Given
         val input = CreatePackageInput(
             id = "PKG-1",
             weight = 0.0,
@@ -103,18 +87,11 @@ class CreatePackageValidatorTest {
             destinationHub = origin
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Invalid)
-
-        assertEquals(
-            listOf(
-                PackageValidationError.InvalidWeight,
-                PackageValidationError.SameOriginAndDestination
-            ),
-            result.violations
-        )
+        assertEquals(2, result.violations.size)
+        assertTrue(result.violations.any { it is InvalidPackageWeightException })
+        assertTrue(result.violations.any { it is SameOriginAndDestinationException })
     }
 }

@@ -3,13 +3,16 @@ package domain.validator.routes
 import com.google.common.truth.Truth.assertThat
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import domain.model.exception.InvalidRouteDelayException
+import domain.model.exception.InvalidRouteDistanceException
+import domain.model.exception.SameOriginAndDestinationException
 import domain.model.input.CreateRouteInput
 import domain.model.validation.ValidationResult
 import org.junit.jupiter.api.Test
 
 class CreateRouteValidatorTest {
 
-    private var validator: CreateRouteValidator = CreateRouteValidator()
+    private val validator = CreateRouteValidator()
 
     private val originHub = Warehouse(
         id = "WH-ORIGIN",
@@ -28,8 +31,7 @@ class CreateRouteValidatorTest {
     )
 
     @Test
-    fun `validate when all fields are valid then returns Valid`() {
-        // Given
+    fun `should return Valid when all fields are valid`() {
         val input = CreateRouteInput(
             id = "RT-001",
             distanceKm = 150.0,
@@ -38,16 +40,13 @@ class CreateRouteValidatorTest {
             destinationHub = destinationHub
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertThat(result).isEqualTo(ValidationResult.Valid)
     }
 
     @Test
-    fun `validate when distance is zero then returns Invalid with InvalidDistance`() {
-        // Given
+    fun `should return Invalid with InvalidRouteDistanceException when distance is zero`() {
         val input = CreateRouteInput(
             id = "RT-001",
             distanceKm = 0.0,
@@ -56,18 +55,15 @@ class CreateRouteValidatorTest {
             destinationHub = destinationHub
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertThat(result).isInstanceOf(ValidationResult.Invalid::class.java)
         val invalid = result as ValidationResult.Invalid
-        assertThat(invalid.violations).containsExactly(RouteValidationError.InvalidDistance)
+        assertThat(invalid.violations.any { it is InvalidRouteDistanceException }).isTrue()
     }
 
     @Test
-    fun `validate when distance is negative then returns Invalid with InvalidDistance`() {
-        // Given
+    fun `should return Invalid with InvalidRouteDistanceException when distance is negative`() {
         val input = CreateRouteInput(
             id = "RT-001",
             distanceKm = -25.5,
@@ -76,18 +72,15 @@ class CreateRouteValidatorTest {
             destinationHub = destinationHub
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertThat(result).isInstanceOf(ValidationResult.Invalid::class.java)
         val invalid = result as ValidationResult.Invalid
-        assertThat(invalid.violations).containsExactly(RouteValidationError.InvalidDistance)
+        assertThat(invalid.violations.any { it is InvalidRouteDistanceException }).isTrue()
     }
 
     @Test
-    fun `validate when typicalDelayMin is zero then returns Valid`() {
-        // Given
+    fun `should return Valid when typicalDelayMin is zero`() {
         val input = CreateRouteInput(
             id = "RT-001",
             distanceKm = 50.0,
@@ -96,16 +89,13 @@ class CreateRouteValidatorTest {
             destinationHub = destinationHub
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertThat(result).isEqualTo(ValidationResult.Valid)
     }
 
     @Test
-    fun `validate when typicalDelayMin is negative then returns Invalid with NegativeDelay`() {
-        // Given
+    fun `should return Invalid with InvalidRouteDelayException when typicalDelayMin is negative`() {
         val input = CreateRouteInput(
             id = "RT-001",
             distanceKm = 50.0,
@@ -114,18 +104,15 @@ class CreateRouteValidatorTest {
             destinationHub = destinationHub
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertThat(result).isInstanceOf(ValidationResult.Invalid::class.java)
         val invalid = result as ValidationResult.Invalid
-        assertThat(invalid.violations).containsExactly(RouteValidationError.NegativeDelay)
+        assertThat(invalid.violations.any { it is InvalidRouteDelayException }).isTrue()
     }
 
     @Test
-    fun `validate when origin and destination hubs have same id then returns Invalid with SameOriginAndDestination`() {
-        // Given
+    fun `should return Invalid with SameOriginAndDestinationException when hubs have same id`() {
         val input = CreateRouteInput(
             id = "RT-001",
             distanceKm = 100.0,
@@ -134,18 +121,15 @@ class CreateRouteValidatorTest {
             destinationHub = originHub.copy()
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertThat(result).isInstanceOf(ValidationResult.Invalid::class.java)
         val invalid = result as ValidationResult.Invalid
-        assertThat(invalid.violations).containsExactly(RouteValidationError.SameOriginAndDestination)
+        assertThat(invalid.violations.any { it is SameOriginAndDestinationException }).isTrue()
     }
 
     @Test
-    fun `validate when multiple fields are invalid then returns Invalid with all violations`() {
-        // Given
+    fun `should return Invalid with all violations when multiple fields are invalid`() {
         val input = CreateRouteInput(
             id = "RT-001",
             distanceKm = -1.0,
@@ -154,16 +138,13 @@ class CreateRouteValidatorTest {
             destinationHub = originHub
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertThat(result).isInstanceOf(ValidationResult.Invalid::class.java)
         val invalid = result as ValidationResult.Invalid
-        assertThat(invalid.violations).containsExactly(
-            RouteValidationError.InvalidDistance,
-            RouteValidationError.NegativeDelay,
-            RouteValidationError.SameOriginAndDestination
-        )
+        assertThat(invalid.violations).hasSize(3)
+        assertThat(invalid.violations.any { it is InvalidRouteDistanceException }).isTrue()
+        assertThat(invalid.violations.any { it is InvalidRouteDelayException }).isTrue()
+        assertThat(invalid.violations.any { it is SameOriginAndDestinationException }).isTrue()
     }
 }

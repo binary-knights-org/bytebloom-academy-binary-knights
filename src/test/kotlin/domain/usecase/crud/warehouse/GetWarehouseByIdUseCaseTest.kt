@@ -8,9 +8,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class GetWarehouseByIdUseCaseTest {
 
@@ -31,9 +31,7 @@ class GetWarehouseByIdUseCaseTest {
     @Test
     fun `should return warehouse when warehouse exists`() = runTest {
         // Given
-        coEvery {
-            warehouseRepository.getById(warehouse.id)
-        } returns warehouse
+        coEvery { warehouseRepository.getById(warehouse.id) } returns warehouse
 
         // When
         val result = useCase(warehouse.id)
@@ -42,43 +40,32 @@ class GetWarehouseByIdUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(warehouse, result.getOrNull())
 
-        coVerify(exactly = 1) {
-            warehouseRepository.getById(warehouse.id)
-        }
+        coVerify(exactly = 1) { warehouseRepository.getById(warehouse.id) }
     }
 
     @Test
-    fun `should return resource not found failure when warehouse does not exist`() = runTest {
+    fun `should return ResourceNotFoundException when warehouse does not exist`() = runTest {
         // Given
         val warehouseId = "WH-999"
-
-        coEvery {
-            warehouseRepository.getById(warehouseId)
-        } returns null
+        coEvery { warehouseRepository.getById(warehouseId) } returns null
 
         // When
         val result = useCase(warehouseId)
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is ResourceNotFoundException
-        )
+        assertTrue(result.exceptionOrNull() is ResourceNotFoundException)
 
-        coVerify(exactly = 1) {
-            warehouseRepository.getById(warehouseId)
-        }
+        coVerify(exactly = 1) { warehouseRepository.getById(warehouseId) }
     }
 
     @Test
-    fun `should return repository exception when get warehouse fails`() = runTest {
+    fun `should return repository exception when fetching warehouse fails`() = runTest {
         // Given
         val warehouseId = "WH-001"
         val exception = RuntimeException("Database error")
 
-        coEvery {
-            warehouseRepository.getById(warehouseId)
-        } throws exception
+        coEvery { warehouseRepository.getById(warehouseId) } throws exception
 
         // When
         val result = useCase(warehouseId)
@@ -87,8 +74,6 @@ class GetWarehouseByIdUseCaseTest {
         assertTrue(result.isFailure)
         assertEquals(exception, result.exceptionOrNull())
 
-        coVerify(exactly = 1) {
-            warehouseRepository.getById(warehouseId)
-        }
+        coVerify(exactly = 1) { warehouseRepository.getById(warehouseId) }
     }
 }

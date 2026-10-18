@@ -16,7 +16,7 @@ class TelemetryModuleTest : KoinTest {
     @BeforeEach
     fun setUp() {
         startKoin {
-            modules(telemetryModule)
+            modules(telemetryModule, useCaseModule)
         }
     }
 

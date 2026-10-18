@@ -1,15 +1,15 @@
 package domain.usecase.crud.packages
 
+import domain.model.Package
+import domain.model.Priority
 import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.exception.EntityValidationException
 import domain.model.exception.InvalidPackageWeightException
-import domain.model.exception.OperationFailedException
 import domain.model.input.CreatePackageInput
 import domain.model.validation.ValidationResult
 import domain.repository.PackageRepository
 import domain.validator.packages.CreatePackageValidator
-import domain.validator.packages.PackageValidationError
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -42,6 +42,14 @@ class CreatePackageUseCaseTest {
         longitude = 34.47
     )
 
+    private val createdPackage = Package(
+        id = "PKG-1",
+        weight = 10.0,
+        priority = Priority.URGENT,
+        originHub = origin,
+        destinationHub = destination
+    )
+
     @Test
     fun `should create package successfully`() = runTest {
         // Given
@@ -53,23 +61,19 @@ class CreatePackageUseCaseTest {
             destinationHub = destination
         )
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            packageRepository.create(any())
-        } returns true
+        every { validator.validate(input) } returns ValidationResult.Valid
+        coEvery { packageRepository.create(any()) } returns createdPackage
 
         // When
         val result = useCase(input)
 
         // Then
         assertTrue(result.isSuccess)
-        assertEquals("PKG-1", result.getOrNull()?.id)
-        assertEquals(10.0, result.getOrNull()?.weight)
-        assertEquals(origin, result.getOrNull()?.originHub)
-        assertEquals(destination, result.getOrNull()?.destinationHub)
+        val resultPackage = result.getOrNull()
+        assertEquals("PKG-1", resultPackage?.id)
+        assertEquals(10.0, resultPackage?.weight)
+        assertEquals(origin, resultPackage?.originHub)
+        assertEquals(destination, resultPackage?.destinationHub)
 
         coVerify(exactly = 1) { packageRepository.create(any()) }
     }
@@ -86,12 +90,10 @@ class CreatePackageUseCaseTest {
         )
 
         val violations = listOf(
-            PackageValidationError.InvalidWeight
+            InvalidPackageWeightException("Package weight must be greater than zero")
         )
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Invalid(violations)
+        every { validator.validate(input) } returns ValidationResult.Invalid(violations)
 
         // When
         val result = useCase(input)
@@ -101,49 +103,10 @@ class CreatePackageUseCaseTest {
 
         val exception = result.exceptionOrNull()
         assertTrue(exception is EntityValidationException)
-
         assertEquals(violations, exception.violations)
 
-        coVerify(exactly = 1) {
-            validator.validate(input)
-        }
-
-        coVerify(exactly = 0) {
-            packageRepository.create(any())
-        }
-    }
-
-    @Test
-    fun `should return OperationFailedException when repository creation returns false`() = runTest {
-        // Given
-        val input = CreatePackageInput(
-            id = "PKG-1",
-            weight = 10.0,
-            priority = "URGENT",
-            originHub = origin,
-            destinationHub = destination
-        )
-
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            packageRepository.create(any())
-        } returns false
-
-        // When
-        val result = useCase(input)
-
-        // Then
-        assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is OperationFailedException
-        )
-
-        coVerify(exactly = 1) {
-            packageRepository.create(any())
-        }
+        coVerify(exactly = 1) { validator.validate(input) }
+        coVerify(exactly = 0) { packageRepository.create(any()) }
     }
 
     @Test
@@ -159,13 +122,8 @@ class CreatePackageUseCaseTest {
 
         val exception = RuntimeException("Database error")
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            packageRepository.create(any())
-        } throws exception
+        every { validator.validate(input) } returns ValidationResult.Valid
+        coEvery { packageRepository.create(any()) } throws exception
 
         // When
         val result = useCase(input)
@@ -174,9 +132,7 @@ class CreatePackageUseCaseTest {
         assertTrue(result.isFailure)
         assertEquals(exception, result.exceptionOrNull())
 
-        coVerify(exactly = 1) {
-            packageRepository.create(any())
-        }
+        coVerify(exactly = 1) { packageRepository.create(any()) }
     }
 
     @Test
@@ -190,21 +146,15 @@ class CreatePackageUseCaseTest {
             destinationHub = destination
         )
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
+        every { validator.validate(input) } returns ValidationResult.Valid
 
         // When
         val result = useCase(input)
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is InvalidPackageWeightException
-        )
+        assertTrue(result.exceptionOrNull() is InvalidPackageWeightException)
 
-        coVerify(exactly = 0) {
-            packageRepository.create(any())
-        }
+        coVerify(exactly = 0) { packageRepository.create(any()) }
     }
 }

@@ -2,15 +2,14 @@ package domain.usecase.crud.route
 
 import com.google.common.truth.Truth.assertThat
 import domain.model.RegionalZone
+import domain.model.Route
 import domain.model.Warehouse
 import domain.model.exception.EntityValidationException
 import domain.model.exception.InvalidRouteDistanceException
-import domain.model.exception.OperationFailedException
 import domain.model.input.CreateRouteInput
 import domain.model.validation.ValidationResult
 import domain.repository.RouteRepository
 import domain.validator.routes.CreateRouteValidator
-import domain.validator.routes.RouteValidationError
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -32,6 +31,14 @@ class CreateRouteUseCaseTest {
         id = "WH-DEST", name = "Destination Hub", regionalZone = RegionalZone.SOUTH, latitude = 30.0, longitude = 40.0
     )
 
+    private val createdRoute = Route(
+        id = "RT-001",
+        distanceKm = 120.0,
+        typicalDelayMin = 15,
+        originHub = originHub,
+        destinationHub = destinationHub
+    )
+
     @Test
     fun `invoke when input is valid and repo creates route then returns Result success`() = runTest {
         // Given
@@ -43,30 +50,23 @@ class CreateRouteUseCaseTest {
             destinationHub = destinationHub
         )
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            routeRepository.create(any())
-        } returns true
+        every { validator.validate(input) } returns ValidationResult.Valid
+        coEvery { routeRepository.create(any()) } returns createdRoute
 
         // When
         val result = useCase(input)
 
         // Then
         assertThat(result.isSuccess).isTrue()
-        val createdRoute = result.getOrNull()
-        assertThat(createdRoute).isNotNull()
-        assertThat(createdRoute?.id).isEqualTo("RT-001")
-        assertThat(createdRoute?.distanceKm).isEqualTo(120.0)
-        assertThat(createdRoute?.typicalDelayMin).isEqualTo(15)
-        assertThat(createdRoute?.originHub).isEqualTo(originHub)
-        assertThat(createdRoute?.destinationHub).isEqualTo(destinationHub)
+        val route = result.getOrNull()
+        assertThat(route).isNotNull()
+        assertThat(route?.id).isEqualTo("RT-001")
+        assertThat(route?.distanceKm).isEqualTo(120.0)
+        assertThat(route?.typicalDelayMin).isEqualTo(15)
+        assertThat(route?.originHub).isEqualTo(originHub)
+        assertThat(route?.destinationHub).isEqualTo(destinationHub)
 
-        coVerify(exactly = 1) {
-            routeRepository.create(any())
-        }
+        coVerify(exactly = 1) { routeRepository.create(any()) }
     }
 
     @Test
@@ -81,62 +81,23 @@ class CreateRouteUseCaseTest {
         )
 
         val violations = listOf(
-            RouteValidationError.InvalidDistance
+            InvalidRouteDistanceException("Distance must be greater than zero")
         )
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Invalid(violations)
+        every { validator.validate(input) } returns ValidationResult.Invalid(violations)
 
         // When
         val result = useCase(input)
 
         // Then
         assertThat(result.isFailure).isTrue()
-
         val exception = result.exceptionOrNull()
-
-        assertThat(exception is EntityValidationException)
+        assertThat(exception).isInstanceOf(EntityValidationException::class.java)
 
         val validationException = exception as EntityValidationException
+        assertThat(validationException.violations).containsExactlyElementsIn(violations)
 
-        assertThat(validationException.violations).containsExactly(RouteValidationError.InvalidDistance)
-
-        coVerify(exactly = 0) {
-            routeRepository.create(any())
-        }
-    }
-
-    @Test
-    fun `invoke when repo returns false then returns Result failure with OperationFailedException`() = runTest {
-        // Given
-        val input = CreateRouteInput(
-            id = "RT-001",
-            distanceKm = 100.0,
-            typicalDelayMin = 5,
-            originHub = originHub,
-            destinationHub = destinationHub
-        )
-
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            routeRepository.create(any())
-        } returns false
-
-        // When
-        val result = useCase(input)
-
-        // Then
-        assertThat(result.isFailure).isTrue()
-
-        assertThat(result.exceptionOrNull() is OperationFailedException)
-
-        coVerify(exactly = 1) {
-            routeRepository.create(any())
-        }
+        coVerify(exactly = 0) { routeRepository.create(any()) }
     }
 
     @Test
@@ -152,13 +113,8 @@ class CreateRouteUseCaseTest {
 
         val exception = RuntimeException("Database error")
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            routeRepository.create(any())
-        } throws exception
+        every { validator.validate(input) } returns ValidationResult.Valid
+        coEvery { routeRepository.create(any()) } throws exception
 
         // When
         val result = useCase(input)
@@ -167,9 +123,7 @@ class CreateRouteUseCaseTest {
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isEqualTo(exception)
 
-        coVerify(exactly = 1) {
-            routeRepository.create(any())
-        }
+        coVerify(exactly = 1) { routeRepository.create(any()) }
     }
 
     @Test
@@ -183,20 +137,15 @@ class CreateRouteUseCaseTest {
             destinationHub = destinationHub
         )
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
+        every { validator.validate(input) } returns ValidationResult.Valid
 
         // When
         val result = useCase(input)
 
         // Then
         assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(InvalidRouteDistanceException::class.java)
 
-        assertThat(result.exceptionOrNull() is InvalidRouteDistanceException)
-
-        coVerify(exactly = 0) {
-            routeRepository.create(any())
-        }
+        coVerify(exactly = 0) { routeRepository.create(any()) }
     }
 }

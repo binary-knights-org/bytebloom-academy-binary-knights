@@ -16,9 +16,7 @@ import kotlin.test.assertTrue
 class GetVehicleByIdUseCaseTest {
 
     private val vehicleRepository = mockk<VehicleRepository>()
-    private val useCase = GetVehicleByIdUseCase(
-        vehicleRepository
-    )
+    private val useCase = GetVehicleByIdUseCase(vehicleRepository)
 
     private val origin = Warehouse(
         id = "WH-1",
@@ -28,21 +26,17 @@ class GetVehicleByIdUseCaseTest {
         longitude = 35.91
     )
 
-
     private val vehicleItem = Vehicle(
         id = "TRK-1",
         currentHub = origin,
-        maxCapacityKg = 8500.0 ,
+        maxCapacityKg = 8500.0,
         costPerKm = 4.2
-        )
-
+    )
 
     @Test
     fun `should return vehicle when vehicle exists`() = runTest {
         // Given
-        coEvery {
-            vehicleRepository.getById("TRK-1")
-        } returns vehicleItem
+        coEvery { vehicleRepository.getById("TRK-1") } returns vehicleItem
 
         // When
         val result = useCase("TRK-1")
@@ -51,41 +45,30 @@ class GetVehicleByIdUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(vehicleItem, result.getOrNull())
 
-        coVerify(exactly = 1) {
-            vehicleRepository.getById("TRK-1")
-        }
+        coVerify(exactly = 1) { vehicleRepository.getById("TRK-1") }
     }
 
     @Test
     fun `should return ResourceNotFoundException when vehicle does not exist`() = runTest {
         // Given
-        coEvery {
-            vehicleRepository.getById("TRK-999")
-        } returns null
+        coEvery { vehicleRepository.getById("TRK-999") } returns null
 
         // When
         val result = useCase("TRK-999")
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is ResourceNotFoundException
-        )
+        assertTrue(result.exceptionOrNull() is ResourceNotFoundException)
 
-        coVerify(exactly = 1) {
-            vehicleRepository.getById("TRK-999")
-        }
+        coVerify(exactly = 1) { vehicleRepository.getById("TRK-999") }
     }
 
-
     @Test
-    fun `should return repository exception when fetching package fails`() = runTest {
+    fun `should return repository exception when fetching vehicle fails`() = runTest {
         // Given
         val exception = RuntimeException("Database error")
 
-        coEvery {
-            vehicleRepository.getById("TRK-1")
-        } throws exception
+        coEvery { vehicleRepository.getById("TRK-1") } throws exception
 
         // When
         val result = useCase("TRK-1")
@@ -94,8 +77,6 @@ class GetVehicleByIdUseCaseTest {
         assertTrue(result.isFailure)
         assertEquals(exception, result.exceptionOrNull())
 
-        coVerify(exactly = 1) {
-            vehicleRepository.getById("TRK-1")
-        }
+        coVerify(exactly = 1) { vehicleRepository.getById("TRK-1") }
     }
 }
