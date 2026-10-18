@@ -1,23 +1,31 @@
 package domain.validator.warehouse
 
+import domain.model.Warehouse
+import domain.model.exception.BlankRegionalZoneException
+import domain.model.exception.DomainException
+import domain.model.exception.InvalidLatitudeException
+import domain.model.exception.InvalidLongitudeException
+import domain.model.exception.InvalidWarehouseNameException
+import domain.model.exception.NoUpdateFieldsException
 import domain.model.input.UpdateWarehouseInput
 import domain.model.validation.ValidationResult
 
 class UpdateWarehouseValidator {
-    fun validate(input: UpdateWarehouseInput): ValidationResult<WarehouseValidationError> {
+
+    fun validate(input: UpdateWarehouseInput): ValidationResult<DomainException> {
         val violations = buildList {
             if (hasNoUpdates(input)) {
-                add(WarehouseValidationError.NoUpdateFields)
+                add(NoUpdateFieldsException())
             }
 
-            input.name?.let { if (it.isBlank()) add(WarehouseValidationError.BlankName) }
-            input.regionalZone?.let { if (it.isBlank()) add(WarehouseValidationError.BlankRegionalZone) }
+            input.name?.let { if (it.isBlank()) add(InvalidWarehouseNameException()) }
+            if (input.regionalZone?.isBlank() == true) add(BlankRegionalZoneException())
 
             input.latitude?.let { lat ->
-                if (lat !in MIN_LATITUDE..MAX_LATITUDE) add(WarehouseValidationError.InvalidLatitude)
+                if (lat !in Warehouse.MIN_LATITUDE..Warehouse.MAX_LATITUDE) add(InvalidLatitudeException())
             }
             input.longitude?.let { lon ->
-                if (lon !in MIN_LONGITUDE..MAX_LONGITUDE) add(WarehouseValidationError.InvalidLongitude)
+                if (lon !in Warehouse.MIN_LONGITUDE..Warehouse.MAX_LONGITUDE) add(InvalidLongitudeException())
             }
         }
 
@@ -29,12 +37,5 @@ class UpdateWarehouseValidator {
                 input.regionalZone == null &&
                 input.latitude == null &&
                 input.longitude == null
-    }
-
-    companion object {
-        const val MIN_LATITUDE = -90.0
-        const val MAX_LATITUDE = 90.0
-        const val MIN_LONGITUDE = -180.0
-        const val MAX_LONGITUDE = 180.0
     }
 }

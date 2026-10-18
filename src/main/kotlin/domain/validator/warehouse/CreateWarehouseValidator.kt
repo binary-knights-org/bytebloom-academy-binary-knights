@@ -1,28 +1,28 @@
 package domain.validator.warehouse
 
+import domain.model.Warehouse
+import domain.model.exception.BlankRegionalZoneException
+import domain.model.exception.DomainException
+import domain.model.exception.InvalidLatitudeException
+import domain.model.exception.InvalidLongitudeException
+import domain.model.exception.InvalidWarehouseNameException
 import domain.model.input.CreateWarehouseInput
 import domain.model.validation.ValidationResult
 
 class CreateWarehouseValidator {
-    fun validate(input: CreateWarehouseInput): ValidationResult<WarehouseValidationError> {
+
+    fun validate(input: CreateWarehouseInput): ValidationResult<DomainException> {
         val violations = buildList {
-            if (input.name.isBlank()) add(WarehouseValidationError.BlankName)
-            if (input.regionalZone.isBlank()) add(WarehouseValidationError.BlankRegionalZone)
-            if (input.latitude !in MIN_LATITUDE..MAX_LATITUDE) {
-                add(WarehouseValidationError.InvalidLatitude)
+            if (input.name.isBlank()) add(InvalidWarehouseNameException())
+            if (input.regionalZone.isBlank()) add(BlankRegionalZoneException())
+            if (input.latitude !in Warehouse.MIN_LATITUDE..Warehouse.MAX_LATITUDE) {
+                add(InvalidLatitudeException())
             }
-            if (input.longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
-                add(WarehouseValidationError.InvalidLongitude)
+            if (input.longitude !in Warehouse.MIN_LONGITUDE..Warehouse.MAX_LONGITUDE) {
+                add(InvalidLongitudeException())
             }
         }
 
         return if (violations.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(violations)
-    }
-
-    companion object {
-        const val MIN_LATITUDE = -90.0
-        const val MAX_LATITUDE = 90.0
-        const val MIN_LONGITUDE = -180.0
-        const val MAX_LONGITUDE = 180.0
     }
 }
