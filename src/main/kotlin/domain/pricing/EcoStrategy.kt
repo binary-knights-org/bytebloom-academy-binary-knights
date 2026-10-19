@@ -1,6 +1,7 @@
 package domain.pricing
 
 class EcoStrategy : DispatchStrategy {
+
     override fun calculateTransitCost(weight: Double, distance: Double): Double {
         return (weight * WEIGHT_MULTIPLIER) + (distance * DISTANCE_MULTIPLIER)
     }

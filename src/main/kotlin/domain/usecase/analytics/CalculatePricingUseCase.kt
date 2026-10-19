@@ -7,7 +7,7 @@ class CalculatePricingUseCase(
     private val pricingEngine: RoutePricingEngine
 ) {
     operator fun invoke(request: PricingRequest): Double {
-        pricingEngine.setStrategy(request.strategy)
+        pricingEngine.strategy = request.strategy
         val baseCost = pricingEngine.calculateCost(
             request.pkg.weight,
             request.route.distanceKm

@@ -33,7 +33,7 @@ class PackageStateTest {
     fun `package should start in created state`() {
         val packageItem = createPackage()
 
-        assertThat(packageItem.getState())
+        assertThat(packageItem.currentState)
             .isInstanceOf(CreatedState::class.java)
     }
 
@@ -43,7 +43,7 @@ class PackageStateTest {
 
         packageItem.assignToVehicle()
 
-        assertThat(packageItem.getState())
+        assertThat(packageItem.currentState)
             .isInstanceOf(AssignedToVehicleState::class.java)
     }
 
@@ -54,7 +54,7 @@ class PackageStateTest {
         packageItem.assignToVehicle()
         packageItem.startTransit()
 
-        assertThat(packageItem.getState())
+        assertThat(packageItem.currentState)
             .isInstanceOf(InTransitState::class.java)
     }
 
@@ -66,7 +66,7 @@ class PackageStateTest {
         packageItem.startTransit()
         packageItem.markDelivered()
 
-        assertThat(packageItem.getState())
+        assertThat(packageItem.currentState)
             .isInstanceOf(DeliveredState::class.java)
     }
 
@@ -78,7 +78,7 @@ class PackageStateTest {
         packageItem.startTransit()
         packageItem.markFailed()
 
-        assertThat(packageItem.getState())
+        assertThat(packageItem.currentState)
             .isInstanceOf(DeliveryFailedState::class.java)
     }
 

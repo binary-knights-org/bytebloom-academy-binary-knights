@@ -1,3 +1,4 @@
+
 package domain.algorithm.knn
 
 import domain.model.Package
@@ -21,10 +22,14 @@ class KNearestNeighbors {
         validateWeight(weight)
         validateHistoricalPackages(historicalPackages)
 
-        val features = buildTrainingFeatures(historicalPackages)
+        val minWeight = historicalPackages.minOf { it.weight }
+        val maxWeight = historicalPackages.maxOf { it.weight }
 
-        val minWeight = features.minOf { it.weight }
-        val maxWeight = features.maxOf { it.weight }
+        val features = buildTrainingFeatures(
+            historicalPackages = historicalPackages,
+            minWeight = minWeight,
+            maxWeight = maxWeight
+        )
 
         val query = Feature(
             latitude = normalizeLatitude(latitude),
@@ -91,11 +96,10 @@ class KNearestNeighbors {
     }
 
     private fun buildTrainingFeatures(
-        historicalPackages: List<Package>
+        historicalPackages: List<Package>,
+        minWeight: Double,
+        maxWeight: Double
     ): List<Feature> {
-        val minWeight = historicalPackages.minOf { it.weight }
-        val maxWeight = historicalPackages.maxOf { it.weight }
-
         return historicalPackages.map { historicalPackage ->
             Feature(
                 latitude = normalizeLatitude(

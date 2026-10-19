@@ -6,8 +6,9 @@ class ColdChainDecorator(
     component: PackageComponent,
     private val refrigerationMultiplier: Double = DEFAULT_REFRIGERATION_MULTIPLIER
 ) : PackageDecorator(component) {
+
     override fun calculateTransitRate(baseTransitRate: Double): Double {
-        return super.calculateTransitRate(baseTransitRate) * refrigerationMultiplier
+        return component.calculateTransitRate(baseTransitRate) * refrigerationMultiplier
     }
 
     private companion object {

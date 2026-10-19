@@ -21,13 +21,13 @@ class ReroutePackageUseCase(
         newDestination.addPackage(reroutedPackage)
     }
 
-    private suspend  fun findPackage(packageId: String): Package {
+    private suspend fun findPackage(packageId: String): Package {
         val packagesById = packageRepository.getAll().associateBy { it.id }
         return packagesById[packageId]
             ?: throw ResourceNotFoundException()
     }
 
-    private suspend  fun findWarehouse(warehouseId: String): Warehouse {
+    private suspend fun findWarehouse(warehouseId: String): Warehouse {
         val warehousesById = warehouseRepository.getAll().associateBy { it.id }
         return warehousesById[warehouseId]
             ?: throw ResourceNotFoundException()

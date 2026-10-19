@@ -1,4 +1,4 @@
-package domain.dispatch
+package domain.model
 
 data class DispatchNotification(
     val packageId: String,

@@ -15,19 +15,14 @@ data class Package(
     val destinationHub: Warehouse,
     val volumeM3: Double? = null
 ) {
-    private var currentState: ShipmentState = CreatedState()
+    var currentState: ShipmentState = CreatedState()
+        private set
 
     init {
         validateWeight()
         validateVolume()
         validateHubs()
     }
-
-    fun setState(state: ShipmentState) {
-        currentState = state
-    }
-
-    fun getState(): ShipmentState = currentState
 
     fun assignToVehicle() {
         currentState = currentState.assignToVehicle()

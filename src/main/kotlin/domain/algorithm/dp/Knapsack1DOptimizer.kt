@@ -45,14 +45,14 @@ class Knapsack1DOptimizer : BaseKnapsackOptimizer() {
     ) {
         val currentPackage = packages[packageIndex]
         val packageWeight = toCapacityUnits(currentPackage.weight)
-        val packageValue = priorityValue(currentPackage.priority) * packageWeight
+        val packageValue = calculatePackageValue(currentPackage)
 
         for (currentCapacity in 0..capacity) {
             grid[packageIndex + GRID_SIZE_OFFSET][currentCapacity] = calculateBestValue(
                 previousRow = grid[packageIndex],
                 currentCapacity = currentCapacity,
                 packageWeight = packageWeight,
-                packagePriority = packageValue
+                packageValue = packageValue
             )
         }
     }
@@ -61,12 +61,12 @@ class Knapsack1DOptimizer : BaseKnapsackOptimizer() {
         previousRow: IntArray,
         currentCapacity: Int,
         packageWeight: Int,
-        packagePriority: Int
+        packageValue: Int
     ): Int {
         if (packageWeight > currentCapacity) return previousRow[currentCapacity]
 
         val valueWithoutPackage = previousRow[currentCapacity]
-        val valueWithPackage = previousRow[currentCapacity - packageWeight] + packagePriority
+        val valueWithPackage = previousRow[currentCapacity - packageWeight] + packageValue
 
         return maxOf(valueWithoutPackage, valueWithPackage)
     }

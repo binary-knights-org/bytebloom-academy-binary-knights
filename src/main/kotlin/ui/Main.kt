@@ -4,16 +4,18 @@ import di.networkModule
 import di.pricingModule
 import di.repositoryModule
 import di.routingModule
+import di.telemetryModule
 import di.useCaseModule
 import di.validatorModule
-import di.telemetryModule
+import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
 import domain.usecase.analytics.ClassifyPackageSectorUseCase
 import domain.usecase.routing.FindOptimalPathUseCase
+import domain.usecase.telemetry.TrackActiveFleetUseCase
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
-import domain.usecase.telemetry.TrackActiveFleetUseCase
-import domain.repository.PackageRepository
+import ui.cli.AsyncCliShell
+import ui.cli.PackageClassificationCli
 
 fun main() = runBlocking {
     val koin = startKoin {
@@ -34,8 +36,7 @@ fun main() = runBlocking {
     val findOptimalPathUseCase = koin.get<FindOptimalPathUseCase>()
     val packageClassificationCli = PackageClassificationCli(
         packageRepository = koin.get<PackageRepository>(),
-        classifyPackageSectorUseCase =
-            koin.get<ClassifyPackageSectorUseCase>()
+        classifyPackageSectorUseCase = koin.get<ClassifyPackageSectorUseCase>()
     )
 
     val cliShell = AsyncCliShell(
@@ -51,13 +52,36 @@ fun main() = runBlocking {
 }
 
 private fun printSystemHeader() {
-    println("\u001B[34m"+"\n============================================================")
-    println("\u001B[34m"+"      BYTEBLOOM ACADEMY: LOGISTICS & ROUTING ENGINE         ")
-    println("\u001B[34m"+"============================================================")
+    println("\u001B[34m\n \$\$\$\$\$\$\$\\  \$\$\\                                         \n" +
+            "\$\$  __\$\$\\ \\__|                                        \n" +
+            "\$\$ |  \$\$ |\$\$\\ \$\$\$\$\$\$\$\\   \$\$\$\$\$\$\\   \$\$\$\$\$\$\\  \$\$\\   \$\$\\ \n" +
+            "\$\$\$\$\$\$\$\\ |\$\$ |\$\$  __\$\$\\  \\____\$\$\\ \$\$  __\$\$\\ \$\$ |  \$\$ |\n" +
+            "\$\$  __\$\$\\ \$\$ |\$\$ |  \$\$ | \$\$\$\$\$\$\$ |\$\$ |  \\__|\$\$ |  \$\$ |\n" +
+            "\$\$ |  \$\$ |\$\$ |\$\$ |  \$\$ |\$\$  __\$\$ |\$\$ |      \$\$ |  \$\$ |\n" +
+            "\$\$\$\$\$\$\$  |\$\$ |\$\$ |  \$\$ |\\\$\$\$\$\$\$\$ |\$\$ |      \\\$\$\$\$\$\$\$ |\n" +
+            "\\_______/ \\__|\\__|  \\__| \\_______|\\__|       \\____\$\$ |\n" +
+            "                                            \$\$\\   \$\$ |\n" +
+            "                                            \\\$\$\$\$\$\$  |\n" +
+            "                                             \\______/ \n" +
+            "\$\$\\   \$\$\\           \$\$\\           \$\$\\        \$\$\\      \n" +
+            "\$\$ | \$\$  |          \\__|          \$\$ |       \$\$ |     \n" +
+            "\$\$ |\$\$  / \$\$\$\$\$\$\$\\  \$\$\\  \$\$\$\$\$\$\\  \$\$\$\$\$\$\$\\ \$\$\$\$\$\$\\    \n" +
+            "\$\$\$\$\$  /  \$\$  __\$\$\\ \$\$ |\$\$  __\$\$\\ \$\$  __\$\$\\\\_\$\$  _|   \n" +
+            "\$\$  \$\$<   \$\$ |  \$\$ |\$\$ |\$\$ /  \$\$ |\$\$ |  \$\$ | \$\$ |     \n" +
+            "\$\$ |\\\$\$\\  \$\$ |  \$\$ |\$\$ |\$\$ |  \$\$ |\$\$ |  \$\$ | \$\$ |\$\$\\  \n" +
+            "\$\$ | \\\$\$\\ \$\$ |  \$\$ |\$\$ |\\\$\$\$\$\$\$\$ |\$\$ |  \$\$ | \\\$\$\$\$  | \n" +
+            "\\__|  \\__|\\__|  \\__|\\__| \\____\$\$ |\\__|  \\__|  \\____/  \n" +
+            "                        \$\$\\   \$\$ |                    \n" +
+            "                        \\\$\$\$\$\$\$  |                    \n" +
+            "                         \\______/                      ")
+
+    println("\u001B[34m\n============================================================")
+    println("\u001B[34m      BYTEBLOOM ACADEMY: LOGISTICS & ROUTING ENGINE         ")
+    println("\u001B[34m============================================================")
 }
 
 private fun printSystemFooter() {
-    println("\u001B[34m"+"\n============================================================")
-    println("\u001B[34m"+"          SYSTEM EXECUTION COMPLETED SUCCESSFULLY           ")
-    println("\u001B[34m"+"============================================================\n")
+    println("\u001B[34m\n============================================================")
+    println("\u001B[34m          SYSTEM EXECUTION COMPLETED SUCCESSFULLY           ")
+    println("\u001B[34m============================================================\n")
 }

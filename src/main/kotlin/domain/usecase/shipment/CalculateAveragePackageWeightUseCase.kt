@@ -4,22 +4,22 @@ import domain.repository.WarehouseRepository
 
 private const val DEFAULT_AVERAGE_WEIGHT = 0.0
 
-class CalculateAveragePackageWeightUseCase (
+class CalculateAveragePackageWeightUseCase(
     private val warehouseRepository: WarehouseRepository
-){
-     suspend operator fun invoke(): Double{
-       val allPackage = warehouseRepository
+) {
+    suspend operator fun invoke(): Double {
+        val allPackage = warehouseRepository
             .getAll()
             .flatMap { it.cargoQueue }
-       val totalWeight =  allPackage.sumOf { it.weight }
-       val packageCount = allPackage.size
+        val totalWeight = allPackage.sumOf { it.weight }
+        val packageCount = allPackage.size
 
-        val result = if (allPackage.isNotEmpty()){
+        val result = if (allPackage.isNotEmpty()) {
             totalWeight / packageCount
         } else {
             DEFAULT_AVERAGE_WEIGHT
         }
-    return  result
+        return result
 
-}
+    }
 }

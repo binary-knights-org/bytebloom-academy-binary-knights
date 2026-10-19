@@ -4,7 +4,7 @@ import data.local.dataholder.RouteRaw
 
 interface RemoteRouteDataSource {
    suspend fun getRawRoutes(): List<RouteRaw>
-   suspend fun createRawRoute(route: RouteRaw): Boolean
-   suspend fun updateRawRoute(id: String, route: RouteRaw): Boolean
+   suspend fun createRawRoute(route: RouteRaw): RouteRaw
+   suspend fun updateRawRoute(id: String, route: RouteRaw): RouteRaw
    suspend fun deleteRawRoute(id: String): Boolean
 }

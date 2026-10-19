@@ -3,28 +3,28 @@ package domain.usecase.analytics
 import com.google.common.truth.Truth.assertThat
 import domain.model.Package
 import domain.model.Priority
+import domain.model.RegionalZone
 import domain.model.Route
 import domain.model.Warehouse
-import domain.model.RegionalZone
-import domain.model.component.PackageComponent
 import domain.model.assignment.PricingRequest
+import domain.model.component.PackageComponent
 import domain.pricing.DispatchStrategy
 import domain.pricing.RoutePricingEngine
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class CalculatePricingUseCaseTest {
 
-    private val pricingEngine = mockk<RoutePricingEngine> {
+    private val pricingEngine = mockk<RoutePricingEngine>(relaxed = true) {
         every { calculateCost(any(), any()) } returns 200.0
-        every { setStrategy(any()) } returns Unit
     }
 
     private val useCase = CalculatePricingUseCase(pricingEngine)
 
     private val origin = Warehouse(
+        id = "WH-1",
         name = "Origin",
         regionalZone = RegionalZone.NORTH,
         latitude = 0.0,
@@ -32,6 +32,7 @@ class CalculatePricingUseCaseTest {
     )
 
     private val destination = Warehouse(
+        id = "WH-2",
         name = "Destination",
         regionalZone = RegionalZone.SOUTH,
         latitude = 1.0,
@@ -39,6 +40,7 @@ class CalculatePricingUseCaseTest {
     )
 
     private val package1 = Package(
+        id = "PKG-1",
         weight = 10.0,
         priority = Priority.URGENT,
         originHub = origin,
@@ -46,15 +48,16 @@ class CalculatePricingUseCaseTest {
     )
 
     private val route = Route(
+        id = "RTE-1",
         distanceKm = 100.0,
         typicalDelayMin = 10,
         originHub = origin,
         destinationHub = destination
     )
 
-    private val strategy = mockk<DispatchStrategy>()
+    private val strategy = mockk<DispatchStrategy>(relaxed = true)
 
-    private val component = mockk<PackageComponent> {
+    private val component = mockk<PackageComponent>(relaxed = true) {
         every { calculateTransitRate(any()) } returns 50.0
     }
 
@@ -80,13 +83,13 @@ class CalculatePricingUseCaseTest {
         val request = PricingRequest(package1, component, route, strategy)
 
         // When
-        val thrown = Assertions.assertThrows(IllegalStateException::class.java
+        val thrown = Assertions.assertThrows(
+            IllegalStateException::class.java
         ) {
             useCase(request)
         }
 
         // Then
-        assertThat(thrown.message)
-            .isEqualTo("Failed to calculate route cost")
+        assertThat(thrown.message).isEqualTo("Failed to calculate route cost")
     }
 }

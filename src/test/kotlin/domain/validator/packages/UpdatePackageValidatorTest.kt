@@ -2,6 +2,9 @@ package domain.validator.packages
 
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import domain.model.exception.InvalidPackageWeightException
+import domain.model.exception.NoUpdateFieldsException
+import domain.model.exception.SameOriginAndDestinationException
 import domain.model.input.UpdatePackageInput
 import domain.model.validation.ValidationResult
 import org.junit.jupiter.api.Test
@@ -22,82 +25,55 @@ class UpdatePackageValidatorTest {
 
     @Test
     fun `should return Valid when update contains valid field`() {
-        // Given
         val input = UpdatePackageInput(
             id = "PKG-1",
             weight = 20.0
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Valid)
     }
 
     @Test
-    fun `should return Invalid with NoUpdateFields when no fields are provided`() {
-        // Given
-        val input = UpdatePackageInput(
-            id = "PKG-1"
-        )
+    fun `should return Invalid with NoUpdateFieldsException when no fields are provided`() {
+        val input = UpdatePackageInput(id = "PKG-1")
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Invalid)
-
-        assertEquals(
-            listOf(PackageValidationError.NoUpdateFields),
-            result.violations
-        )
+        assertTrue(result.violations.any { it is NoUpdateFieldsException })
     }
 
     @Test
-    fun `should return Invalid with InvalidWeight when weight is zero`() {
-        // Given
+    fun `should return Invalid with InvalidPackageWeightException when weight is zero`() {
         val input = UpdatePackageInput(
             id = "PKG-1",
             weight = 0.0
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Invalid)
-
-        assertEquals(
-            listOf(PackageValidationError.InvalidWeight),
-            result.violations
-        )
+        assertTrue(result.violations.any { it is InvalidPackageWeightException })
     }
 
     @Test
-    fun `should return Invalid with SameOriginAndDestination when hubs are the same`() {
-        // Given
+    fun `should return Invalid with SameOriginAndDestinationException when hubs are the same`() {
         val input = UpdatePackageInput(
             id = "PKG-1",
             originHub = origin,
             destinationHub = origin
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Invalid)
-
-        assertEquals(
-            listOf(PackageValidationError.SameOriginAndDestination),
-            result.violations
-        )
+        assertTrue(result.violations.any { it is SameOriginAndDestinationException })
     }
 
     @Test
     fun `should return multiple violations when multiple update rules are violated`() {
-        // Given
         val input = UpdatePackageInput(
             id = "PKG-1",
             weight = 0.0,
@@ -105,18 +81,11 @@ class UpdatePackageValidatorTest {
             destinationHub = origin
         )
 
-        // When
         val result = validator.validate(input)
 
-        // Then
         assertTrue(result is ValidationResult.Invalid)
-
-        assertEquals(
-            listOf(
-                PackageValidationError.InvalidWeight,
-                PackageValidationError.SameOriginAndDestination
-            ),
-            result.violations
-        )
+        assertEquals(2, result.violations.size)
+        assertTrue(result.violations.any { it is InvalidPackageWeightException })
+        assertTrue(result.violations.any { it is SameOriginAndDestinationException })
     }
 }

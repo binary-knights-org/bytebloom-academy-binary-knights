@@ -4,42 +4,10 @@ import domain.model.Warehouse
 import domain.repository.WarehouseRepository
 
 class BidirectionalBfsRouter(
-    private val warehouseRepository: WarehouseRepository
-) : ShortestPathRouter {
+    warehouseRepository: WarehouseRepository
+) : BaseShortestPathRouter(warehouseRepository) {
 
-    var visitedWarehouseCount = 0
-        private set
-
-    override suspend fun findShortestPath(
-        origin: Warehouse,
-        destination: Warehouse
-    ): List<Warehouse>? {
-        visitedWarehouseCount = 0
-
-        val allWarehouses = warehouseRepository.getAll()
-        val warehousesById = allWarehouses.associateBy { it.id }
-        val actualOrigin = warehousesById[origin.id]
-        val actualDestination = warehousesById[destination.id]
-
-        val path = when {
-            actualOrigin == null || actualDestination == null -> null
-
-            actualOrigin.id == actualDestination.id -> {
-                visitedWarehouseCount = 1
-                listOf(actualOrigin)
-            }
-
-            else -> executeBidirectionalSearch(
-                actualOrigin,
-                actualDestination,
-                allWarehouses
-            )
-        }
-
-        return path
-    }
-
-    private fun executeBidirectionalSearch(
+    override fun executeSearch(
         origin: Warehouse,
         destination: Warehouse,
         allWarehouses: List<Warehouse>
@@ -51,19 +19,21 @@ class BidirectionalBfsRouter(
         while (forwardState.queue.isNotEmpty() && backwardState.queue.isNotEmpty() && intersection == null) {
             val expandForward = forwardState.queue.size <= backwardState.queue.size
 
-            intersection =
-                if (expandForward) expandOneStep(forwardState, backwardState, allWarehouses, false)
-                else expandOneStep(backwardState, forwardState, allWarehouses, true)
+            intersection = if (expandForward) {
+                expandOneStep(forwardState, backwardState, allWarehouses, searchBackward = false)
+            } else {
+                expandOneStep(backwardState, forwardState, allWarehouses, searchBackward = true)
+            }
         }
+
         return intersection?.let { buildUnifiedPath(it, forwardState, backwardState) }
     }
 
-    private fun createInitialState(startWarehouse: Warehouse): BfsState {
-        return BfsState().apply {
+    private fun createInitialState(startWarehouse: Warehouse): BfsState =
+        BfsState().apply {
             queue.addLast(startWarehouse)
             visitedWarehouseIds.add(startWarehouse.id)
         }
-    }
 
     private fun expandOneStep(
         currentState: BfsState,
@@ -71,32 +41,25 @@ class BidirectionalBfsRouter(
         allWarehouses: List<Warehouse>,
         searchBackward: Boolean
     ): Warehouse? {
-
-        if (currentState.queue.isEmpty()) return null
-
-        val currentWarehouse = currentState.queue.removeFirst()
+        val currentWarehouse = currentState.queue.removeFirstOrNull() ?: return null
         visitedWarehouseCount++
 
-        val neighbors = if (searchBackward) findPredecessors(currentWarehouse, allWarehouses)
-        else currentWarehouse.outgoingRoutes.map { it.destinationHub }
-
-        var intersection: Warehouse? = null
-        for (neighbor in neighbors) {
-            intersection = processNeighbor(neighbor, currentWarehouse, currentState, oppositeState)
-            if (intersection != null) break
+        val neighbors = if (searchBackward) {
+            findPredecessors(currentWarehouse, allWarehouses)
+        } else {
+            currentWarehouse.outgoingRoutes.map { it.destinationHub }
         }
-        return intersection
+
+        return neighbors.firstNotNullOfOrNull { neighbor ->
+            processNeighbor(neighbor, currentWarehouse, currentState, oppositeState)
+        }
     }
 
     private fun findPredecessors(
         warehouse: Warehouse,
         allWarehouses: List<Warehouse>
-    ): List<Warehouse> {
-        return allWarehouses.filter { candidate ->
-            candidate.outgoingRoutes.any { route ->
-                route.destinationHub.id == warehouse.id
-            }
-        }
+    ): List<Warehouse> = allWarehouses.filter { candidate ->
+        candidate.outgoingRoutes.any { it.destinationHub.id == warehouse.id }
     }
 
     private fun processNeighbor(
@@ -122,17 +85,15 @@ class BidirectionalBfsRouter(
         forwardState: BfsState,
         backwardState: BfsState
     ): List<Warehouse> {
-
         val forwardPath = reconstructPath(intersection, forwardState.previousWarehouseOf)
         val backwardPath = reconstructBackwardPath(intersection, backwardState.previousWarehouseOf)
-        return forwardPath + backwardPath.drop(SKIP_DUPLICATE_INTERSECTION_NODE_COUNT)
+        return forwardPath + backwardPath.drop(SKIP_DUPLICATE_INTERSECTION)
     }
 
     private fun reconstructBackwardPath(
         intersection: Warehouse,
         previousWarehouseOf: Map<String, Warehouse>
     ): List<Warehouse> {
-
         val path = mutableListOf<Warehouse>()
         var current: Warehouse? = intersection
 
@@ -140,11 +101,10 @@ class BidirectionalBfsRouter(
             path.add(current)
             current = previousWarehouseOf[current.id]
         }
-
         return path
     }
 
     private companion object {
-        const val SKIP_DUPLICATE_INTERSECTION_NODE_COUNT = 1
+        const val SKIP_DUPLICATE_INTERSECTION = 1
     }
 }

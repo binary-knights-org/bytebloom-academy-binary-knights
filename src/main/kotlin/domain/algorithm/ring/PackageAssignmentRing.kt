@@ -1,18 +1,17 @@
 package domain.algorithm.ring
 
 import domain.model.Vehicle
-import java.util.*
+import java.util.NavigableMap
+import java.util.TreeMap
 
 class PackageAssignmentRing {
 
-    private val ring: TreeMap<Int, Vehicle> = TreeMap()
+    private val ring: NavigableMap<Int, Vehicle> = TreeMap()
 
-    fun isValidSlot(slot: Int): Boolean {
-        return slot in MIN_SLOT..MAX_SLOT
-    }
+    fun isValidSlot(slot: Int): Boolean = slot in MIN_SLOT..MAX_SLOT
 
     fun addVehicle(slot: Int, vehicle: Vehicle) {
-        require(isValidSlot(slot))
+        require(isValidSlot(slot)) { "Invalid slot index: $slot" }
         ring[slot] = vehicle
     }
 
@@ -20,9 +19,7 @@ class PackageAssignmentRing {
         ring.remove(slot)
     }
 
-    fun getRingMap(): TreeMap<Int, Vehicle> {
-        return ring
-    }
+    fun getRingMap(): NavigableMap<Int, Vehicle> = ring
 
     private companion object {
         const val MIN_SLOT = 0

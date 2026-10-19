@@ -1,12 +1,18 @@
 package domain.state
 
-interface ShipmentState {
+import domain.model.exception.IllegalStateTransitionException
 
-    fun assignToVehicle(): ShipmentState
+sealed interface ShipmentState {
 
-    fun startTransit(): ShipmentState
+    fun assignToVehicle(): ShipmentState =
+        throw IllegalStateTransitionException("Cannot assign to vehicle from state: ${this::class.simpleName}")
 
-    fun markDelivered(): ShipmentState
+    fun startTransit(): ShipmentState =
+        throw IllegalStateTransitionException("Cannot start transit from state: ${this::class.simpleName}")
 
-    fun markFailed(): ShipmentState
+    fun markDelivered(): ShipmentState =
+        throw IllegalStateTransitionException("Cannot mark as delivered from state: ${this::class.simpleName}")
+
+    fun markFailed(): ShipmentState =
+        throw IllegalStateTransitionException("Cannot mark as failed from state: ${this::class.simpleName}")
 }

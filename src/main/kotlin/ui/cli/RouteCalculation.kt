@@ -1,4 +1,4 @@
-package ui
+package ui.cli
 
 import domain.repository.WarehouseRepository
 import domain.usecase.routing.FindOptimalPathUseCase

@@ -20,27 +20,15 @@ sealed class DataException(message: String, cause: Throwable? = null) : Exceptio
 
         const val CSV_FILE_NOT_FOUND = "CSV file not found at path:"
         const val CSV_FILE_CREATION_FAILED = "Failed to create CSV file at path:"
-        const val CSV_EMPTY_LINE = "Cannot append an empty or blank line to the CSV file."
         const val CSV_READ_ERROR = "An error occurred while reading the CSV file."
-        const val CSV_WRITE_ERROR = "An error occurred while writing to the CSV file."
     }
 }
 
 class NetworkUnavailableException(message: String = NETWORK_UNAVAILABLE) : DataException(message)
 class DatabaseConflictException(message: String = DATABASE_CONFLICT) : DataException(message)
 class LocalStorageUnavailableException(message: String = LOCAL_STORAGE_UNAVAILABLE) : DataException(message)
-
 class CsvFileNotFoundException(filePath: String, cause: Throwable? = null) :
-    DataException("${CSV_FILE_NOT_FOUND} $filePath", cause)
-
+    DataException("$CSV_FILE_NOT_FOUND $filePath", cause)
 class CsvFileCreationException(filePath: String, cause: Throwable? = null) :
-    DataException("${CSV_FILE_CREATION_FAILED} $filePath", cause)
-
-class CsvEmptyLineException :
-    DataException(CSV_EMPTY_LINE)
-
-class CsvReadException(cause: Throwable? = null) :
-    DataException(CSV_READ_ERROR, cause)
-
-class CsvWriteException(cause: Throwable? = null) :
-    DataException(CSV_WRITE_ERROR, cause)
+    DataException("$CSV_FILE_CREATION_FAILED $filePath", cause)
+class CsvReadException(cause: Throwable? = null) : DataException(CSV_READ_ERROR, cause)

@@ -1,26 +1,31 @@
 package domain.validator.packages
 
+import domain.model.Package
+import domain.model.exception.DomainException
+import domain.model.exception.InvalidPackageWeightException
+import domain.model.exception.NoUpdateFieldsException
+import domain.model.exception.SameOriginAndDestinationException
 import domain.model.input.UpdatePackageInput
 import domain.model.validation.ValidationResult
 
 class UpdatePackageValidator {
-    fun validate(input: UpdatePackageInput): ValidationResult<PackageValidationError> {
-        val violations = buildList {
 
+    fun validate(input: UpdatePackageInput): ValidationResult<DomainException> {
+        val violations = buildList {
             if (hasNoUpdates(input)) {
-                add(PackageValidationError.NoUpdateFields)
+                add(NoUpdateFieldsException())
             }
 
             input.weight?.let { weight ->
-                if (weight <= MIN_WEIGHT) {
-                    add(PackageValidationError.InvalidWeight)
+                if (weight <= Package.MIN_WEIGHT) {
+                    add(InvalidPackageWeightException())
                 }
             }
 
             val origin = input.originHub
             val destination = input.destinationHub
             if (origin != null && destination != null && origin.id == destination.id) {
-                add(PackageValidationError.SameOriginAndDestination)
+                add(SameOriginAndDestinationException())
             }
         }
 
@@ -32,9 +37,5 @@ class UpdatePackageValidator {
                 input.priority == null &&
                 input.originHub == null &&
                 input.destinationHub == null
-    }
-
-    companion object{
-        const val MIN_WEIGHT = 0.0
     }
 }

@@ -1,65 +1,55 @@
+
 package data.local.csv
 
-import data.exception.CsvFileNotFoundException
 import data.local.dataholder.RouteRaw
 import data.local.datasource.CsvRouteDataSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class CsvRouteDataSourceImpl(
-    private val csvHandler: CsvFileHandler
-) : CsvRouteDataSource {
-    override suspend fun getAllRoutes(): List<RouteRaw> = withContext(Dispatchers.IO){
-        try {
-            val lines = csvHandler.readLines()
-            lines.mapNotNull { parseLine(it) }
-        } catch (_: CsvFileNotFoundException) {
-            emptyList()
-        }
-    }
+    csvHandler: CsvFileHandler,
+) : BaseCsvDataSource<RouteRaw>(csvHandler), CsvRouteDataSource {
 
-    fun parseLine(line: String): RouteRaw? {
-        val fields = csvHandler.splitFields(line, CSV_DELIMITER)
-        if (fields.size != EXPECTED_ROUTE_FIELDS) {
-            return null
-        }
-        return mapFieldsToRoute(fields)
-    }
+    override suspend fun getAllRoutes(): List<RouteRaw> = readAll()
+
+    override fun parseLine(line: String): RouteRaw? =
+        splitFields(line)
+            .takeIf { it.size == EXPECTED_ROUTE_FIELDS }
+            ?.let(::mapFieldsToRoute)
 
     private fun mapFieldsToRoute(fields: List<String>): RouteRaw? {
-        val rawRouteId = fields[INDEX_ROUTE_ID].trim().uppercase()
-        val rawOriginHub = fields[INDEX_ORIGIN_HUB].trim().uppercase()
-        val rawDestHub = fields[INDEX_DESTINATION_HUB].trim().uppercase()
-
-        if (rawRouteId.isBlank() || rawOriginHub.isBlank() || rawDestHub.isBlank()) return null
-
-        val routeId = if (rawRouteId.startsWith("RT-")) rawRouteId else "RT-$rawRouteId"
-        val originHubId = if (rawOriginHub.startsWith("WH-")) rawOriginHub else "WH-$rawOriginHub"
-        val destinationHubId = if (rawDestHub.startsWith("WH-")) rawDestHub else "WH-$rawDestHub"
-
+        val rawRouteId = fields[INDEX_ROUTE_ID].uppercase()
+        val rawOriginHub = fields[INDEX_ORIGIN_HUB].uppercase()
+        val rawDestHub = fields[INDEX_DESTINATION_HUB].uppercase()
         val distanceKm = parseDistance(fields[INDEX_DISTANCE])
-        val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].trim().toIntOrNull()
+        val typicalDelayMin = fields[INDEX_TYPICAL_DELAY].toIntOrNull()
 
-        return when {
-            distanceKm == null || typicalDelayMin == null -> null
-            else -> RouteRaw(
-                routeId = routeId,
-                originHubId = originHubId,
-                destinationHubId = destinationHubId,
-                distanceKm = distanceKm,
-                typicalDelayMin = typicalDelayMin
-            )
-        }
+        if (distanceKm == null || typicalDelayMin == null) return null
+
+        val hasEmptyText = listOf(
+            rawRouteId,
+            rawOriginHub,
+            rawDestHub
+        ).any(String::isBlank)
+
+        return fields
+            .takeIf { !hasEmptyText }
+            ?.let {
+                RouteRaw(
+                    routeId = normalizePrefix(rawRouteId, ROUTE_PREFIX),
+                    originHubId = normalizePrefix(rawOriginHub, WAREHOUSE_PREFIX),
+                    destinationHubId = normalizePrefix(rawDestHub, WAREHOUSE_PREFIX),
+                    distanceKm = distanceKm,
+                    typicalDelayMin = typicalDelayMin
+                )
+            }
     }
 
-    private fun parseDistance(distance: String): Double? {
-        val cleanDistance = distance.replace(DISTANCE_UNIT_KM, "", ignoreCase = true).trim()
-        return cleanDistance.toDoubleOrNull()
-    }
+    private fun parseDistance(distance: String): Double? =
+        distance.replace(DISTANCE_UNIT_KM, "", ignoreCase = true)
+            .trim()
+            .toDoubleOrNull()
 
     private companion object {
         const val EXPECTED_ROUTE_FIELDS = 5
-        const val CSV_DELIMITER = ","
         const val DISTANCE_UNIT_KM = "km"
 
         const val INDEX_ROUTE_ID = 0
@@ -67,5 +57,8 @@ class CsvRouteDataSourceImpl(
         const val INDEX_DESTINATION_HUB = 2
         const val INDEX_DISTANCE = 3
         const val INDEX_TYPICAL_DELAY = 4
+
+        const val ROUTE_PREFIX = "RT-"
+        const val WAREHOUSE_PREFIX = "WH-"
     }
 }

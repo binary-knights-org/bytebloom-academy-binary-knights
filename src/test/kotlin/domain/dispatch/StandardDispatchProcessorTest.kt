@@ -1,5 +1,6 @@
 package domain.dispatch
 
+import domain.model.DispatchNotification
 import domain.model.Package
 import domain.model.Priority
 import domain.model.Vehicle
@@ -148,7 +149,7 @@ class StandardDispatchProcessorTest {
 
         processor.dispatch(pkg, vehicle)
 
-        assertTrue(pkg.getState() is AssignedToVehicleState)
+        assertTrue(pkg.currentState is AssignedToVehicleState)
     }
 
     @Test
@@ -181,7 +182,7 @@ class StandardDispatchProcessorTest {
 
         runCatching { processor.dispatch(pkg, vehicle) }
 
-        assertTrue(pkg.getState() is CreatedState)
+        assertTrue(pkg.currentState is CreatedState)
     }
 
     @Test
@@ -214,7 +215,7 @@ class StandardDispatchProcessorTest {
 
         runCatching { processor.dispatch(pkg, vehicle) }
 
-        assertTrue(pkg.getState() is CreatedState)
+        assertTrue(pkg.currentState is CreatedState)
     }
 
     @Test

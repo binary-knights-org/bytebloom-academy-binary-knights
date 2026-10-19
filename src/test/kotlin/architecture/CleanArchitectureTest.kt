@@ -31,7 +31,8 @@ class CleanArchitectureTest {
                 file.imports.all { import ->
                     import.name.startsWith("domain.") ||
                             import.name.startsWith("kotlin.") ||
-                            import.name.startsWith("java.")
+                            import.name.startsWith("java.") ||
+                            import.name.startsWith("kotlinx.coroutines.")
                 }
             }
     }

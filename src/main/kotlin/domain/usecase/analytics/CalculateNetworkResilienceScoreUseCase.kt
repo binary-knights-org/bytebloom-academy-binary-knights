@@ -1,10 +1,7 @@
 package domain.usecase.analytics
 
-import domain.model.routing.NetworkGraphContext
 import domain.model.Warehouse
-
-private const val MINIMUM_NETWORK_SIZE = 1
-private const val PERFECT_RESILIENCE_SCORE = 100.0
+import domain.model.routing.NetworkGraphContext
 
 class CalculateNetworkResilienceScoreUseCase {
 
@@ -23,9 +20,7 @@ class CalculateNetworkResilienceScoreUseCase {
         )
 
         val survivableBreakdowns = warehouses.count { removedWarehouse ->
-            isNetworkConnectedWithout(
-                removedWarehouse, context
-            )
+            isNetworkConnectedWithout(removedWarehouse, context)
         }
 
         return (survivableBreakdowns.toDouble() / warehouses.size) * PERFECT_RESILIENCE_SCORE
@@ -36,8 +31,8 @@ class CalculateNetworkResilienceScoreUseCase {
     ): Map<String, List<String>> {
         return warehouses
             .flatMap { origin ->
-                origin.outgoingRoutes.map {
-                    it.destinationHub.id to origin.id
+                origin.outgoingRoutes.map { route ->
+                    route.destinationHub.id to origin.id
                 }
             }
             .groupBy(
@@ -50,17 +45,10 @@ class CalculateNetworkResilienceScoreUseCase {
         removedWarehouse: Warehouse,
         context: NetworkGraphContext
     ): Boolean {
-        val remainingWarehouses =
-            context.warehouses.filter { it.id != removedWarehouse.id }
-
+        val remainingWarehouses = context.warehouses.filter { it.id != removedWarehouse.id }
         val startWarehouse = remainingWarehouses.firstOrNull() ?: return true
 
-        val visitedWarehouseIds = traverseNetwork(
-            startWarehouse,
-            removedWarehouse.id,
-            context
-        )
-
+        val visitedWarehouseIds = traverseNetwork(startWarehouse, removedWarehouse.id, context)
         return remainingWarehouses.all { it.id in visitedWarehouseIds }
     }
 
@@ -69,41 +57,30 @@ class CalculateNetworkResilienceScoreUseCase {
         removedWarehouseId: String,
         context: NetworkGraphContext
     ): Set<String> {
-        tailrec fun visit(
-            queue: List<Warehouse>,
-            visited: Set<String>
-        ): Set<String> {
+        tailrec fun visit(queue: List<Warehouse>, visited: Set<String>): Set<String> {
             val current = queue.firstOrNull() ?: return visited
             val remainingQueue = queue.drop(1)
 
-            val outgoingDestinations =
-                current.outgoingRoutes.map { it.destinationHub.id }
-
-            val incomingOrigins =
-                context.incomingOriginsByDestinationId[current.id].orEmpty()
-
-            val neighborIds =
-                (outgoingDestinations + incomingOrigins).distinct()
+            val outgoingDestinations = current.outgoingRoutes.map { it.destinationHub.id }
+            val incomingOrigins = context.incomingOriginsByDestinationId[current.id].orEmpty()
+            val neighborIds = (outgoingDestinations + incomingOrigins).distinct()
 
             val nextWarehouses = neighborIds
                 .mapNotNull { id -> context.warehouseMap[id] }
-                .filter {
-                    it.id != removedWarehouseId &&
-                            it.id !in visited
-                }
+                .filter { it.id != removedWarehouseId && it.id !in visited }
 
-            val updatedVisited =
-                visited + nextWarehouses.map { it.id }
-
-            return visit(
-                remainingQueue + nextWarehouses,
-                updatedVisited
-            )
+            val updatedVisited = visited + nextWarehouses.map { it.id }
+            return visit(remainingQueue + nextWarehouses, updatedVisited)
         }
 
         return visit(
             queue = listOf(startWarehouse),
             visited = setOf(startWarehouse.id)
         )
+    }
+
+    private companion object {
+        private const val MINIMUM_NETWORK_SIZE = 1
+        private const val PERFECT_RESILIENCE_SCORE = 100.0
     }
 }

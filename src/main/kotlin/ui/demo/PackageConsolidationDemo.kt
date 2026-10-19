@@ -1,4 +1,4 @@
-package ui
+package ui.demo
 
 import domain.usecase.vehicle.AssignPackagesToVehicleUseCase
 

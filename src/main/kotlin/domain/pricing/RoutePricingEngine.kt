@@ -1,10 +1,9 @@
 package domain.pricing
 
-class RoutePricingEngine(private var strategy: DispatchStrategy) {
-    fun setStrategy(newStrategy: DispatchStrategy) {
-        this.strategy = newStrategy
-    }
+class RoutePricingEngine(var strategy: DispatchStrategy) {
+
     fun calculateCost(weight: Double, distance: Double): Double {
-        return strategy.calculateTransitCost(weight, distance)
+        val baseCost = strategy.calculateTransitCost(weight, distance)
+        return baseCost * strategy.getPriorityMultiplier()
     }
 }

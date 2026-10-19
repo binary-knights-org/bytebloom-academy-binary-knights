@@ -1,4 +1,3 @@
-
 package domain.usecase.analytics
 
 import domain.algorithm.knn.KNearestNeighbors

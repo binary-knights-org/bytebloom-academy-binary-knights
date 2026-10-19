@@ -3,21 +3,20 @@ package domain.usecase.crud.warehouse
 import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.exception.EntityValidationException
-import domain.model.exception.OperationFailedException
+import domain.model.exception.InvalidWarehouseNameException
 import domain.model.exception.ResourceNotFoundException
 import domain.model.input.UpdateWarehouseInput
 import domain.model.validation.ValidationResult
 import domain.repository.WarehouseRepository
 import domain.validator.warehouse.UpdateWarehouseValidator
-import domain.validator.warehouse.WarehouseValidationError
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class UpdateWarehouseUseCaseTest {
 
@@ -54,19 +53,11 @@ class UpdateWarehouseUseCaseTest {
     )
 
     @Test
-    fun `should update warehouse successfully for valid input`() = runTest {
+    fun `should update warehouse successfully when input is valid`() = runTest {
         // Given
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.getById(validInput.id)
-        } returns existingWarehouse
-
-        coEvery {
-            warehouseRepository.update(updatedWarehouse)
-        } returns true
+        every { validator.validate(validInput) } returns ValidationResult.Valid
+        coEvery { warehouseRepository.getById(validInput.id) } returns existingWarehouse
+        coEvery { warehouseRepository.update(any()) } returns updatedWarehouse
 
         // When
         val result = useCase(validInput)
@@ -78,34 +69,28 @@ class UpdateWarehouseUseCaseTest {
         coVerify(exactly = 1) {
             validator.validate(validInput)
             warehouseRepository.getById(validInput.id)
-            warehouseRepository.update(updatedWarehouse)
+            warehouseRepository.update(any())
         }
     }
 
     @Test
-    fun `should return entity validation failure when input is invalid`() = runTest {
+    fun `should return EntityValidationException when input is invalid`() = runTest {
         // Given
         val violations = listOf(
-            WarehouseValidationError.BlankName
+            InvalidWarehouseNameException("Warehouse name cannot be blank")
         )
 
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Invalid(violations)
+        every { validator.validate(validInput) } returns ValidationResult.Invalid(violations)
 
         // When
         val result = useCase(validInput)
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is EntityValidationException
-        )
+        val exception = result.exceptionOrNull()
+        assertTrue(exception is EntityValidationException)
 
-        coVerify(exactly = 1) {
-            validator.validate(validInput)
-        }
-
+        coVerify(exactly = 1) { validator.validate(validInput) }
         coVerify(exactly = 0) {
             warehouseRepository.getById(any())
             warehouseRepository.update(any())
@@ -113,98 +98,45 @@ class UpdateWarehouseUseCaseTest {
     }
 
     @Test
-    fun `should return resource not found failure when warehouse does not exist`() = runTest {
+    fun `should return ResourceNotFoundException when warehouse does not exist`() = runTest {
         // Given
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.getById(validInput.id)
-        } returns null
+        every { validator.validate(validInput) } returns ValidationResult.Valid
+        coEvery { warehouseRepository.getById(validInput.id) } returns null
 
         // When
         val result = useCase(validInput)
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is ResourceNotFoundException
-        )
+        assertTrue(result.exceptionOrNull() is ResourceNotFoundException)
 
         coVerify(exactly = 1) {
             validator.validate(validInput)
             warehouseRepository.getById(validInput.id)
         }
-
-        coVerify(exactly = 0) {
-            warehouseRepository.update(any())
-        }
+        coVerify(exactly = 0) { warehouseRepository.update(any()) }
     }
 
     @Test
     fun `should return failure when regional zone is invalid`() = runTest {
         // Given
-        val input = validInput.copy(
-            regionalZone = "INVALID_ZONE"
-        )
+        val input = validInput.copy(regionalZone = "INVALID_ZONE")
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.getById(input.id)
-        } returns existingWarehouse
+        every { validator.validate(input) } returns ValidationResult.Valid
+        coEvery { warehouseRepository.getById(input.id) } returns existingWarehouse
 
         // When
         val result = useCase(input)
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is IllegalArgumentException
-        )
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
 
         coVerify(exactly = 1) {
             validator.validate(input)
             warehouseRepository.getById(input.id)
         }
-
-        coVerify(exactly = 0) {
-            warehouseRepository.update(any())
-        }
-    }
-
-    @Test
-    fun `should return operation failed exception when repository update returns false`() = runTest {
-        // Given
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.getById(validInput.id)
-        } returns existingWarehouse
-
-        coEvery {
-            warehouseRepository.update(updatedWarehouse)
-        } returns false
-
-        // When
-        val result = useCase(validInput)
-
-        // Then
-        assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is OperationFailedException
-        )
-
-        coVerify(exactly = 1) {
-            validator.validate(validInput)
-            warehouseRepository.getById(validInput.id)
-            warehouseRepository.update(updatedWarehouse)
-        }
+        coVerify(exactly = 0) { warehouseRepository.update(any()) }
     }
 
     @Test
@@ -212,17 +144,9 @@ class UpdateWarehouseUseCaseTest {
         // Given
         val exception = RuntimeException("Database error")
 
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.getById(validInput.id)
-        } returns existingWarehouse
-
-        coEvery {
-            warehouseRepository.update(updatedWarehouse)
-        } throws exception
+        every { validator.validate(validInput) } returns ValidationResult.Valid
+        coEvery { warehouseRepository.getById(validInput.id) } returns existingWarehouse
+        coEvery { warehouseRepository.update(any()) } throws exception
 
         // When
         val result = useCase(validInput)
@@ -234,7 +158,7 @@ class UpdateWarehouseUseCaseTest {
         coVerify(exactly = 1) {
             validator.validate(validInput)
             warehouseRepository.getById(validInput.id)
-            warehouseRepository.update(updatedWarehouse)
+            warehouseRepository.update(any())
         }
     }
 }

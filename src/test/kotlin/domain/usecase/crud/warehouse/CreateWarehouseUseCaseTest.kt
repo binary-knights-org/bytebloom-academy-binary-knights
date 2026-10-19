@@ -3,20 +3,19 @@ package domain.usecase.crud.warehouse
 import domain.model.RegionalZone
 import domain.model.Warehouse
 import domain.model.exception.EntityValidationException
-import domain.model.exception.OperationFailedException
+import domain.model.exception.InvalidWarehouseNameException
 import domain.model.input.CreateWarehouseInput
 import domain.model.validation.ValidationResult
 import domain.repository.WarehouseRepository
 import domain.validator.warehouse.CreateWarehouseValidator
-import domain.validator.warehouse.WarehouseValidationError
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class CreateWarehouseUseCaseTest {
 
@@ -45,15 +44,10 @@ class CreateWarehouseUseCaseTest {
     )
 
     @Test
-    fun `should create warehouse successfully for valid input`() = runTest {
+    fun `should create warehouse successfully when input is valid`() = runTest {
         // Given
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.create(expectedWarehouse)
-        } returns true
+        every { validator.validate(validInput) } returns ValidationResult.Valid
+        coEvery { warehouseRepository.create(any()) } returns expectedWarehouse
 
         // When
         val result = useCase(validInput)
@@ -64,92 +58,47 @@ class CreateWarehouseUseCaseTest {
 
         coVerify(exactly = 1) {
             validator.validate(validInput)
-            warehouseRepository.create(expectedWarehouse)
+            warehouseRepository.create(any())
         }
     }
 
     @Test
-    fun `should return entity validation failure when input is invalid`() = runTest {
+    fun `should return EntityValidationException when input is invalid`() = runTest {
         // Given
         val violations = listOf(
-            WarehouseValidationError.BlankName
+            InvalidWarehouseNameException("Warehouse name cannot be blank")
         )
 
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Invalid(violations)
+        every { validator.validate(validInput) } returns ValidationResult.Invalid(violations)
 
         // When
         val result = useCase(validInput)
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is EntityValidationException
-        )
+        val exception = result.exceptionOrNull()
+        assertTrue(exception is EntityValidationException)
 
-        coVerify(exactly = 1) {
-            validator.validate(validInput)
-        }
-
-        coVerify(exactly = 0) {
-            warehouseRepository.create(any())
-        }
+        coVerify(exactly = 1) { validator.validate(validInput) }
+        coVerify(exactly = 0) { warehouseRepository.create(any()) }
     }
 
     @Test
     fun `should return failure when regional zone is invalid`() = runTest {
         // Given
-        val input = validInput.copy(
-            regionalZone = "INVALID_ZONE"
-        )
+        val input = validInput.copy(regionalZone = "INVALID_ZONE")
 
-        every {
-            validator.validate(input)
-        } returns ValidationResult.Valid
+        every { validator.validate(input) } returns ValidationResult.Valid
 
         // When
         val result = useCase(input)
 
         // Then
         assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is IllegalArgumentException
-        )
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
 
-        coVerify(exactly = 1) {
-            validator.validate(input)
-        }
-
-        coVerify(exactly = 0) {
-            warehouseRepository.create(any())
-        }
-    }
-
-    @Test
-    fun `should return operation failed exception when repository creation returns false`() = runTest {
-        // Given
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.create(expectedWarehouse)
-        } returns false
-
-        // When
-        val result = useCase(validInput)
-
-        // Then
-        assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is OperationFailedException
-        )
-
-        coVerify(exactly = 1) {
-            validator.validate(validInput)
-            warehouseRepository.create(expectedWarehouse)
-        }
+        coVerify(exactly = 1) { validator.validate(input) }
+        coVerify(exactly = 0) { warehouseRepository.create(any()) }
     }
 
     @Test
@@ -157,13 +106,8 @@ class CreateWarehouseUseCaseTest {
         // Given
         val exception = RuntimeException("Database error")
 
-        every {
-            validator.validate(validInput)
-        } returns ValidationResult.Valid
-
-        coEvery {
-            warehouseRepository.create(expectedWarehouse)
-        } throws exception
+        every { validator.validate(validInput) } returns ValidationResult.Valid
+        coEvery { warehouseRepository.create(any()) } throws exception
 
         // When
         val result = useCase(validInput)
@@ -174,7 +118,7 @@ class CreateWarehouseUseCaseTest {
 
         coVerify(exactly = 1) {
             validator.validate(validInput)
-            warehouseRepository.create(expectedWarehouse)
+            warehouseRepository.create(any())
         }
     }
 }

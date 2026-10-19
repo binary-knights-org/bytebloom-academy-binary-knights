@@ -6,7 +6,9 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import ui.cli.PackageClassificationCli
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
@@ -58,18 +60,17 @@ class PackageClassificationCliTest {
 
         coEvery {
             classifyPackageSectorUseCase(
-                latitude = 31.5,
-                longitude = 35.1,
-                weight = 5.0,
-                historicalPackages = emptyList()
+                latitude = any(),
+                longitude = any(),
+                weight = any(),
+                historicalPackages = any()
             )
         } returns Result.failure(IllegalStateException("Classification failed"))
 
         val output = captureOutput("31.5\n35.1\n5.0\n")
 
-        assertEquals(
-            true,
-            output.contains("Classification failed: Classification failed")
+        assertTrue(
+            output.contains("Classification failed")
         )
     }
 

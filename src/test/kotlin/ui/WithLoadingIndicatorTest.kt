@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import ui.cli.withLoadingIndicator
 
 class WithLoadingIndicatorTest {
 
@@ -23,7 +24,8 @@ class WithLoadingIndicatorTest {
             kotlinx.coroutines.runBlocking {
                 withLoadingIndicator("Loading") { stopLoading ->
                     stopLoading()
-                    error("Operation failed")                }
+                    error("Operation failed")
+                }
             }
         }
 
