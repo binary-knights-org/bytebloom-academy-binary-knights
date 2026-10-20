@@ -9,6 +9,7 @@ import data.remote.supabase.SupabasePackageDataSourceImpl
 import data.remote.supabase.SupabaseRouteDataSourceImpl
 import data.remote.supabase.SupabaseVehicleDataSourceImpl
 import data.remote.supabase.SupabaseWarehouseDataSourceImpl
+import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.SupabaseClient
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -30,6 +31,14 @@ class NetworkModuleTest : KoinTest {
     @AfterEach
     fun tearDown() {
         stopKoin()
+    }
+
+    @Test
+    fun `should provide RateLimiter as singleton`() {
+        val first = get<RateLimiter>()
+        val second = get<RateLimiter>()
+
+        assertThat(first).isSameInstanceAs(second)
     }
 
     @Test
