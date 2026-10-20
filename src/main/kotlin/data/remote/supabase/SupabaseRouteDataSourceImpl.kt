@@ -7,6 +7,7 @@ import data.mapper.routes.toRequestDto
 import data.remote.base.BaseRemoteDataSource
 import data.remote.datasource.RemoteRouteDataSource
 import data.remote.dto.routeDto.RouteResponseDto
+import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
@@ -14,8 +15,9 @@ private const val ROUTES_TABLE = "routes"
 private const val ROUTES_PRIMARY_KEY = "route_id"
 
 class SupabaseRouteDataSourceImpl(
-    private val supabase: SupabaseClient
-) : BaseRemoteDataSource(), RemoteRouteDataSource {
+    private val supabase: SupabaseClient,
+    rateLimiter: RateLimiter
+) : BaseRemoteDataSource(rateLimiter), RemoteRouteDataSource {
 
     override suspend fun getRawRoutes(): List<RouteRaw> =
         safeRemoteCall(DataException.NETWORK_UNREACHABLE_FETCH, DataException.NETWORK_IO_ERROR_FETCH) {

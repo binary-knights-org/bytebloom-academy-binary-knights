@@ -7,6 +7,7 @@ import data.mapper.vehicles.toRequestDto
 import data.remote.base.BaseRemoteDataSource
 import data.remote.datasource.RemoteVehicleDataSource
 import data.remote.dto.vehicleDto.VehicleResponseDto
+import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
@@ -14,8 +15,9 @@ private const val VEHICLES_TABLE = "vehicles"
 private const val VEHICLES_PRIMARY_KEY = "vehicle_id"
 
 class SupabaseVehicleDataSourceImpl(
-    private val supabase: SupabaseClient
-) : BaseRemoteDataSource(), RemoteVehicleDataSource {
+    private val supabase: SupabaseClient,
+    rateLimiter: RateLimiter
+) : BaseRemoteDataSource(rateLimiter), RemoteVehicleDataSource {
 
     override suspend fun getRawVehicles(): List<VehicleRaw> =
         safeRemoteCall(DataException.NETWORK_UNREACHABLE_FETCH, DataException.NETWORK_IO_ERROR_FETCH) {

@@ -7,6 +7,7 @@ import data.mapper.packages.toRequestDto
 import data.remote.base.BaseRemoteDataSource
 import data.remote.datasource.RemotePackageDataSource
 import data.remote.dto.packageDto.PackageResponseDto
+import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
@@ -14,8 +15,9 @@ private const val PACKAGES_TABLE = "packages"
 private const val PACKAGES_PRIMARY_KEY = "package_id"
 
 class SupabasePackageDataSourceImpl(
-    private val supabase: SupabaseClient
-) : BaseRemoteDataSource(), RemotePackageDataSource {
+    private val supabase: SupabaseClient ,
+    rateLimiter: RateLimiter
+) : BaseRemoteDataSource(rateLimiter), RemotePackageDataSource {
 
     override suspend fun getRawPackages(): List<PackageRaw> =
         safeRemoteCall(DataException.NETWORK_UNREACHABLE_FETCH, DataException.NETWORK_IO_ERROR_FETCH) {

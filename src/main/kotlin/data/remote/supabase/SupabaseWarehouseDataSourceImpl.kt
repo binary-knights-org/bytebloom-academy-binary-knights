@@ -7,6 +7,7 @@ import data.mapper.warehouses.toRequestDto
 import data.remote.base.BaseRemoteDataSource
 import data.remote.datasource.RemoteWarehouseDataSource
 import data.remote.dto.warehouseDto.WarehouseResponseDto
+import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
@@ -14,8 +15,9 @@ private const val WAREHOUSES_TABLE = "warehouses"
 private const val WAREHOUSES_PRIMARY_KEY = "hub_id"
 
 class SupabaseWarehouseDataSourceImpl(
-    private val supabase: SupabaseClient
-) : BaseRemoteDataSource(), RemoteWarehouseDataSource {
+    private val supabase: SupabaseClient ,
+    rateLimiter: RateLimiter
+) : BaseRemoteDataSource(rateLimiter), RemoteWarehouseDataSource {
 
     override suspend fun getRawWarehouses(): List<WarehouseRaw> =
         safeRemoteCall(DataException.NETWORK_UNREACHABLE_FETCH, DataException.NETWORK_IO_ERROR_FETCH) {

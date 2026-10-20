@@ -1,16 +1,18 @@
 package data.remote.base
 
 import data.exception.NetworkUnavailableException
+import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.exceptions.RestException
 import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.coroutines.delay
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
-import java.util.logging.Logger
 import kotlin.time.Duration.Companion.milliseconds
 
-abstract class BaseRemoteDataSource {
+abstract class BaseRemoteDataSource (
+    private val rateLimiter: RateLimiter
+){
     protected suspend fun <T> safeRemoteCall(
         unreachableMsg: String,
         ioMsg: String,
@@ -44,6 +46,7 @@ abstract class BaseRemoteDataSource {
     ): Result<T> {
         var delayMs = initialDelayMs
         for (attempt in 1..(maxRetries + 1)) {
+            rateLimiter.acquire()
             val result = runCatching { block() }
             if (result.isSuccess) return result
 
