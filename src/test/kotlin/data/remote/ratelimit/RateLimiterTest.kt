@@ -39,7 +39,6 @@ class RateLimiterTest {
         countAvailableTokens()
     }
 
-    // ---------- constructor validation ----------
 
     @Test
     fun `given zero capacity when creating limiter then throws InvalidBucketCapacityException`() {
@@ -56,7 +55,6 @@ class RateLimiterTest {
         assertThrows<InvalidRefillRateException> { RateLimiter(10, -1.0) }
     }
 
-    // ---------- tryAcquire ----------
 
     @Test
     fun `given new limiter when trying capacity times then all succeed and the next fails`() = runTest {
@@ -86,7 +84,6 @@ class RateLimiterTest {
         assertThat(currentTime).isEqualTo(before)
     }
 
-    // ---------- time-elapsed refill ----------
 
     @Test
     fun `given empty bucket when 200ms pass at 5 per second then exactly one token is refilled`() = runTest {
@@ -107,7 +104,6 @@ class RateLimiterTest {
         val limiter = limiter(refillPerSecond = 5.0)
         limiter.drain()
 
-        // When: two 100ms steps, each worth half a token
         advanceTimeBy(100)
         val afterFirstStep = limiter.tryAcquire()
         advanceTimeBy(100)
@@ -131,7 +127,6 @@ class RateLimiterTest {
         assertThat(limiter.countAvailableTokens()).isEqualTo(10)
     }
 
-    // ---------- acquire (backpressure) ----------
 
     @Test
     fun `given available token when acquiring then returns immediately`() = runTest {
@@ -156,7 +151,7 @@ class RateLimiterTest {
         // When
         limiter.acquire()
 
-        // Then: one token at 5 per second takes 200ms
+        // Then
         assertThat(currentTime - before).isEqualTo(200)
     }
 
@@ -178,11 +173,10 @@ class RateLimiterTest {
         assertThat(limiter.countAvailableTokens()).isEqualTo(1)
     }
 
-    // ---------- thread safety ----------
 
     @Test
     fun `given 100 simultaneous threads when bucket holds 10 tokens then exactly 10 succeed`() {
-        // Given: a frozen clock, so no tokens are refilled during the test
+        // Given:
         val limiter = RateLimiter(maxBucketCapacity = 10, refillRatePerSecond = 5.0, nanoTime = { 0L })
         val threads = 100
         val executor = Executors.newFixedThreadPool(threads)
@@ -210,7 +204,7 @@ class RateLimiterTest {
     @Test
     fun `given many concurrent acquires when tokens keep refilling then all complete without deadlock`() =
         runBlocking {
-            // Given: real clock, 5 tokens now and 1000 tokens per second afterwards
+            // Given
             val limiter = RateLimiter(maxBucketCapacity = 5, refillRatePerSecond = 1000.0)
 
             // When
