@@ -21,14 +21,26 @@ sealed class DataException(message: String, cause: Throwable? = null) : Exceptio
         const val CSV_FILE_NOT_FOUND = "CSV file not found at path:"
         const val CSV_FILE_CREATION_FAILED = "Failed to create CSV file at path:"
         const val CSV_READ_ERROR = "An error occurred while reading the CSV file."
+
+        const val INVALID_BUCKET_CAPACITY = "maxBucketCapacity must be greater than 0."
+        const val INVALID_REFILL_RATE = "refillRatePerSecond must be a positive finite number."
     }
 }
 
-class NetworkUnavailableException(message: String = NETWORK_UNAVAILABLE) : DataException(message)
-class DatabaseConflictException(message: String = DATABASE_CONFLICT) : DataException(message)
-class LocalStorageUnavailableException(message: String = LOCAL_STORAGE_UNAVAILABLE) : DataException(message)
+class NetworkUnavailableException(message: String = NETWORK_UNAVAILABLE) :
+    DataException(message)
+class DatabaseConflictException(message: String = DATABASE_CONFLICT) :
+    DataException(message)
+class LocalStorageUnavailableException(message: String = LOCAL_STORAGE_UNAVAILABLE) :
+    DataException(message)
 class CsvFileNotFoundException(filePath: String, cause: Throwable? = null) :
     DataException("$CSV_FILE_NOT_FOUND $filePath", cause)
 class CsvFileCreationException(filePath: String, cause: Throwable? = null) :
     DataException("$CSV_FILE_CREATION_FAILED $filePath", cause)
-class CsvReadException(cause: Throwable? = null) : DataException(CSV_READ_ERROR, cause)
+class CsvReadException(cause: Throwable? = null) :
+    DataException(CSV_READ_ERROR, cause)
+class InvalidBucketCapacityException(message: String = INVALID_BUCKET_CAPACITY) :
+    DataException(message)
+class InvalidRefillRateException(message: String = INVALID_REFILL_RATE) :
+    DataException(message)
+
