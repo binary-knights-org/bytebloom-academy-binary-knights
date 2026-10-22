@@ -8,6 +8,7 @@ import data.remote.supabase.SupabasePackageDataSourceImpl
 import data.remote.supabase.SupabaseRouteDataSourceImpl
 import data.remote.supabase.SupabaseVehicleDataSourceImpl
 import data.remote.supabase.SupabaseWarehouseDataSourceImpl
+import data.remote.circuitbreaker.CircuitBreaker
 import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
@@ -26,6 +27,7 @@ val networkModule = module {
     singleOf(::setupSupabaseClient)
 
     single { RateLimiter(RATE_LIMIT_MAX_BUCKET_CAPACITY, RATE_LIMIT_REFILL_PER_SECOND) }
+    single { CircuitBreaker() }
 
     singleOf(::SupabasePackageDataSourceImpl) bind RemotePackageDataSource::class
     singleOf(::SupabaseRouteDataSourceImpl) bind RemoteRouteDataSource::class

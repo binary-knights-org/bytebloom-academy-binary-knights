@@ -1,6 +1,7 @@
 package data.remote.base
 
 import data.exception.NetworkUnavailableException
+import data.remote.circuitbreaker.CircuitBreaker
 import data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.exceptions.RestException
 import io.ktor.util.network.UnresolvedAddressException
@@ -11,17 +12,20 @@ import java.net.SocketTimeoutException
 import kotlin.time.Duration.Companion.milliseconds
 
 abstract class BaseRemoteDataSource (
-    private val rateLimiter: RateLimiter
+    private val rateLimiter: RateLimiter,
+    private val circuitBreaker: CircuitBreaker = CircuitBreaker()
 ){
     protected suspend fun <T> safeRemoteCall(
         unreachableMsg: String,
         ioMsg: String,
         block: suspend () -> T
-    ): T = retryWithBackoff { block() }.getOrElse { error ->
-        when (error) {
-            is UnresolvedAddressException -> throw NetworkUnavailableException(error.message ?: unreachableMsg)
-            is IOException -> throw NetworkUnavailableException(error.message ?: ioMsg)
-            else -> throw error
+    ): T = circuitBreaker.executeSuspend {
+        retryWithBackoff { block() }.getOrElse { error ->
+            when (error) {
+                is UnresolvedAddressException -> throw NetworkUnavailableException(error.message ?: unreachableMsg)
+                is IOException -> throw NetworkUnavailableException(error.message ?: ioMsg)
+                else -> throw error
+            }
         }
     }
 
