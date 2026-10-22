@@ -25,6 +25,7 @@ class CircuitBreaker(
     val consecutiveFailures: Int
         get() = synchronized(lock) { _consecutiveFailures }
 
+    @Suppress("TooGenericExceptionCaught")
     fun <T> execute(block: () -> T): T {
         acquirePermission()
         return try {
@@ -36,7 +37,7 @@ class CircuitBreaker(
             throw t
         }
     }
-
+    @Suppress("TooGenericExceptionCaught")
     suspend fun <T> executeSuspend(block: suspend () -> T): T {
         acquirePermission()
         return try {
