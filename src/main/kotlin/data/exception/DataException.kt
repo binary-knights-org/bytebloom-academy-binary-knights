@@ -24,6 +24,7 @@ sealed class DataException(message: String, cause: Throwable? = null) : Exceptio
 
         const val INVALID_BUCKET_CAPACITY = "maxBucketCapacity must be greater than 0."
         const val INVALID_REFILL_RATE = "refillRatePerSecond must be a positive finite number."
+        const val CALL_NOT_PERMITTED = "Circuit breaker is OPEN. Call is not permitted."
     }
 }
 
@@ -42,5 +43,7 @@ class CsvReadException(cause: Throwable? = null) :
 class InvalidBucketCapacityException(message: String = INVALID_BUCKET_CAPACITY) :
     DataException(message)
 class InvalidRefillRateException(message: String = INVALID_REFILL_RATE) :
+    DataException(message)
+class CallNotPermittedException(message: String = CALL_NOT_PERMITTED) :
     DataException(message)
 

@@ -1,6 +1,7 @@
 package di
 
 import com.google.common.truth.Truth.assertThat
+import data.remote.circuitbreaker.CircuitBreaker
 import data.remote.datasource.RemotePackageDataSource
 import data.remote.datasource.RemoteRouteDataSource
 import data.remote.datasource.RemoteVehicleDataSource
@@ -37,6 +38,14 @@ class NetworkModuleTest : KoinTest {
     fun `should provide RateLimiter as singleton`() {
         val first = get<RateLimiter>()
         val second = get<RateLimiter>()
+
+        assertThat(first).isSameInstanceAs(second)
+    }
+
+    @Test
+    fun `should provide CircuitBreaker as singleton`() {
+        val first = get<CircuitBreaker>()
+        val second = get<CircuitBreaker>()
 
         assertThat(first).isSameInstanceAs(second)
     }
