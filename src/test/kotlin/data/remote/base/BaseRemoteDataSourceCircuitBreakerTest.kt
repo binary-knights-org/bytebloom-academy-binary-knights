@@ -23,12 +23,10 @@ class BaseRemoteDataSourceCircuitBreakerTest {
     }
 
     @Test
-    fun `given remote data source when 5 network failures occur then circuit breaker trips to OPEN and subsequent calls fail fast`() = runTest {
+    fun `given 5 network failures then breaker trips to OPEN and next call fails fast`() = runTest {
         val circuitBreaker = CircuitBreaker(failureThreshold = 5, resetTimeoutMillis = 5000L)
         val rateLimiter = RateLimiter(maxBucketCapacity = 10, refillRatePerSecond = 100.0)
         val dataSource = TestRemoteDataSource(rateLimiter, circuitBreaker)
-
-        // 5 consecutive network errors
         repeat(5) {
             assertThrows<NetworkUnavailableException> {
                 dataSource.testCall<String> {
@@ -36,19 +34,13 @@ class BaseRemoteDataSourceCircuitBreakerTest {
                 }
             }
         }
-
-        // Breaker should now be OPEN
         assertThat(circuitBreaker.state).isEqualTo(CircuitBreakerState.OPEN)
-
         var blockExecuted = false
-        // 6th call should immediately fail fast without initiating network request
         assertThrows<CallNotPermittedException> {
             dataSource.testCall {
                 blockExecuted = true
-                "network data"
             }
         }
-
         assertThat(blockExecuted).isFalse()
     }
 }
