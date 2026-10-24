@@ -33,6 +33,8 @@ sealed class DomainException(
         const val INVALID_SPEED = "Speed must not be negative."
         const val INVALID_FUEL_PERCENTAGE = "Fuel percentage must be between 0.0 and 100.0."
         const val EMPTY_RING = "The Ring has no active vehicles."
+        const val INVALID_DELIVERY_TOUR =
+            "A delivery tour must start and end at the same warehouse and contain at least one delivery stop."
     }
 }
 
@@ -57,8 +59,7 @@ class InvalidLatitudeException(message: String = INVALID_LATITUDE) : DomainExcep
 class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainException(message)
 class IllegalStateTransitionException(message: String) : DomainException(message)
 class InsufficientVehicleCapacityException(message: String = INSUFFICIENT_VEHICLE_CAPACITY) : DomainException(message)
-class InvalidDispatchPriorityException
-    (message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
+class InvalidDispatchPriorityException(message: String = INVALID_DISPATCH_PRIORITY) : DomainException(message)
 class InsufficientHistoricalPackagesException
     (message: String = INSUFFICIENT_HISTORICAL_PACKAGES) : DomainException(message)
 class InvalidKnnWeightException(message: String = INVALID_KNN_WEIGHT) : DomainException(message)
@@ -68,3 +69,4 @@ class InvalidVehicleIdException(message: String = BLANK_VEHICLE_ID) : DomainExce
 class InvalidSpeedException(message: String = INVALID_SPEED) : DomainException(message)
 class InvalidFuelPercentageException(message: String = INVALID_FUEL_PERCENTAGE) : DomainException(message)
 class EmptyRingException(message: String = EMPTY_RING) : DomainException(message)
+class InvalidDeliveryTourException(message: String = INVALID_DELIVERY_TOUR) : DomainException(message)
