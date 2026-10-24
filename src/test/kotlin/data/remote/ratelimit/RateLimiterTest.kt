@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import data.exception.InvalidBucketCapacityException
 import data.exception.InvalidRefillRateException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -20,12 +21,14 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private const val NANOS_PER_MILLI = 1_000_000L
 
 class RateLimiterTest {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.limiter(capacity: Int = 10, refillPerSecond: Double = 5.0) =
         RateLimiter(capacity, refillPerSecond, nanoTime = { currentTime * NANOS_PER_MILLI })
 
@@ -69,6 +72,7 @@ class RateLimiterTest {
         assertThat(results.last()).isFalse()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given empty bucket when trying to acquire then returns false without waiting`() = runTest {
         // Given
@@ -85,6 +89,7 @@ class RateLimiterTest {
     }
 
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given empty bucket when 200ms pass at 5 per second then exactly one token is refilled`() = runTest {
         // Given
@@ -92,21 +97,22 @@ class RateLimiterTest {
         limiter.drain()
 
         // When
-        advanceTimeBy(200)
+        advanceTimeBy(200.milliseconds)
 
         // Then
         assertThat(limiter.countAvailableTokens()).isEqualTo(1)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given partial refills when time passes in small steps then fractions of a token are not lost`() = runTest {
         // Given
         val limiter = limiter(refillPerSecond = 5.0)
         limiter.drain()
 
-        advanceTimeBy(100)
+        advanceTimeBy(100.milliseconds)
         val afterFirstStep = limiter.tryAcquire()
-        advanceTimeBy(100)
+        advanceTimeBy(100.milliseconds)
         val afterSecondStep = limiter.tryAcquire()
 
         // Then
@@ -114,6 +120,7 @@ class RateLimiterTest {
         assertThat(afterSecondStep).isTrue()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given long idle time when counting tokens then they never exceed the capacity`() = runTest {
         // Given
@@ -121,13 +128,14 @@ class RateLimiterTest {
         limiter.drain()
 
         // When
-        advanceTimeBy(60_000)
+        advanceTimeBy(60_000.milliseconds)
 
         // Then
         assertThat(limiter.countAvailableTokens()).isEqualTo(10)
     }
 
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given available token when acquiring then returns immediately`() = runTest {
         // Given
@@ -141,6 +149,7 @@ class RateLimiterTest {
         assertThat(currentTime).isEqualTo(before)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given empty bucket when acquiring then waits exactly until one token is refilled`() = runTest {
         // Given
@@ -155,6 +164,7 @@ class RateLimiterTest {
         assertThat(currentTime - before).isEqualTo(200)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `given waiting acquire when caller cancels then it stops and does not take a token`() = runTest {
         // Given
@@ -166,7 +176,7 @@ class RateLimiterTest {
         // When
         job.cancel()
         job.join()
-        advanceTimeBy(200)
+        advanceTimeBy(200.milliseconds)
 
         // Then
         assertThat(job.isCancelled).isTrue()
