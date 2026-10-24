@@ -25,29 +25,41 @@ class CircuitBreaker(
     val consecutiveFailures: Int
         get() = synchronized(lock) { _consecutiveFailures }
 
-    @Suppress("TooGenericExceptionCaught")
-    fun <T> execute(block: () -> T): T {
-        acquirePermission()
-        return try {
-            val result = block()
-            onSuccess()
-            result
-        } catch (t: Throwable) {
-            onFailure(t)
-            throw t
-        }
-    }
-    @Suppress("TooGenericExceptionCaught")
+    fun <T> execute(block: () -> T): T =
+        executeWithResult { block() }
+
     suspend fun <T> executeSuspend(block: suspend () -> T): T {
         acquirePermission()
-        return try {
-            val result = block()
-            onSuccess()
-            result
-        } catch (t: Throwable) {
-            onFailure(t)
-            throw t
-        }
+
+        return runCatching { block() }
+            .fold(
+                onSuccess = { result ->
+                    onSuccess()
+                    result
+                },
+                onFailure = { throwable ->
+                    onFailure(throwable)
+                    throw throwable
+                }
+            )
+    }
+
+    private inline fun <T> executeWithResult(
+        block: () -> T
+    ): T {
+        acquirePermission()
+
+        return runCatching(block)
+            .fold(
+                onSuccess = { result ->
+                    onSuccess()
+                    result
+                },
+                onFailure = { throwable ->
+                    onFailure(throwable)
+                    throw throwable
+                }
+            )
     }
 
     operator fun <T> invoke(block: () -> T): T = execute(block)
@@ -96,8 +108,13 @@ class CircuitBreaker(
     }
 
     private fun onFailure(throwable: Throwable) {
-        if (throwable is CancellationException || throwable is CallNotPermittedException) {
-            return
+        when (throwable) {
+            is CancellationException -> {
+                releaseProbeAfterCancellation()
+                return
+            }
+
+            is CallNotPermittedException -> return
         }
 
         synchronized(lock) {
@@ -108,6 +125,7 @@ class CircuitBreaker(
 
                 CircuitBreakerState.CLOSED -> {
                     _consecutiveFailures++
+
                     if (_consecutiveFailures >= failureThreshold) {
                         tripToOpen()
                     }
@@ -116,6 +134,14 @@ class CircuitBreaker(
                 CircuitBreakerState.OPEN -> {
                     // Already OPEN
                 }
+            }
+        }
+    }
+
+    private fun releaseProbeAfterCancellation() {
+        synchronized(lock) {
+            if (_state == CircuitBreakerState.HALF_OPEN) {
+                isProbeInFlight = false
             }
         }
     }
