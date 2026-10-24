@@ -19,8 +19,6 @@ class RateLimiter(
         }
     }
 
-    private class BucketState(val tokens: Double, val lastRefillNanos: Long)
-
     private val state = AtomicReference(BucketState(maxBucketCapacity.toDouble(), nanoTime()))
 
     fun tryAcquire(): Boolean = consumeOrGetWaitNanos() == NO_WAIT_NANOS

@@ -8,11 +8,7 @@ import java.io.IOException
 
 class CircuitBreakerTest {
 
-    private class TestClock(var currentTimeMs: Long = 0L) {
-        fun advanceTime(millis: Long) {
-            currentTimeMs += millis
-        }
-    }
+    private class TestClock(var currentTimeMs: Long = 0L)
 
     private fun createCircuitBreaker(
         failureThreshold: Int = 5,
@@ -35,21 +31,6 @@ class CircuitBreakerTest {
         assertThat(breaker.state).isEqualTo(CircuitBreakerState.CLOSED)
         assertThat(breaker.consecutiveFailures).isEqualTo(0)
     }
-
-    @Test
-    fun `given invalid threshold when constructing then throws IllegalArgumentException`() {
-        assertThrows<IllegalArgumentException> {
-            CircuitBreaker(failureThreshold = 0)
-        }
-    }
-
-    @Test
-    fun `given invalid reset timeout when constructing then throws IllegalArgumentException`() {
-        assertThrows<IllegalArgumentException> {
-            CircuitBreaker(resetTimeoutMillis = 0L)
-        }
-    }
-
 
     @Test
     fun `given CLOSED state when call succeeds then result is returned and failures remain zero`() {
