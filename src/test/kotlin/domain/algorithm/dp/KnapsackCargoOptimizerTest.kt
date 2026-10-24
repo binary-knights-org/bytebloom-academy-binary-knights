@@ -1,7 +1,6 @@
-package domain.algoritm.dp
+package domain.algorithm.dp
 
 import com.google.common.truth.Truth.assertThat
-import domain.algorithm.dp.KnapsackCargoOptimizer
 import domain.model.Package
 import domain.model.Priority
 import domain.model.RegionalZone
