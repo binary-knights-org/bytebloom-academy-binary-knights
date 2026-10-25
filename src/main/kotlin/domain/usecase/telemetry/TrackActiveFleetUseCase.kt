@@ -12,7 +12,7 @@ class TrackActiveFleetUseCase(
     private val telemetryService: TelemetryStreamingService
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         criteria: FleetTrackingCriteria = FleetTrackingCriteria(),
         intervalMs: Long = TelemetryStreamingService.DEFAULT_INTERVAL_MS,
         emissionCount: Int? = null
