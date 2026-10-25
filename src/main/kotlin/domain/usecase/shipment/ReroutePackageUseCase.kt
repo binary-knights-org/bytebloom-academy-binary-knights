@@ -5,14 +5,19 @@ import domain.model.Warehouse
 import domain.model.exception.ResourceNotFoundException
 import domain.repository.PackageRepository
 import domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
     private val warehouseRepository: WarehouseRepository
 ) {
     suspend operator fun invoke(packageId: String, newDestinationId: String) {
-        val packageToReroute = findPackage(packageId)
-        val newDestination = findWarehouse(newDestinationId)
+        val (packageToReroute , newDestination) = coroutineScope {
+            val pkg = async { findPackage(packageId) }
+            val dest = async { findWarehouse(newDestinationId) }
+                pkg.await() to dest.await()
+        }
         val oldDestination = packageToReroute.destinationHub
 
         val reroutedPackage = packageToReroute.copy(destinationHub = newDestination)

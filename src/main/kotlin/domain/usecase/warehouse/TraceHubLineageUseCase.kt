@@ -4,7 +4,7 @@ import domain.algorithm.tree.HubNode
 
 class TraceHubLineageUseCase {
 
-    operator fun invoke(node: HubNode): List<HubNode> {
+    suspend operator fun invoke(node: HubNode): List<HubNode> {
         return generateSequence(node) { currentNode ->
             when (currentNode) {
                 is HubNode.GlobalHub -> null

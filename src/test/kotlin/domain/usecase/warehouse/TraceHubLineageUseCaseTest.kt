@@ -3,6 +3,7 @@ package domain.usecase.warehouse
 import domain.algorithm.tree.HubNode
 import domain.model.RegionalZone
 import domain.model.Warehouse
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -35,7 +36,7 @@ class TraceHubLineageUseCaseTest {
     )
 
     @Test
-    fun `should return only global hub when node is global hub`() {
+    fun `should return only global hub when node is global hub`() = runTest {
         // Given
         val globalHub = HubNode.GlobalHub(globalWarehouse)
 
@@ -50,7 +51,7 @@ class TraceHubLineageUseCaseTest {
     }
 
     @Test
-    fun `should return regional center followed by global hub`() {
+    fun `should return regional center followed by global hub`() = runTest {
         // Given
         val globalHub = HubNode.GlobalHub(globalWarehouse)
 
@@ -70,7 +71,7 @@ class TraceHubLineageUseCaseTest {
     }
 
     @Test
-    fun `should return local depot followed by regional center and global hub`() {
+    fun `should return local depot followed by regional center and global hub`() = runTest {
         // Given
         val globalHub = HubNode.GlobalHub(globalWarehouse)
 
