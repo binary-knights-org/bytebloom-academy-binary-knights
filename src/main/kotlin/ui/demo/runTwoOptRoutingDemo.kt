@@ -6,7 +6,7 @@ import java.util.Locale
 
 
 internal fun runTwoOptRoutingDemo() {
-    val originalTour = createTour()
+    val originalTour = DefaultTwoOptDemoData().createTour()
     val optimizer = TwoOptRouteOptimizer()
     val distanceCalculator = RouteDistanceCalculator()
 
