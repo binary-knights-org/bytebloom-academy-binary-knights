@@ -1,15 +1,17 @@
 package ui
 
-import ui.demo.createTour
+import ui.demo.DefaultTwoOptDemoData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TwoOptDemoDataTest {
 
+    private val demoData = DefaultTwoOptDemoData()
+
     @Test
     fun `createTour should contain fifteen delivery stops and return to origin`() {
-        val tour = createTour()
+        val tour = demoData.createTour()
 
         assertEquals(EXPECTED_TOUR_SIZE, tour.size)
         assertEquals(tour.first().id, tour.last().id)
@@ -21,7 +23,7 @@ class TwoOptDemoDataTest {
 
     @Test
     fun `createTour should contain unique delivery stops`() {
-        val tour = createTour()
+        val tour = demoData.createTour()
         val deliveryStops = tour.drop(1).dropLast(1)
 
         assertEquals(
