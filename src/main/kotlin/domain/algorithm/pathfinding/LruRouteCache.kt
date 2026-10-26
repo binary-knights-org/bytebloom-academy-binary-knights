@@ -5,10 +5,8 @@ import domain.model.Warehouse
 class LruRouteCache( private val capacity: Int = DEFAULT_CAPACITY
 ) {
     init {
-        if (capacity <= 0) {
-            throw IllegalArgumentException(
-                "Cache capacity must be greater than zero."
-            )
+        require(capacity > 0) {
+            "Cache capacity must be greater than zero."
         }
     }
 

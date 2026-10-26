@@ -19,50 +19,75 @@ internal suspend fun runLruRouteCacheBenchmarkDemo(
 ) {
     println("\n--- LRU ROUTE CACHE BENCHMARK ---")
 
-    val origin = warehouses.firstOrNull() ?: return
-    val destination = warehouses.lastOrNull() ?: return
+    val route = findBenchmarkRoute(warehouseRepository, warehouses)
+
+    if (route == null) {
+        println("  Benchmark skipped.")
+    } else {
+        printRouteDetails(route)
+
+        val results = measureBenchmarkResults(warehouseRepository, route)
+
+        printBenchmarkResults(results)
+    }
+}
+
+private suspend fun findBenchmarkRoute(
+    warehouseRepository: WarehouseRepository,
+    warehouses: List<Warehouse>
+): BenchmarkRoute? {
+    val origin = warehouses.firstOrNull()
+    val destination = warehouses.lastOrNull()
+
+    if (origin == null || destination == null) {
+        println("  No warehouses available for benchmark.")
+        return null
+    }
 
     if (origin.id == destination.id) {
         println("  Benchmark requires two different warehouses.")
-        return
+        return null
     }
 
     val validationRouter = OptimalTransitRouter(warehouseRepository)
     val expectedPath = validationRouter.findShortestPath(origin, destination)
 
     if (expectedPath == null) {
-        println("  No route found. Benchmark skipped.")
-        return
+        println("  No route found.")
+        return null
     }
 
-    println("  Route: ${origin.id} -> ${destination.id}")
-    println("  Requests: $BENCHMARK_REQUEST_COUNT")
-    println("  Path hops: ${expectedPath.size - 1}")
+    return BenchmarkRoute(origin, destination, expectedPath)
+}
 
+private fun printRouteDetails(route: BenchmarkRoute) {
+    println("  Route: ${route.origin.id} -> ${route.destination.id}")
+    println("  Requests: $BENCHMARK_REQUEST_COUNT")
+    println("  Path hops: ${route.expectedPath.size - 1}")
+}
+
+private suspend fun measureBenchmarkResults(
+    warehouseRepository: WarehouseRepository,
+    route: BenchmarkRoute
+): BenchmarkResults {
     val regularRouter = OptimalTransitRouter(warehouseRepository)
 
-    val regularStartTime = System.nanoTime()
-
-    repeat(BENCHMARK_REQUEST_COUNT) {
-        regularRouter.findShortestPath(origin, destination)
+    val regularExecutionTime = measureExecutionTime {
+        repeat(BENCHMARK_REQUEST_COUNT) {
+            regularRouter.findShortestPath(route.origin, route.destination)
+        }
     }
-
-    val regularExecutionTime =
-        (System.nanoTime() - regularStartTime) / NANOS_TO_MILLIS
 
     val cachingRouter = CachingShortestPathRouter(
         dijkstraRouter = OptimalTransitRouter(warehouseRepository),
         cache = LruRouteCache()
     )
 
-    val cachingStartTime = System.nanoTime()
-
-    repeat(BENCHMARK_REQUEST_COUNT) {
-        cachingRouter.findShortestPath(origin, destination)
+    val cachingExecutionTime = measureExecutionTime {
+        repeat(BENCHMARK_REQUEST_COUNT) {
+            cachingRouter.findShortestPath(route.origin, route.destination)
+        }
     }
-
-    val cachingExecutionTime =
-        (System.nanoTime() - cachingStartTime) / NANOS_TO_MILLIS
 
     val timeSaved = regularExecutionTime - cachingExecutionTime
 
@@ -81,45 +106,50 @@ internal suspend fun runLruRouteCacheBenchmarkDemo(
     )
 
     repeat(WARM_UP_REQUEST_COUNT) {
-        regularCpuRouter.findShortestPath(origin, destination)
-        cpuCachingRouter.findShortestPath(origin, destination)
+        regularCpuRouter.findShortestPath(route.origin, route.destination)
+        cpuCachingRouter.findShortestPath(route.origin, route.destination)
     }
 
     val regularCpuTime = measureCurrentThreadCpuTime {
         repeat(CPU_BENCHMARK_REQUEST_COUNT) {
-            regularCpuRouter.findShortestPath(origin, destination)
+            regularCpuRouter.findShortestPath(route.origin, route.destination)
         }
     }
 
     val cachingCpuTime = measureCurrentThreadCpuTime {
         repeat(CPU_BENCHMARK_REQUEST_COUNT) {
-            cpuCachingRouter.findShortestPath(origin, destination)
+            cpuCachingRouter.findShortestPath(route.origin, route.destination)
         }
     }
 
     val regularCpuTimeMs = regularCpuTime / NANOS_TO_MILLIS
     val cachingCpuTimeMs = cachingCpuTime / NANOS_TO_MILLIS
-    val cpuTimeSaved = regularCpuTimeMs - cachingCpuTimeMs
 
-    val results = BenchmarkResults(
+    return BenchmarkResults(
         regularExecutionTime = regularExecutionTime,
         cachingExecutionTime = cachingExecutionTime,
         timeSaved = timeSaved,
         improvementPercentage = improvementPercentage,
         regularCpuTime = regularCpuTimeMs,
         cachingCpuTime = cachingCpuTimeMs,
-        cpuTimeSaved = cpuTimeSaved,
+        cpuTimeSaved = regularCpuTimeMs - cachingCpuTimeMs,
         cacheHits = cachingRouter.cacheHits,
         cacheMisses = cachingRouter.cacheMisses,
         dijkstraCalls = cachingRouter.dijkstraCalls
     )
+}
 
-    printBenchmarkResults(results)
+private suspend fun measureExecutionTime(
+    block: suspend () -> Unit
+): Double {
+    val startTime = System.nanoTime()
+    block()
+    return (System.nanoTime() - startTime) / NANOS_TO_MILLIS
 }
 
 private suspend fun measureCurrentThreadCpuTime(
     block: suspend () -> Unit
-): Long {
+): Double {
     if (!threadCpuBean.isCurrentThreadCpuTimeSupported) {
         throw UnsupportedOperationException(
             "Current thread CPU time measurement is not supported."
@@ -131,12 +161,10 @@ private suspend fun measureCurrentThreadCpuTime(
     }
 
     val startTime = threadCpuBean.currentThreadCpuTime
-
     block()
-
     val endTime = threadCpuBean.currentThreadCpuTime
 
-    return (endTime - startTime).coerceAtLeast(0L)
+    return (endTime - startTime).coerceAtLeast(0L) / NANOS_TO_MILLIS
 }
 
 private fun printBenchmarkResults(results: BenchmarkResults) {
@@ -166,6 +194,12 @@ private fun printBenchmarkResults(results: BenchmarkResults) {
 private fun printMetric(label: String, value: Double) {
     println("  $label: $value ms")
 }
+
+private data class BenchmarkRoute(
+    val origin: Warehouse,
+    val destination: Warehouse,
+    val expectedPath: List<Warehouse>
+)
 
 private data class BenchmarkResults(
     val regularExecutionTime: Double,
