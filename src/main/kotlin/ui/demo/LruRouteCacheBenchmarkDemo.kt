@@ -39,25 +39,20 @@ private suspend fun findBenchmarkRoute(
     val origin = warehouses.firstOrNull()
     val destination = warehouses.lastOrNull()
 
-    if (origin == null || destination == null) {
-        println("  No warehouses available for benchmark.")
-        return null
-    }
-
-    if (origin.id == destination.id) {
+    if (origin == null || destination == null || origin.id == destination.id) {
         println("  Benchmark requires two different warehouses.")
         return null
     }
 
-    val validationRouter = OptimalTransitRouter(warehouseRepository)
-    val expectedPath = validationRouter.findShortestPath(origin, destination)
+    val expectedPath = OptimalTransitRouter(warehouseRepository)
+        .findShortestPath(origin, destination)
 
-    if (expectedPath == null) {
+    return expectedPath?.let {
+        BenchmarkRoute(origin, destination, it)
+    } ?: run {
         println("  No route found.")
-        return null
+        null
     }
-
-    return BenchmarkRoute(origin, destination, expectedPath)
 }
 
 private fun printRouteDetails(route: BenchmarkRoute) {
