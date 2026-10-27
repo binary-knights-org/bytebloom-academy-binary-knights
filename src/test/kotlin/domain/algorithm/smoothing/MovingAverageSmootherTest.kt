@@ -4,7 +4,6 @@ import domain.model.exception.InvalidWindowSizeException
 import domain.model.telemetry.GpsCoordinate
 import domain.service.GpsJitterStreamService
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -12,7 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class MovingAverageOperatorTest {
+class MovingAverageSmootherTest {
 
     private val tolerance = 1e-9
 
@@ -22,7 +21,7 @@ class MovingAverageOperatorTest {
         val input = listOf(point(10.0, 100.0), point(20.0, 110.0), point(30.0, 120.0))
 
         // When
-        val result = input.asFlow().movingAverage(windowSize = 5).toList()
+        val result = MovingAverageSmoother(windowSize = 5)(input.asFlow()).toList()
 
         // Then
         assertEquals(3, result.size)
@@ -37,7 +36,7 @@ class MovingAverageOperatorTest {
         val input = (1..7).map { point(lat = it * 10.0, lon = 90.0 + it * 10.0) }
 
         // When
-        val result = input.asFlow().movingAverage(windowSize = 3).toList()
+        val result = MovingAverageSmoother(windowSize = 3)(input.asFlow()).toList()
 
         // Then
         val expectedLatitudes = listOf(10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 60.0)
@@ -54,7 +53,7 @@ class MovingAverageOperatorTest {
         val input = listOf(point(10.0, 100.0), point(20.0, 110.0))
 
         // When
-        val result = input.asFlow().movingAverage(windowSize = 1).toList()
+        val result = MovingAverageSmoother(windowSize = 1)(input.asFlow()).toList()
 
         // Then
         assertEquals(input, result)
@@ -63,9 +62,8 @@ class MovingAverageOperatorTest {
     @Test
     fun `should keep independent state for every collection`() = runTest {
         // Given
-        val smoothed = listOf(point(10.0, 100.0), point(20.0, 110.0), point(30.0, 120.0))
-            .asFlow()
-            .movingAverage(windowSize = 3)
+        val input = listOf(point(10.0, 100.0), point(20.0, 110.0), point(30.0, 120.0))
+        val smoothed = MovingAverageSmoother(windowSize = 3)(input.asFlow())
 
         // When
         val first = smoothed.toList()
@@ -77,12 +75,8 @@ class MovingAverageOperatorTest {
 
     @Test
     fun `should reject a window size below one`() {
-        assertFailsWith<InvalidWindowSizeException> {
-            emptyFlow<GpsCoordinate>().movingAverage(windowSize = 0)
-        }
-        assertFailsWith<InvalidWindowSizeException> {
-            emptyFlow<GpsCoordinate>().movingAverage(windowSize = -3)
-        }
+        assertFailsWith<InvalidWindowSizeException> { MovingAverageSmoother(windowSize = 0) }
+        assertFailsWith<InvalidWindowSizeException> { MovingAverageSmoother(windowSize = -3) }
     }
 
     @Test
@@ -93,7 +87,7 @@ class MovingAverageOperatorTest {
             .toList()
 
         // When
-        val smoothed = raw.asFlow().movingAverage(windowSize = 5).toList()
+        val smoothed = MovingAverageSmoother(windowSize = 5)(raw.asFlow()).toList()
 
         // Then
         assertEquals(raw.size, smoothed.size)

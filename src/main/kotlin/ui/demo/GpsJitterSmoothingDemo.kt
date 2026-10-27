@@ -1,6 +1,6 @@
 package ui.demo
 
-import domain.algorithm.smoothing.movingAverage
+import domain.algorithm.smoothing.MovingAverageSmoother
 import domain.model.telemetry.GpsCoordinate
 import domain.service.GpsJitterStreamService
 import kotlinx.coroutines.flow.collectIndexed
@@ -19,13 +19,14 @@ internal suspend fun runGpsJitterSmoothingDemo() {
 
     printHeader()
 
-    GpsJitterStreamService()
+    val noisyStream = GpsJitterStreamService()
         .streamNoisyCoordinates(
             intervalMs = DEMO_INTERVAL_MS,
             emissionCount = SAMPLE_COUNT
         )
         .onEach { rawPoints.add(it) }
-        .movingAverage(WINDOW_SIZE)
+
+    MovingAverageSmoother(WINDOW_SIZE)(noisyStream)
         .collectIndexed { index, smoothed ->
             val raw = rawPoints[index]
             val jump = if (index == 0) {
@@ -45,7 +46,7 @@ internal suspend fun runGpsJitterSmoothingDemo() {
 
 private fun printHeader() {
     println("\n============================================================")
-    println("  GPS TELEMETRY JITTER SMOOTHER (window = $WINDOW_SIZE)")
+    println("   GPS TELEMETRY JITTER SMOOTHER (window = $WINDOW_SIZE)")
     println("============================================================")
     println(" #  | RAW (lat, lon)         | SMOOTHED (lat, lon)    | JUMP raw -> smoothed | PHASE")
 }
