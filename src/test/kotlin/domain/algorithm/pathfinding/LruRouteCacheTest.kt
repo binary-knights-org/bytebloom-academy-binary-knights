@@ -21,15 +21,15 @@ class LruRouteCacheTest {
     )
 
     @Test
-    fun `get returns null for an uncached route`() {
+    fun `getRoute returns null for an uncached route`() {
         val cache = LruRouteCache()
         val key = RouteKey("WH-001", "WH-002")
 
-        assertNull(cache.get(key))
+        assertNull(cache.getRoute(key))
     }
 
     @Test
-    fun `get returns the route stored by put`() {
+    fun `getRoute returns the route stored by storeRoute`() {
         val cache = LruRouteCache()
         val key = RouteKey("WH-001", "WH-002")
         val path = listOf(
@@ -37,13 +37,13 @@ class LruRouteCacheTest {
             createWarehouse("WH-002", "Destination")
         )
 
-        cache.put(key, path)
+        cache.storeRoute(key, path)
 
-        assertEquals(path, cache.get(key))
+        assertEquals(path, cache.getRoute(key))
     }
 
     @Test
-    fun `get moves accessed route to most recently used position`() {
+    fun `getRoute moves accessed route to most recently used position`() {
         val cache = LruRouteCache(capacity = 2)
         val firstKey = RouteKey("WH-001", "WH-002")
         val secondKey = RouteKey("WH-003", "WH-004")
@@ -53,52 +53,52 @@ class LruRouteCacheTest {
         val secondPath = listOf(createWarehouse("WH-003", "Second"))
         val thirdPath = listOf(createWarehouse("WH-005", "Third"))
 
-        cache.put(firstKey, firstPath)
-        cache.put(secondKey, secondPath)
-        cache.get(firstKey)
-        cache.put(thirdKey, thirdPath)
+        cache.storeRoute(firstKey, firstPath)
+        cache.storeRoute(secondKey, secondPath)
+        cache.getRoute(firstKey)
+        cache.storeRoute(thirdKey, thirdPath)
 
         assertEquals(
             listOf(firstPath, null, thirdPath),
             listOf(
-                cache.get(firstKey),
-                cache.get(secondKey),
-                cache.get(thirdKey)
+                cache.getRoute(firstKey),
+                cache.getRoute(secondKey),
+                cache.getRoute(thirdKey)
             )
         )
     }
 
     @Test
-    fun `put evicts the least recently used route when capacity is exceeded`() {
+    fun `storeRoute evicts the least recently used route when capacity is exceeded`() {
         val cache = LruRouteCache(capacity = 2)
         val firstKey = RouteKey("WH-001", "WH-002")
         val secondKey = RouteKey("WH-003", "WH-004")
         val thirdKey = RouteKey("WH-005", "WH-006")
 
-        cache.put(firstKey, listOf(createWarehouse("WH-001", "First")))
-        cache.put(secondKey, listOf(createWarehouse("WH-003", "Second")))
-        cache.put(thirdKey, listOf(createWarehouse("WH-005", "Third")))
+        cache.storeRoute(firstKey, listOf(createWarehouse("WH-001", "First")))
+        cache.storeRoute(secondKey, listOf(createWarehouse("WH-003", "Second")))
+        cache.storeRoute(thirdKey, listOf(createWarehouse("WH-005", "Third")))
 
         assertEquals(
             listOf(null, "Second", "Third"),
             listOf(
-                cache.get(firstKey)?.first()?.name,
-                cache.get(secondKey)?.first()?.name,
-                cache.get(thirdKey)?.first()?.name
+                cache.getRoute(firstKey)?.first()?.name,
+                cache.getRoute(secondKey)?.first()?.name,
+                cache.getRoute(thirdKey)?.first()?.name
             )
         )
     }
 
     @Test
-    fun `put updates the path of an existing route`() {
+    fun `storeRoute updates the path of an existing route`() {
         val cache = LruRouteCache(capacity = 2)
         val key = RouteKey("WH-001", "WH-002")
         val updatedPath = listOf(createWarehouse("WH-001", "Updated"))
 
-        cache.put(key, listOf(createWarehouse("WH-001", "Old")))
-        cache.put(key, updatedPath)
+        cache.storeRoute(key, listOf(createWarehouse("WH-001", "Old")))
+        cache.storeRoute(key, updatedPath)
 
-        assertEquals(updatedPath, cache.get(key))
+        assertEquals(updatedPath, cache.getRoute(key))
     }
 
     @Test
@@ -113,10 +113,10 @@ class LruRouteCacheTest {
                 id = "WH-${index + 1}",
                 name = "Warehouse ${index + 1}"
             )
-            cache.put(key, listOf(warehouse))
+            cache.storeRoute(key, listOf(warehouse))
         }
 
-        cache.put(
+        cache.storeRoute(
             keys.last(),
             listOf(createWarehouse("WH-051", "Warehouse 51"))
         )
@@ -124,9 +124,9 @@ class LruRouteCacheTest {
         assertEquals(
             listOf(null, "Warehouse 2", "Warehouse 51"),
             listOf(
-                cache.get(keys.first())?.first()?.name,
-                cache.get(keys[1])?.first()?.name,
-                cache.get(keys.last())?.first()?.name
+                cache.getRoute(keys.first())?.first()?.name,
+                cache.getRoute(keys[1])?.first()?.name,
+                cache.getRoute(keys.last())?.first()?.name
             )
         )
     }
@@ -160,12 +160,12 @@ class LruRouteCacheTest {
             createWarehouse("WH-001", "Origin")
         )
 
-        cache.put(forwardKey, forwardPath)
-        cache.put(reverseKey, reversePath)
+        cache.storeRoute(forwardKey, forwardPath)
+        cache.storeRoute(reverseKey, reversePath)
 
         assertEquals(
             listOf(forwardPath, reversePath),
-            listOf(cache.get(forwardKey), cache.get(reverseKey))
+            listOf(cache.getRoute(forwardKey), cache.getRoute(reverseKey))
         )
     }
 }
