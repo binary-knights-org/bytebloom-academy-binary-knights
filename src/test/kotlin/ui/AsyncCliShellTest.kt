@@ -1,32 +1,29 @@
 package ui
 
-import domain.repository.WarehouseRepository
-import domain.usecase.routing.FindOptimalPathUseCase
-import domain.usecase.telemetry.TrackActiveFleetUseCase
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import ui.cli.AsyncCliShell
 import ui.cli.PackageClassificationCli
+import ui.cli.RoutingCli
+import ui.cli.TelemetryCli
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
 class AsyncCliShellTest {
 
-    private val warehouseRepository = mockk<WarehouseRepository>()
-    private val findOptimalPathUseCase = mockk<FindOptimalPathUseCase>()
-    private val trackActiveFleetUseCase = mockk<TrackActiveFleetUseCase>()
+    private val routingCli = mockk<RoutingCli>(relaxed = true)
+    private val telemetryCli = mockk<TelemetryCli>(relaxed = true)
     private val packageClassificationCli = mockk<PackageClassificationCli>(
         relaxed = true
     )
 
     private val shell = AsyncCliShell(
-        warehouseRepository,
-        findOptimalPathUseCase,
-        trackActiveFleetUseCase,
-        packageClassificationCli
+        routingCli = routingCli,
+        telemetryCli = telemetryCli,
+        packageClassificationCli = packageClassificationCli
     )
 
     @Test
