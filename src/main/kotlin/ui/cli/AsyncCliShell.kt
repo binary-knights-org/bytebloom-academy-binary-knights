@@ -6,8 +6,8 @@ import domain.usecase.routing.FindOptimalPathUseCase
 import domain.usecase.telemetry.TrackActiveFleetUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.withContext
 
 private const val MAX_TELEMETRY_NOTIFICATIONS = 10
 
@@ -20,85 +20,66 @@ internal class AsyncCliShell(
 
     suspend fun run() = coroutineScope {
         while (true) {
-            printMenu()
+            CliMenu.printMainMenu()
 
             val option = withContext(Dispatchers.IO) {
                 readlnOrNull()?.trim()
             }
 
             when (option) {
-                "1" -> {
-                    runRouteCalculation(warehouseRepository, findOptimalPathUseCase)
-                }
+                "1" -> runRouteCalculation(
+                    warehouseRepository,
+                    findOptimalPathUseCase
+                )
 
                 "2" -> packageClassificationCli.run()
 
-                "3" -> {
-                    println("\u001B[36mTelemetry streaming started.")
-                    println(
-                        "\u001B[95m"+
-                                "Displaying up to $MAX_TELEMETRY_NOTIFICATIONS " +
-                                "delay notifications..."
-                    )
-
-                    var notificationCount = 0
-
-                    withLoadingIndicator("Waiting for telemetry") { stopLoading ->
-                        trackActiveFleetUseCase(
-                            criteria = FleetTrackingCriteria()
-                        )
-                            .take(MAX_TELEMETRY_NOTIFICATIONS)
-                            .collect { notification ->
-                                stopLoading()
-                                notificationCount++
-
-                                println(
-                                    "[Telemetry]" +
-                                    "Vehicle: ${notification.vehicleId} | " +
-                                    "Delay: ${notification.delayMinutes} min | " +
-                                    "Speed: ${notification.currentSpeedKmh} km/h | " +
-                                    "Fuel: ${notification.fuelPercentage}% | " +
-                                    "Reason: ${notification.reason}"
-                                )
-                            }
-                    }
-
-                    println(
-                        "\u001B[95m"+
-                                "Telemetry display completed. " +
-                                "Notifications: $notificationCount"
-                    )
-                }
+                "3" -> streamTelemetry()
 
                 "0", null -> {
-                    println("\u001B[95mExiting Logistics CLI...")
+                    CliMenu.printExitMessage()
                     break
                 }
 
-                else -> {
-                    println(
-                        "\u001B[31m" +
-                                "Invalid option. Please choose 0, 1, 2, or 3."
-                    )
-                }
+                else -> CliMenu.printInvalidOption()
             }
 
-            println("\u001B[90m-----------------------------------------------")
+            CliMenu.printSeparator()
         }
 
-        println("\u001B[95mGoodbye!")
+        CliMenu.printGoodbye()
     }
 
-    private fun printMenu() {
+    private suspend fun streamTelemetry() {
+        println("\u001B[36mTelemetry streaming started.")
         println(
-            "\u001B[34m" +
-                    "1. Calculate Route\n" +
-                    "2. Classify Package via KNN\n" +
-                    "3. Real-time Telemetry Streaming Logs (10 notifications)\n" +
-                    "0. Exit"
+            "\u001B[95mDisplaying up to " +
+                "$MAX_TELEMETRY_NOTIFICATIONS delay notifications..."
         )
 
-        print("\u001B[35mChoose an option: ")
+        var notificationCount = 0
+
+        withLoadingIndicator("Waiting for telemetry") { stopLoading ->
+            trackActiveFleetUseCase(criteria = FleetTrackingCriteria())
+                .take(MAX_TELEMETRY_NOTIFICATIONS)
+                .collect { notification ->
+                    stopLoading()
+                    notificationCount++
+
+                    println(
+                        "[Telemetry] " +
+                            "Vehicle: ${notification.vehicleId} | " +
+                            "Delay: ${notification.delayMinutes} min | " +
+                            "Speed: ${notification.currentSpeedKmh} km/h | " +
+                            "Fuel: ${notification.fuelPercentage}% | " +
+                            "Reason: ${notification.reason}"
+                    )
+                }
+        }
+
+        println(
+            "\u001B[95mTelemetry display completed. " +
+                "Notifications: $notificationCount"
+        )
     }
 }
-
