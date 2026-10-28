@@ -16,12 +16,14 @@ import org.junit.jupiter.api.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class TelemetryQueryServiceTest {
 
-    @Test
-    fun `queryStream should execute search only once for rapid inputs`() = runTest {
-        val searchedQueries = mutableListOf<String>()
+    private fun textService(search: suspend (String) -> List<String>) =
+        TelemetryQueryService<String, String>(isSearchable = { it.isNotBlank() }, search = search)
 
-        val service = TelemetryQueryService { query ->
-            searchedQueries.add(query)
+    @Test
+    fun `rapid keystrokes trigger a single search`() = runTest {
+        val searched = mutableListOf<String>()
+        val service = textService { query ->
+            searched.add(query)
             listOf("Result for $query")
         }
 
@@ -35,17 +37,21 @@ class TelemetryQueryServiceTest {
 
         val results = service.queryStream(queries).toList()
 
-        assertThat(searchedQueries).containsExactly("TRK-101")
-        assertThat(results).containsExactly(listOf("Result for TRK-101"))
+        assertThat(searched).containsExactly("TRK-101")
+        assertThat(results)
+            .containsExactly(
+                SearchState.Loading,
+                SearchState.Success(listOf("Result for TRK-101"))
+            )
+            .inOrder()
     }
 
     @Test
-    fun `queryStream should not start search before debounce window elapses`() = runTest {
-        val searchedQueries = mutableListOf<String>()
-
-        val service = TelemetryQueryService { query ->
-            searchedQueries.add(query)
-            listOf("Result for $query")
+    fun `search does not start before the debounce window elapses`() = runTest {
+        val searched = mutableListOf<String>()
+        val service = textService { query ->
+            searched.add(query)
+            listOf(query)
         }
 
         val input = MutableSharedFlow<String>()
@@ -55,53 +61,48 @@ class TelemetryQueryServiceTest {
         input.emit("TRK-101")
 
         advanceTimeBy(299)
-        assertThat(searchedQueries).isEmpty()
+        assertThat(searched).isEmpty()
 
         advanceTimeBy(2)
         runCurrent()
-        assertThat(searchedQueries).containsExactly("TRK-101")
+        assertThat(searched).containsExactly("TRK-101")
 
         job.cancel()
     }
 
     @Test
-    fun `queryStream should ignore consecutive duplicate queries`() = runTest {
-        val searchedQueries = mutableListOf<String>()
-
-        val service = TelemetryQueryService { query ->
-            searchedQueries.add(query)
-            listOf("Result for $query")
+    fun `consecutive duplicate queries are searched once`() = runTest {
+        val searched = mutableListOf<String>()
+        val service = textService { query ->
+            searched.add(query)
+            listOf(query)
         }
 
         val queries = flow {
             emit("TRK-101")
             delay(350)
-
             emit("TRK-101")
             delay(350)
-
             emit("TRK-102")
             delay(350)
         }
 
         service.queryStream(queries).toList()
 
-        assertThat(searchedQueries).containsExactly("TRK-101", "TRK-102").inOrder()
+        assertThat(searched).containsExactly("TRK-101", "TRK-102").inOrder()
     }
 
     @Test
-    fun `queryStream should cancel previous search when a new debounced query arrives`() = runTest {
-        val startedQueries = mutableListOf<String>()
-        val cancelledQueries = mutableListOf<String>()
-
-        val service = TelemetryQueryService { query ->
-            startedQueries.add(query)
+    fun `new query cancels the in-flight search`() = runTest {
+        val started = mutableListOf<String>()
+        val cancelled = mutableListOf<String>()
+        val service = textService { query ->
+            started.add(query)
             try {
                 delay(1_000)
                 listOf("Result for $query")
             } catch (e: CancellationException) {
-                // Only reached when the search is actually cancelled.
-                cancelledQueries.add(query)
+                cancelled.add(query)
                 throw e
             }
         }
@@ -109,81 +110,131 @@ class TelemetryQueryServiceTest {
         val queries = flow {
             emit("TRK-101")
             delay(350)
-
             emit("TRK-102")
             delay(350)
         }
 
         val results = service.queryStream(queries).toList()
 
-        assertThat(startedQueries).containsExactly("TRK-101", "TRK-102").inOrder()
-        assertThat(cancelledQueries).containsExactly("TRK-101")
-        // The canceled search must never deliver a result.
-        assertThat(results).containsExactly(listOf("Result for TRK-102"))
+        assertThat(started).containsExactly("TRK-101", "TRK-102").inOrder()
+        assertThat(cancelled).containsExactly("TRK-101")
+        assertThat(results.filterIsInstance<SearchState.Success<*>>().map { it.items })
+            .containsExactly(listOf("Result for TRK-102"))
     }
 
     @Test
-    fun `queryStream should not search for blank input`() = runTest {
-        val searchedQueries = mutableListOf<String>()
-
-        val service = TelemetryQueryService { query ->
-            searchedQueries.add(query)
-            listOf("Result for $query")
-        }
-
-        val queries = flow {
-            emit("   ")
-            delay(500)
-        }
-
-        val results = service.queryStream(queries).toList()
-
-        assertThat(searchedQueries).isEmpty()
-        assertThat(results).isEmpty()
-    }
-
-    @Test
-    fun `queryStream should discard pending query when input is cleared`() = runTest {
-        val searchedQueries = mutableListOf<String>()
-
-        val service = TelemetryQueryService { query ->
-            searchedQueries.add(query)
-            listOf("Result for $query")
+    fun `clearing the input cancels the in-flight search and emits idle`() = runTest {
+        val cancelled = mutableListOf<String>()
+        val service = textService { query ->
+            try {
+                delay(1_000)
+                listOf("Result for $query")
+            } catch (e: CancellationException) {
+                cancelled.add(query)
+                throw e
+            }
         }
 
         val queries = flow {
             emit("TRK-101")
-            delay(100)
-            emit("")          // operator cleared the field before to debounce fired
             delay(500)
-        }
-
-        service.queryStream(queries).toList()
-
-        assertThat(searchedQueries).isEmpty()
-    }
-
-    @Test
-    fun `queryStream should survive a failing search and report the error`() = runTest {
-        val errors = mutableListOf<Throwable>()
-
-        val service = TelemetryQueryService(onError = { errors.add(it) }) { query ->
-            if (query == "bad") error("boom")
-            listOf("Result for $query")
-        }
-
-        val queries = flow {
-            emit("bad")
-            delay(500)
-            emit("good")
+            emit("")
             delay(500)
         }
 
         val results = service.queryStream(queries).toList()
 
-        assertThat(results).containsExactly(emptyList<String>(),
-            listOf("Result for good")).inOrder()
-        assertThat(errors).hasSize(1)
-        assertThat(errors.single()).hasMessageThat().isEqualTo("boom")
+        assertThat(cancelled).containsExactly("TRK-101")
+        assertThat(results).containsExactly(SearchState.Loading, SearchState.Idle).inOrder()
+    }
+
+    @Test
+    fun `blank input is not searched`() = runTest {
+        val searched = mutableListOf<String>()
+        val service = textService { query ->
+            searched.add(query)
+            listOf(query)
+        }
+
+        val results = service.queryStream(
+            flow {
+                emit("   ")
+                delay(500)
+            }
+        ).toList()
+
+        assertThat(searched).isEmpty()
+        assertThat(results).containsExactly(SearchState.Idle)
+    }
+
+    @Test
+    fun `query cleared before the debounce fires is discarded`() = runTest {
+        val searched = mutableListOf<String>()
+        val service = textService { query ->
+            searched.add(query)
+            listOf(query)
+        }
+
+        val results = service.queryStream(
+            flow {
+                emit("TRK-101")
+                delay(100)
+                emit("")
+                delay(500)
+            }
+        ).toList()
+
+        assertThat(searched).isEmpty()
+        assertThat(results).containsExactly(SearchState.Idle)
+    }
+
+    @Test
+    fun `a failing search emits failure and the stream keeps working`() = runTest {
+        val service = textService { query ->
+            if (query == "bad") error("boom")
+            listOf("Result for $query")
+        }
+
+        val results = service.queryStream(
+            flow {
+                emit("bad")
+                delay(500)
+                emit("good")
+                delay(500)
+            }
+        ).toList()
+
+        assertThat(results).hasSize(4)
+        assertThat(results[0]).isEqualTo(SearchState.Loading)
+        assertThat((results[1] as SearchState.Failure).error).hasMessageThat().isEqualTo("boom")
+        assertThat(results[2]).isEqualTo(SearchState.Loading)
+        assertThat(results[3]).isEqualTo(SearchState.Success(listOf("Result for good")))
+    }
+
+    @Test
+    fun `works with non-text queries and skips incomplete ones`() = runTest {
+        val searched = mutableListOf<Int>()
+        val service = TelemetryQueryService<Int, Int>(isSearchable = { it > 0 }) { number ->
+            searched.add(number)
+            listOf(number * 2)
+        }
+
+        val results = service.queryStream(
+            flow {
+                emit(0)
+                delay(500)
+                emit(5)
+                delay(500)
+            }
+        ).toList()
+
+        assertThat(searched).containsExactly(5)
+        assertThat(results)
+            .containsExactly(
+                SearchState.Idle,
+                SearchState.Loading,
+                SearchState.Success(listOf(10))
+            )
+            .inOrder()
     }
 }

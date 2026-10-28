@@ -7,30 +7,32 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOf
 
-class TelemetryQueryService(
-    private val onError: (Throwable) -> Unit = {},
-    private val search: suspend (String) -> List<String>
+
+class TelemetryQueryService<Q, T>(
+    private val isSearchable: (Q) -> Boolean,
+    private val search: suspend (Q) -> List<T>
 ) {
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    fun queryStream(queries: Flow<String>): Flow<List<String>> =
+    fun queryStream(queries: Flow<Q>): Flow<SearchState<T>> =
         queries
-            .map { it.trim() }
             .debounce(DEBOUNCE_MS)
-            .filter { it.isNotEmpty() }
             .distinctUntilChanged()
             .flatMapLatest { query ->
-                flow { emit(search(query)) }
-                    .catch { e ->
-                        if (e is CancellationException) throw e
-                        onError(e)
-                        emit(emptyList())
-                    }
+                if (isSearchable(query)) execute(query) else flowOf(SearchState.Idle)
             }
+
+    private fun execute(query: Q): Flow<SearchState<T>> =
+        flow<SearchState<T>> {
+            emit(SearchState.Loading)
+            emit(SearchState.Success(search(query)))
+        }.catch { error ->
+            if (error is CancellationException) throw error
+            emit(SearchState.Failure(error))
+        }
 
     companion object {
         const val DEBOUNCE_MS = 300L

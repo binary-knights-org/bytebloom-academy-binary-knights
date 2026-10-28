@@ -4,6 +4,7 @@ import di.networkModule
 import di.pricingModule
 import di.repositoryModule
 import di.routingModule
+import di.searchModule
 import di.telemetryModule
 import di.useCaseModule
 import di.validatorModule
@@ -15,9 +16,9 @@ import domain.usecase.telemetry.TrackActiveFleetUseCase
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
 import ui.cli.AsyncCliShell
+import ui.cli.LivePicker
 import ui.cli.PackageClassificationCli
-import ui.cli.RoutingCli
-import ui.cli.TelemetryCli
+import ui.cli.SearchCli
 
 fun main() = runBlocking {
     val koin = startKoin {
@@ -28,24 +29,34 @@ fun main() = runBlocking {
             pricingModule,
             routingModule,
             useCaseModule,
+            searchModule,
             telemetryModule
         )
     }.koin
 
     printSystemHeader()
 
+    val warehouseRepository = koin.get<WarehouseRepository>()
+    val findOptimalPathUseCase = koin.get<FindOptimalPathUseCase>()
+    val packageClassificationCli = PackageClassificationCli(
+        packageRepository = koin.get<PackageRepository>(),
+        classifyPackageSectorUseCase = koin.get<ClassifyPackageSectorUseCase>()
+    )
+
+    val searchCli = SearchCli(
+        picker = LivePicker(),
+        searchPackages = koin.get(),
+        searchRoutes = koin.get(),
+        searchVehicles = koin.get(),
+        searchWarehouses = koin.get()
+    )
+
     val cliShell = AsyncCliShell(
-        routingCli = RoutingCli(
-            warehouseRepository = koin.get<WarehouseRepository>(),
-            findOptimalPathUseCase = koin.get<FindOptimalPathUseCase>()
-        ),
-        packageClassificationCli = PackageClassificationCli(
-            packageRepository = koin.get<PackageRepository>(),
-            classifyPackageSectorUseCase = koin.get<ClassifyPackageSectorUseCase>()
-        ),
-        telemetryCli = TelemetryCli(
-            trackActiveFleetUseCase = koin.get<TrackActiveFleetUseCase>()
-        )
+        warehouseRepository = warehouseRepository,
+        findOptimalPathUseCase = findOptimalPathUseCase,
+        trackActiveFleetUseCase = koin.get<TrackActiveFleetUseCase>(),
+        packageClassificationCli = packageClassificationCli,
+        searchCli = searchCli
     )
 
     cliShell.run()

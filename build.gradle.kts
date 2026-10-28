@@ -38,6 +38,8 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("org.slf4j:slf4j-simple:2.0.13")
+    implementation("org.jline:jline:3.30.6")
+
 }
 
 kotlin {
