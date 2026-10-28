@@ -28,7 +28,10 @@ internal class AsyncCliShell(
             }
 
             when (option) {
-                "1" -> runRouteCalculation(warehouseRepository, findOptimalPathUseCase)
+                "1" -> runRouteCalculation(
+                    warehouseRepository,
+                    findOptimalPathUseCase
+                )
 
                 "2" -> packageClassificationCli.run()
 
