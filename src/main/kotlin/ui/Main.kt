@@ -4,6 +4,7 @@ import di.networkModule
 import di.pricingModule
 import di.repositoryModule
 import di.routingModule
+import di.searchModule
 import di.telemetryModule
 import di.useCaseModule
 import di.validatorModule
@@ -15,7 +16,9 @@ import domain.usecase.telemetry.TrackActiveFleetUseCase
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
 import ui.cli.AsyncCliShell
+import ui.cli.LivePicker
 import ui.cli.PackageClassificationCli
+import ui.cli.SearchCli
 
 fun main() = runBlocking {
     val koin = startKoin {
@@ -26,6 +29,7 @@ fun main() = runBlocking {
             pricingModule,
             routingModule,
             useCaseModule,
+            searchModule,
             telemetryModule
         )
     }.koin
@@ -39,11 +43,20 @@ fun main() = runBlocking {
         classifyPackageSectorUseCase = koin.get<ClassifyPackageSectorUseCase>()
     )
 
+    val searchCli = SearchCli(
+        picker = LivePicker(),
+        searchPackages = koin.get(),
+        searchRoutes = koin.get(),
+        searchVehicles = koin.get(),
+        searchWarehouses = koin.get()
+    )
+
     val cliShell = AsyncCliShell(
         warehouseRepository = warehouseRepository,
         findOptimalPathUseCase = findOptimalPathUseCase,
         trackActiveFleetUseCase = koin.get<TrackActiveFleetUseCase>(),
-        packageClassificationCli = packageClassificationCli
+        packageClassificationCli = packageClassificationCli,
+        searchCli = searchCli
     )
 
     cliShell.run()
