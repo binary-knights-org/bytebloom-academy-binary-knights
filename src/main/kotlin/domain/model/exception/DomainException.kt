@@ -35,6 +35,7 @@ sealed class DomainException(
         const val EMPTY_RING = "The Ring has no active vehicles."
         const val INVALID_DELIVERY_TOUR =
             "A delivery tour must start and end at the same warehouse and contain at least one delivery stop."
+        const val INVALID_WINDOW_SIZE = "Moving average window size must be at least 1."
     }
 }
 
@@ -70,3 +71,4 @@ class InvalidSpeedException(message: String = INVALID_SPEED) : DomainException(m
 class InvalidFuelPercentageException(message: String = INVALID_FUEL_PERCENTAGE) : DomainException(message)
 class EmptyRingException(message: String = EMPTY_RING) : DomainException(message)
 class InvalidDeliveryTourException(message: String = INVALID_DELIVERY_TOUR) : DomainException(message)
+class InvalidWindowSizeException(message: String = INVALID_WINDOW_SIZE) : DomainException(message)
